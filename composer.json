@@ -1,0 +1,20 @@
+{
+    "name": "michaloo/resform",
+    "description": "Reservation form",
+    "license": "GPL2",
+    "authors": [
+        {
+            "name": "Michał Rączka",
+            "email": "me@michaloo.net"
+        },
+        {
+            "name": "Artur Kopacz",
+            "email": "artkopacz@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "config": {
+        "vendor-dir": "src/vendor"
+    },
+    "require": {}
+}
