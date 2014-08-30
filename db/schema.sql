@@ -2,7 +2,7 @@ DROP DATABASE resform;
 CREATE DATABASE resform;
 USE resform;
 
-CREATE TABLE IF NOT EXISTS {$prefix}event (
+CREATE TABLE IF NOT EXISTS _prefix_events (
   event_id mediumint(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   start_time TIMESTAMP,
@@ -14,11 +14,11 @@ CREATE TABLE IF NOT EXISTS {$prefix}event (
   room_type_info TEXT,
   transport_info TEXT,
   regulations MEDIUMTEXT,
-  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS {$prefix}room_type (
+CREATE TABLE IF NOT EXISTS _prefix_room_types (
   room_type_id mediumint(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   space_count INT NOT NULL,
@@ -26,32 +26,33 @@ CREATE TABLE IF NOT EXISTS {$prefix}room_type (
   room_count INT NOT NULL,
   price DECIMAL(10,2) NOT NULL,
   event_id MEDIUMINT(9) NOT NULL,
-  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY(event_id) REFERENCES {$prefix}event(event_id)
+  FOREIGN KEY(event_id) REFERENCES _prefix_events(event_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS {$prefix}room (
+CREATE TABLE IF NOT EXISTS _prefix_rooms (
   room_id mediumint(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   room_type_id MEDIUMINT(9) NOT NULL,
-  status ENUM('male', 'female', 'family'), 
+  sex ENUM('male', 'female'),
+  family_person_id MEDIUMINT(9),
   -- status ENUM('free', 'full'),
-  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY(room_type_id) REFERENCES {$prefix}room_type(room_type_id)
+  FOREIGN KEY(room_type_id) REFERENCES _prefix_room_types(room_type_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS {$prefix}transport (
+CREATE TABLE IF NOT EXISTS _prefix_transports (
   transport_id mediumint(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   price DECIMAL(10,2) NOT NULL,
   event_id MEDIUMINT(9) NOT NULL,
-  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY(event_id) REFERENCES {$prefix}event(event_id)
+  FOREIGN KEY(event_id) REFERENCES _prefix_events(event_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS {$prefix}person (
+CREATE TABLE IF NOT EXISTS _prefix_persons (
   person_id MEDIUMINT(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   family_person_id MEDIUMINT(9),
   room_id MEDIUMINT(9) NOT NULL,
@@ -71,10 +72,12 @@ CREATE TABLE IF NOT EXISTS {$prefix}person (
   underaged ENUM('no', 'alone', 'with_guardian') NOT NULL,
   underaged_guardian BOOLEAN NOT NULL DEFAULT 0,
   underaged_person_name VARCHAR(255),
-  sex ENUM('male', 'female') NOT NULL, 
+  family_guardian BOOLEAN NOT NULL DEFAULT 0,
+  sex ENUM('male', 'female') NOT NULL,
   comments TEXT,
-  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-  edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
-  FOREIGN KEY(room_id) REFERENCES {$prefix}room(room_id),
-  FOREIGN KEY(transport_id) REFERENCES {$prefix}transport(transport_id)
+  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY(room_id) REFERENCES _prefix_rooms(room_id),
+  FOREIGN KEY(transport_id) REFERENCES _prefix_transports(transport_id),
+  FOREIGN KEY(family_person_id) REFERENCES _prefix_persons(person_id) ON DELETE CASCADE
 );
