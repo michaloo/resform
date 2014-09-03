@@ -26,3 +26,21 @@ containers:
             tty: true
             rm: true
             cmd: /app/bin/connect
+    webdev_it:
+        image: michaloo/webdev
+        run:
+            volume: [".:/app/public"]
+            workdir: /app/public
+            publish: ["80:80"]
+            link: [ "mysql:mysql" ]
+            interactive: true
+            env-file: ".env"
+            env:
+            - "MYSQL_USER=root"
+            - "MYSQL_PASS=root"
+            entrypoint: /bin/bash
+            tty: true
+            rm: true
+            cmd:
+            - -c
+            - bash
