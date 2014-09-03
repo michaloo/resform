@@ -1,10 +1,6 @@
-SELECT _prefix_rooms_available('male', NULL, false);
-
-
-DROP FUNCTION IF EXISTS _prefix_rooms_available;
-
 DELIMITER $$
 CREATE FUNCTION _prefix_rooms_available(
+    new_room_type_id MEDIUMINT(9),
     new_sex ENUM('male', 'female'),
     new_family_person_id MEDIUMINT(9),
     new_family_guardian BOOLEAN,
@@ -22,7 +18,11 @@ BEGIN
         OR (sex = new_sex AND new_family_guardian = false AND new_family_person_id IS NULL AND free_space_count > 0)
         -- room is already occupied by family_person
         OR (new_family_person_id IS NOT NULL AND family_person_id = new_family_person_id AND free_space_count > 0)
-    ) AND (IF(new_room_id IS NULL, true, false) OR room_id = new_room_id)
+    )
+    -- if new_room_id is provided we check only that room
+    AND (IF(new_room_id IS NULL, true, false) OR room_id = new_room_id)
+    -- we only query selected new_room_type_id
+    AND room_type_id = new_room_type_id
     ORDER BY free_space_count ASC, room_id LIMIT 1;
     RETURN return_room_id;
 END$$

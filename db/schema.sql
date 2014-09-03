@@ -1,6 +1,3 @@
-DROP DATABASE resform;
-CREATE DATABASE resform;
-USE resform;
 
 CREATE TABLE IF NOT EXISTS _prefix_events (
   event_id mediumint(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -55,6 +52,7 @@ CREATE TABLE IF NOT EXISTS _prefix_transports (
 CREATE TABLE IF NOT EXISTS _prefix_persons (
   person_id MEDIUMINT(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   family_person_id MEDIUMINT(9),
+  room_type_id MEDIUMINT(9) NOT NULL,
   room_id MEDIUMINT(9) NOT NULL,
   transport_id MEDIUMINT(9) NOT NULL,
   first_name VARCHAR(255) NOT NULL,
@@ -66,7 +64,7 @@ CREATE TABLE IF NOT EXISTS _prefix_persons (
   disabled BOOLEAN NOT NULL DEFAULT 0,
   disabled_guardian BOOLEAN NOT NULL DEFAULT 0,
   disability_type VARCHAR(255),
-  stairs BOOLEAN NOT NULL DEFAULT 1,
+  stairs_accessibility BOOLEAN NOT NULL DEFAULT 1,
   guardian_person_name VARCHAR(255),
   disabled_person_name VARCHAR(255),
   underaged ENUM('no', 'alone', 'with_guardian') NOT NULL,
@@ -77,7 +75,17 @@ CREATE TABLE IF NOT EXISTS _prefix_persons (
   comments TEXT,
   add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY(room_type_id) REFERENCES _prefix_room_types(room_type_id),
   FOREIGN KEY(room_id) REFERENCES _prefix_rooms(room_id),
   FOREIGN KEY(transport_id) REFERENCES _prefix_transports(transport_id),
   FOREIGN KEY(family_person_id) REFERENCES _prefix_persons(person_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS _prefix_audit_logs (
+  audit_log_id MEDIUMINT(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  object_id MEDIUMINT(9),
+  log TEXT,
+  user TEXT,
+  add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

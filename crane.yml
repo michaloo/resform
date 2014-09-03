@@ -1,0 +1,28 @@
+containers:
+    data_mysql:
+        image: tianon/true
+        run:
+            volume: ["/var/lib/mysql"]
+            detach: true
+    mysql:
+        image: michaloo/mariadb
+        run:
+            volumes-from: ["data_mysql"]
+            env-file: ".env"
+            publish: ["3306:3306"]
+            detach: true
+    mysql_it:
+        image: michaloo/mariadb
+        run:
+            volume: [".:/resform"]
+            workdir: /resform
+            link: [ "mysql:mysql" ]
+            interactive: true
+            env-file: ".env"
+            env:
+            - "MYSQL_USER=root"
+            - "MYSQL_PASS=root"
+            entrypoint: /bin/bash
+            tty: true
+            rm: true
+            cmd: /app/bin/connect
