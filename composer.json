@@ -16,5 +16,7 @@
     "config": {
         "vendor-dir": "src/vendor"
     },
-    "require": {}
+    "require": {
+        "twig/twig": "1.*"
+    }
 }

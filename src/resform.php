@@ -9,10 +9,10 @@
  * License: GPL2
  */
 
-/*  Copyright 2014  Michał Rączka, Artur Kopacz 
+/*  Copyright 2014  Michał Rączka, Artur Kopacz
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as 
+    it under the terms of the GNU General Public License, version 2, as
     published by the Free Software Foundation.
 
     This program is distributed in the hope that it will be useful,
@@ -25,3 +25,11 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+require_once(plugin_dir_path( __FILE__ ) . 'vendor/autoload.php');
+
+$loader = new Twig_Loader_Filesystem(plugin_dir_path( __FILE__ ) . 'views');
+$twig = new Twig_Environment($loader);
+
+require_once(plugin_dir_path( __FILE__ ) . 'controllers/install.php');
+
+require_once(plugin_dir_path( __FILE__ ) . 'controllers/admin.php');

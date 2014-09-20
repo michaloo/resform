@@ -1,0 +1,3 @@
+1. Move database operations to Models
+2. Create script generating db.sql from separate sql files (it has to remove comments and add break elements)
+3. Create twig partials and macros

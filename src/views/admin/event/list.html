@@ -1,0 +1,19 @@
+{% extends "admin/_layout.html" %}
+
+{% block content %}
+Lista wydarzeń
+
+<table>
+    <tbody>
+
+        {% for event in events %}
+        <tr>
+            <td>{{ event.name }}</td>
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+
+<a href="/wp-admin/admin.php?page=resform_add">Dodaj wydarzenie</a>
+{% endblock %}
