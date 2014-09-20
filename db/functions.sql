@@ -22,7 +22,7 @@ BEGIN
     -- if new_room_id is provided we check only that room
     AND (IF(new_room_id IS NULL, true, false) OR room_id = new_room_id)
     -- we only query selected new_room_type_id
-    AND room_type_id = new_room_type_id
+    AND (IF(new_room_type_id IS NULL, true, false) OR room_type_id = new_room_type_id)
     ORDER BY free_space_count ASC, room_id LIMIT 1;
     RETURN return_room_id;
 END$$

@@ -121,10 +121,6 @@ CREATE TRIGGER `_prefix_persons_before_insert`
 
         SELECT _prefix_rooms_available(NEW.room_type_id, NEW.sex, NEW.family_person_id, NEW.family_guardian, NULL) INTO @room_id;
 
-        IF NEW.family_person_id IS NULL THEN
-            UPDATE _prefix_rooms SET sex = NEW.sex WHERE room_id = @room_id;
-        END IF;
-
         SET NEW.room_id = @room_id;
 
     END$$
@@ -133,6 +129,10 @@ CREATE TRIGGER `_prefix_persons_before_insert`
 CREATE TRIGGER `_prefix_persons_after_insert`
     AFTER INSERT ON `_prefix_persons`
     FOR EACH ROW BEGIN
+
+        IF NEW.family_person_id IS NULL THEN
+            UPDATE _prefix_rooms SET sex = NEW.sex WHERE room_id = @room_id;
+        END IF;
 
         IF NEW.family_guardian = true THEN
             UPDATE _prefix_rooms SET family_person_id = NEW.person_id WHERE room_id = NEW.room_id;
@@ -146,23 +146,31 @@ CREATE TRIGGER `_prefix_persons_after_insert`
 -- trigger makes sure that updated room_id is checked before saving
 CREATE TRIGGER `_prefix_persons_before_update`
     BEFORE UPDATE ON `_prefix_persons`
-    FOR EACH ROW BEGIN
+    FOR EACH ROW proc:BEGIN
+
+        IF OLD.room_id = NEW.room_id THEN
+            LEAVE proc;
+        END IF;
 
         SET @room_id = NULL;
 
         SELECT _prefix_rooms_available(NEW.room_type_id, NEW.sex, NEW.family_person_id, NEW.family_guardian, NEW.room_id) INTO @room_id;
         SET NEW.room_id = @room_id;
 
-        IF NEW.family_person_id IS NULL THEN
-            UPDATE _prefix_rooms SET sex = NEW.sex WHERE room_id = @room_id;
-        END IF;
-
     END$$
 
 -- trigger updates room data only for family_guardian persons
 CREATE TRIGGER `_prefix_persons_after_update`
     AFTER UPDATE ON `_prefix_persons`
-    FOR EACH ROW BEGIN
+    FOR EACH ROW proc:BEGIN
+
+        IF OLD.room_id = NEW.room_id THEN
+            LEAVE proc;
+        END IF;
+
+        IF NEW.family_person_id IS NULL THEN
+            UPDATE _prefix_rooms SET sex = NEW.sex WHERE room_id = @room_id;
+        END IF;
 
         IF NEW.family_guardian = true THEN
             UPDATE _prefix_rooms SET family_person_id = NEW.person_id WHERE room_id = NEW.room_id;
