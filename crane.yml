@@ -36,7 +36,7 @@ containers:
         run:
             volumes-from: ["resform_data_web"]
             volume: [".:/resform", "./src:/var/www/html/wp-content/plugins/resform"]
-            workdir: /resfrom
+            workdir: /resform
             net: host
             interactive: true
             env-file: [".env"]
