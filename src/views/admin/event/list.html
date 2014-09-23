@@ -9,11 +9,13 @@ Lista wydarzeń
         {% for event in events %}
         <tr>
             <td>{{ event.name }}</td>
+            <td><a href="/wp-admin/admin.php?page=resform_event_edit&id={{event.event_id}}">Edytuj</a></td>
+            <td><a href="/wp-admin/admin.php?page=resform_event_list&delete={{event.event_id}}">Usuń</a></td>
         </tr>
         {% endfor %}
 
     </tbody>
 </table>
 
-<a href="/wp-admin/admin.php?page=resform_add">Dodaj wydarzenie</a>
+<a href="/wp-admin/admin.php?page=resform_event_add">Dodaj wydarzenie</a>
 {% endblock %}

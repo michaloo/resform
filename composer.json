@@ -17,6 +17,7 @@
         "vendor-dir": "src/vendor"
     },
     "require": {
-        "twig/twig": "1.*"
+        "twig/twig": "1.*",
+        "pimple/pimple": "~3.0"
     }
 }

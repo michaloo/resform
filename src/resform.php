@@ -27,9 +27,11 @@
 
 require_once(plugin_dir_path( __FILE__ ) . 'vendor/autoload.php');
 
-$loader = new Twig_Loader_Filesystem(plugin_dir_path( __FILE__ ) . 'views');
-$twig = new Twig_Environment($loader);
+require_once(plugin_dir_path( __FILE__ ) . 'map.php');
 
-require_once(plugin_dir_path( __FILE__ ) . 'controllers/install.php');
+require_once(plugin_dir_path( __FILE__ ) . 'bootstrap.php');
 
-require_once(plugin_dir_path( __FILE__ ) . 'controllers/admin.php');
+
+$AdminController   = $container['admin_controller'];
+$InstallController = $container['install_controller'];
+$FrontController   = $container['front_controller'];

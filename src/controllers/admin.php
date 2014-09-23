@@ -1,75 +1,115 @@
 <?php
 
-function resform_events_list() {
-    global $wpdb, $twig;
+namespace Resform\Controller;
 
-    $query = "SELECT * FROM {$wpdb->prefix}resform_events LIMIT 10";
 
-    $events = $wpdb->get_results($query, OBJECT);
+class Admin {
 
-    //require_once(plugin_dir_path( __FILE__ ) . '../views/admin/event/list.php');
-    echo $twig->render('admin/event/list.html', array('events' => $events));
-}
+    function __construct($view, $db, $events) {
+        $this->view   = $view;
+        $this->db     = $db;
+        $this->events = $events;
 
-function resform_events_add() {
-    global $wpdb;
-
-    if ($_POST) {
-
-        $keys = array('name', 'start_time', 'end_time');
-
-        $values = array_map(function ($key) use ($wpdb) {
-            return mysqli_real_escape_string($wpdb->dbh, $_POST[$key]);
-        }, $keys);
-
-        $fields = (object) array_combine($keys, $values);
-
-        //$name = mysqli_real_escape_string($wpdb->dbh, $_POST['name']);
-
-        $query = "INSERT INTO {$wpdb->prefix}resform_events (name) VALUES ('{$fields->name}')";
-        var_dump($query);
-        $wpdb->query($query);
+        add_action( 'admin_menu', array($this, 'register_menu_page'));
     }
 
-    require_once(plugin_dir_path( __FILE__ ) . '../views/admin/event/form.php');
-}
+    function register_menu_page() {
+        add_menu_page(
+            'Wydarzenia',
+            'Formularz rezerwacji',
+            'manage_options',
+            'resform_event_list',
+            array($this, 'event_list'),
+            'dashicons-media-text',
+            30
+        );
 
-function resform_transports_add() {
-    global $wpdb;
 
-    if ($_POST) {
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Dodaj wydarzenie',
+            'manage_options',
+            'resform_event_add',
+            array($this, 'event_add')
+        );
 
-        $name = mysqli_real_escape_string($wpdb->dbh, $_POST['name']);
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Dodaj wydarzenie',
+            'manage_options',
+            'resform_event_edit',
+            array($this, 'event_edit')
+        );
 
-        $query = "INSERT INTO {$wpdb->prefix}resform_events (name) VALUES ('$name')";
-        var_dump($query);
-        $wpdb->query($query);
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Dodaj sposób dojazdu',
+            'manage_options',
+            'resform_transports_add',
+            array($this, 'transport_add')
+        );
     }
 
-    require_once(plugin_dir_path( __FILE__ ) . '../views/admin/transport/form.php');
-}
 
-add_action( 'admin_menu', 'resform_register_menu_page' );
+    function event_list() {
 
-function resform_register_menu_page(){
-    add_menu_page( 'Wydarzenia', 'Formularz rezerwacji', 'manage_options', 'resform', 'resform_events_list', 'dashicons-media-text', 30 );
+        if ($_GET && isset($_GET['delete'])) {
+
+            $id = $_GET['delete'];
+
+            $event = $this->events->find($id);
+
+            $event->delete();
+
+        }
+
+        $events = $this->events->get();
+
+        echo $this->view->render('admin/event/list.html', array('events' => $events));
+    }
+
+    function event_add() {
+
+        if ($_POST) {
+
+            $event = $this->events->create($_POST);
+            $event->save();
+        }
+
+        echo $this->view->render('admin/event/form.html');
+    }
+
+    function event_edit() {
+
+        $id = $_GET['id'];
+
+        $event = $this->events->find($id);
 
 
-    add_submenu_page(
-        'resform',
-        'Page Title',
-        'Dodaj wydarzenie',
-        'manage_options',
-        'resform_add',
-        'resform_events_add'
-    );
+        if ($_POST) {
+            $event->fromPost($_POST);
+            $event->event_id = $id;
+            $event->update();
+        }
 
-    add_submenu_page(
-        'resform',
-        'Page Title',
-        'Dodaj sposób dojazdu',
-        'manage_options',
-        'resform_transports_add',
-        'resform_transports_add'
-    );
+        echo $this->view->render('admin/event/form.html', array('event' => $event));
+    }
+
+    function transport_add() {
+        global $wpdb;
+
+        if ($_POST) {
+
+            $name = mysqli_real_escape_string($wpdb->dbh, $_POST['name']);
+
+            $query = "INSERT INTO {$wpdb->prefix}resform_events (name) VALUES ('$name')";
+            var_dump($query);
+            $wpdb->query($query);
+        }
+
+        require_once(plugin_dir_path( __FILE__ ) . '../views/admin/transport/form.php');
+    }
 }
