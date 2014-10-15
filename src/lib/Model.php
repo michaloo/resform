@@ -18,19 +18,28 @@ abstract class Model {
     function fromPost($post) {
 
         $values = array_map(function ($key) use ($post) {
+
+            if ($post[$key] === 'false') {
+                return false;
+            }
             return $post[$key];
         }, $this->keys);
 
-        $this->data = array_combine($this->keys, $values);
+        $this->data = array_merge($this->data, array_combine($this->keys, $values));
         return $this;
     }
 
     function getMap() {
 
         $values = array_map(function ($key) {
+
+            if (is_bool($this->data[$key])) {
+                return 'FALSE';
+            }
+
             $value = mysqli_real_escape_string($this->db->dbh, $this->data[$key]);
 
-            if (!$value) {
+            if (! $value) {
                 return 'NULL';
             }
 

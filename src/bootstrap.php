@@ -22,7 +22,13 @@ $container['install_controller'] = $container->factory(function($c) {
 });
 
 $container['admin_controller'] = $container->factory(function($c) {
-    return new \Resform\Controller\Admin($c['view'], $c['db'], $c['events_collection']);
+    return new \Resform\Controller\Admin(
+        $c['view'],
+        $c['db'],
+        $c['events_collection'],
+        $c['transports_collection'],
+        $c['room_types_collection']
+    );
 });
 
 $container['front_controller'] = $container->factory(function($c) {
@@ -35,14 +41,20 @@ $container['events_collection'] = function($c) {
     return new \Resform\Model\EventsCollection($c['db'], $c['event_model']);
 };
 
+$container['room_type_model'] = '\Resform\Model\RoomType';
+$container['room_types_collection'] = function($c) {
+    return new \Resform\Model\RoomTypesCollection($c['db'], $c['room_type_model']);
+};
+
+$container['transport_model'] = '\Resform\Model\Transport';
+$container['transports_collection'] = function($c) {
+    return new \Resform\Model\TransportsCollection($c['db'], $c['transport_model']);
+};
+
 $container['person_model'] = function($c) {
     return new \Resform\Model\Person();
 };
 
 $container['room_model'] = function($c) {
     return new \Resform\Model\Room();
-};
-
-$container['room_type_model'] = function($c) {
-    return new \Resform\Model\RoomType();
 };

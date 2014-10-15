@@ -5,10 +5,13 @@ namespace Resform\Controller;
 
 class Admin {
 
-    function __construct($view, $db, $events) {
+    function __construct($view, $db, $events, $transports, $room_types) {
         $this->view   = $view;
         $this->db     = $db;
         $this->events = $events;
+
+        $this->transports = $transports;
+        $this->room_types = $room_types;
 
         add_action( 'admin_menu', array($this, 'register_menu_page'));
     }
@@ -37,7 +40,7 @@ class Admin {
         add_submenu_page(
             null,
             'Page Title',
-            'Dodaj wydarzenie',
+            'Edytuj wydarzenie',
             'manage_options',
             'resform_event_edit',
             array($this, 'event_edit')
@@ -50,6 +53,32 @@ class Admin {
             'manage_options',
             'resform_transports_add',
             array($this, 'transport_add')
+        );
+
+
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Lista Typów Pokoi',
+            'manage_options',
+            'resform_room_type_list',
+            array($this, 'room_type_list')
+        );
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Dodaj wydarzenie',
+            'manage_options',
+            'resform_room_type_add',
+            array($this, 'room_type_add')
+        );
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Edytuj wydarzenie',
+            'manage_options',
+            'resform_room_type_edit',
+            array($this, 'room_type_edit')
         );
     }
 
@@ -111,5 +140,58 @@ class Admin {
         }
 
         require_once(plugin_dir_path( __FILE__ ) . '../views/admin/transport/form.php');
+    }
+
+    function room_type_list() {
+
+        if ($_GET && isset($_GET['delete'])) {
+
+            $id = $_GET['delete'];
+
+            $event = $this->events->find($id);
+
+            $event->delete();
+
+        }
+
+        $event_id = $_GET['event_id'];
+
+        $event = $this->events->find($event_id);
+
+        $room_types = $this->room_types->get($event->event_id);
+
+        echo $this->view->render('admin/room_type/list.html', array(
+            'room_types' => $room_types,
+            'event'      => $event
+        ));
+    }
+
+    function room_type_add() {
+
+        if ($_POST) {
+
+            $room_type = $this->room_types->create($_POST);
+            $room_type->save();
+        }
+
+        echo $this->view->render('admin/room_type/form.html', array('event_id' => $_GET['event_id']));
+    }
+
+    function room_type_edit() {
+
+        $id = $_GET['room_type_id'];
+
+        $room_type = $this->room_types->find($id);
+
+
+        if ($_POST) {
+            $room_type->fromPost($_POST);
+            $room_type->room_type_id = $id;
+            $room_type->update();
+        }
+
+        echo $this->view->render('admin/room_type/form.html', array(
+            'event_id' => $room_type->event_id,
+            'room_type' => $room_type));
     }
 }
