@@ -14,14 +14,19 @@
     <div id="post-body" class="metabox-holder columns-2">
         <div id="post-body-content">
             <form name="post" action="/wp-admin/admin.php?page=resform_room_type_{{action}}" method="post">
+                {% if room_type %}
+                <input type="hidden" name="room_type_id" value="{{room_type.room_type_id}}" />
+                <input type="hidden" name="event_id" value="{{room_type.event_id}}" />
+                {% else %}
                 <input type="hidden" name="event_id" value="{{event_id}}" />
+                {% endif %}
                 <input type="text" name="name" placeholder="nazwa" value="{{room_type.name}}" /><br />
                 <input type="number" name="space_count" placeholder="liczba miejsc" value="{{room_type.space_count}}" /><br />
                 <input type="number" name="room_count" placeholder="liczba pokoi" value="{{room_type.room_count}}" /><br />
                 <input type="number" name="price" placeholder="cena" value="{{room_type.price}}" /><br />
                 <select name="bathroom" placeholder="łazienka?">
-                    <option value="true">Tak</option>
-                    <option value="false"{% if not room_type.bathroom %} selected{% endif %}>Nie</option>
+                    <option value="1">Tak</option>
+                    <option value="0"{% if not room_type.bathroom %} selected{% endif %}>Nie</option>
                 </select><br />
                 <button>Dodaj</button>
             </form>

@@ -1,0 +1,18 @@
+{
+    "title": "Event",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50
+        },
+        "start_time": {
+            "type": "string"
+        },
+        "end_time": {
+            "type": "string"
+        }
+    },
+    "required": ["name", "start_time", "end_time"]
+}

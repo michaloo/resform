@@ -4,82 +4,104 @@ namespace Resform\Lib;
 
 abstract class Model {
 
-    var $keys = array();
-    protected $data = array();
+    protected $filters = array();
+    protected $schema  = array();
+
     protected $db;
+    protected $filter;
+    protected $validator;
 
-    function __construct($db, $data = array()) {
-        $this->db   = $db;
-        $this->data = $data;
+    function __construct($db, $filter, $validator) {
+        $this->db        = $db;
+        $this->filter    = $filter;
+        $this->validator = $validator;
 
         return $this;
     }
 
-    function fromPost($post) {
 
-        $values = array_map(function ($key) use ($post) {
+    function validate($data) {
+        $schema = json_decode(file_get_contents(plugin_dir_path( __FILE__ ) . '../' . $this->schema));
 
-            if ($post[$key] === 'false') {
-                return false;
-            }
-            return $post[$key];
-        }, $this->keys);
-
-        $this->data = array_merge($this->data, array_combine($this->keys, $values));
-        return $this;
+        $this->validator->check((object) $data, $schema);
+        return $this->validator->getErrors();
     }
 
-    function getMap() {
 
-        $values = array_map(function ($key) {
+    function filter($data) {
+        $this->filter->add($this->filters);
 
-            if (is_bool($this->data[$key])) {
-                return 'FALSE';
+        $data = array_intersect_key($data, $this->filters);
+        return $this->filter->filter($data);
+    }
+
+
+    //
+    // function fromPost($post) {
+    //
+    //     $values = array_map(function ($key) use ($post) {
+    //
+    //         if ($post[$key] === 'false') {
+    //             return false;
+    //         }
+    //         return $post[$key];
+    //     }, $this->keys);
+    //
+    //     $this->data = array_merge($this->data, array_combine($this->keys, $values));
+    //     return $this;
+    // }
+
+    function getMap($keys, $data) {
+
+        $values = array_map(function ($key) use ($data) {
+
+            if (is_bool($data[$key])) {
+                return ($data[$key] == true) ? 'true' : 'false';
             }
 
-            $value = mysqli_real_escape_string($this->db->dbh, $this->data[$key]);
+            $value = mysqli_real_escape_string($this->db->dbh, $data[$key]);
 
             if (! $value) {
                 return 'NULL';
             }
 
             return "'" . $value . "'";
-        }, $this->keys);
+        }, $keys);
 
-        return array_combine($this->keys, $values);
+        return array_combine($keys, $values);
     }
 
-    function showValues() {
-        return join(', ', $this->getMap());
+    function getValues($keys, $data) {
+        return join(', ', $this->getMap($keys, $data));
     }
 
-    function showKeys() {
-        return join(', ', $this->keys);
+    function getKeys($keys) {
+        return join(', ', $keys);
     }
 
-    function showPairs() {
-        $pairs = $this->getMap();
+    function getPairs($keys, $data) {
+        $pairs = $this->getMap($keys, $data);
         array_walk($pairs, create_function('&$i,$k','$i=" $k=$i";'));
 
         return implode(', ', $pairs);
     }
 
-    public function __set($name, $value) {
-        $this->data[$name] = $value;
-    }
-
-    public function __get($name) {
-        if (array_key_exists($name, $this->data)) {
-            return $this->data[$name];
-        }
-        return null;
-    }
-
-    public function __isset($name) {
-        return isset($this->data[$name]);
-    }
-
-    public function __unset($name) {
-        unset($this->data[$name]);
-    }
+    // public function __set($name, $value) {
+    //     $this->data[$name] = $value;
+    // }
+    //
+    // public function __get($name) {
+    //     if (array_key_exists($name, $this->data)) {
+    //         return $this->data[$name];
+    //     }
+    //     return null;
+    // }
+    //
+    // public function __isset($name) {
+    //     return isset($this->data[$name]);
+    // }
+    //
+    // public function __unset($name) {
+    //     unset($this->data[$name]);
+    // }
 }

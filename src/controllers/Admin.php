@@ -5,13 +5,15 @@ namespace Resform\Controller;
 
 class Admin {
 
-    function __construct($view, $db, $events, $transports, $room_types) {
+    function __construct($view, $db, $event, $transport, $room_type, $room) {
         $this->view   = $view;
         $this->db     = $db;
-        $this->events = $events;
 
-        $this->transports = $transports;
-        $this->room_types = $room_types;
+
+        $this->event     = $event;
+        $this->transport = $transport;
+        $this->room_type = $room_type;
+        $this->room      = $room;
 
         add_action( 'admin_menu', array($this, 'register_menu_page'));
     }
@@ -80,22 +82,28 @@ class Admin {
             'resform_room_type_edit',
             array($this, 'room_type_edit')
         );
+
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Lista Pokoi',
+            'manage_options',
+            'resform_room_list',
+            array($this, 'room_list')
+        );
     }
 
 
     function event_list() {
 
-        if ($_GET && isset($_GET['delete'])) {
+        if (isset($_GET['event_id'])) {
 
-            $id = $_GET['delete'];
+            $id = $_GET['event_id'];
 
-            $event = $this->events->find($id);
-
-            $event->delete();
-
+            $this->event->delete($id);
         }
 
-        $events = $this->events->get();
+        $events = $this->event->get();
 
         echo $this->view->render('admin/event/list.html', array('events' => $events));
     }
@@ -104,8 +112,14 @@ class Admin {
 
         if ($_POST) {
 
-            $event = $this->events->create($_POST);
-            $event->save();
+            $filtered = $this->event->filter($_POST);
+            $errors   = $this->event->validate($filtered);
+
+            if (count($errors) === 0) {
+                $this->event->save($filtered);
+            } else {
+                var_dump($errors);
+            }
         }
 
         echo $this->view->render('admin/event/form.html');
@@ -113,16 +127,20 @@ class Admin {
 
     function event_edit() {
 
-        $id = $_GET['id'];
-
-        $event = $this->events->find($id);
-
-
         if ($_POST) {
-            $event->fromPost($_POST);
-            $event->event_id = $id;
-            $event->update();
+            $filtered = $this->event->filter($_POST);
+            $errors   = $this->event->validate($filtered);
+
+            if (count($errors) === 0) {
+                $this->event->update($filtered);
+            } else {
+                var_dump($errors);
+            }
         }
+
+        $id = $_GET['event_id'];
+
+        $event = $this->event->find($id);
 
         echo $this->view->render('admin/event/form.html', array('event' => $event));
     }
@@ -144,21 +162,19 @@ class Admin {
 
     function room_type_list() {
 
-        if ($_GET && isset($_GET['delete'])) {
+        if (isset($_GET['room_type_id'])) {
 
-            $id = $_GET['delete'];
+            $id = $_GET['room_type_id'];
 
-            $event = $this->events->find($id);
-
-            $event->delete();
+            $this->room_type->delete($id);
 
         }
 
         $event_id = $_GET['event_id'];
 
-        $event = $this->events->find($event_id);
+        $event = $this->event->find($event_id);
 
-        $room_types = $this->room_types->get($event->event_id);
+        $room_types = $this->room_type->get($event['event_id']);
 
         echo $this->view->render('admin/room_type/list.html', array(
             'room_types' => $room_types,
@@ -170,8 +186,14 @@ class Admin {
 
         if ($_POST) {
 
-            $room_type = $this->room_types->create($_POST);
-            $room_type->save();
+            $filtered = $this->room_type->filter($_POST);
+            $errors   = $this->room_type->validate($filtered);
+
+            if (count($errors) === 0) {
+                $this->room_type->save($filtered);
+            } else {
+                var_dump($errors);
+            }
         }
 
         echo $this->view->render('admin/room_type/form.html', array('event_id' => $_GET['event_id']));
@@ -179,19 +201,45 @@ class Admin {
 
     function room_type_edit() {
 
-        $id = $_GET['room_type_id'];
-
-        $room_type = $this->room_types->find($id);
-
-
         if ($_POST) {
-            $room_type->fromPost($_POST);
-            $room_type->room_type_id = $id;
-            $room_type->update();
+            $filtered = $this->room_type->filter($_POST);
+            $errors   = $this->room_type->validate($filtered);
+
+            if (count($errors) === 0) {
+                $this->room_type->update($filtered);
+            } else {
+                var_dump($errors);
+            }
         }
 
+        $id = $_GET['room_type_id'];
+
+        $room_type = $this->room_type->find($id);
+        
         echo $this->view->render('admin/room_type/form.html', array(
             'event_id' => $room_type->event_id,
             'room_type' => $room_type));
+    }
+
+    function room_list() {
+
+        if (isset($_GET['room_id'])) {
+
+            $id = $_GET['room_id'];
+
+            $this->room->delete($id);
+
+        }
+
+        $event_id = $_GET['event_id'];
+
+        $event = $this->events->find($event_id);
+
+        $rooms = $this->room->get($event->event_id);
+var_dump($rooms);
+        echo $this->view->render('admin/room/list.html', array(
+            'rooms' => $rooms,
+            'event' => $event
+        ));
     }
 }

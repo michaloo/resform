@@ -9,9 +9,11 @@ Lista wydarzeń
         {% for event in events %}
         <tr>
             <td>{{ event.name }}</td>
-            <td><a href="/wp-admin/admin.php?page=resform_event_edit&id={{event.event_id}}">Edytuj</a></td>
-            <td><a href="/wp-admin/admin.php?page=resform_event_list&delete={{event.event_id}}">Usuń</a></td>
+            <td><a href="/wp-admin/admin.php?page=resform_event_edit&event_id={{event.event_id}}">Edytuj</a></td>
+            <td><a href="/wp-admin/admin.php?page=resform_event_list&event_id={{event.event_id}}">Usuń</a></td>
+
             <td><a href="/wp-admin/admin.php?page=resform_room_type_list&event_id={{event.event_id}}">Typy Pokoi</a></td>
+            <td><a href="/wp-admin/admin.php?page=resform_room_list&event_id={{event.event_id}}">Lista Pokoi</a></td>
         </tr>
         {% endfor %}
 

@@ -1,0 +1,23 @@
+{% extends "admin/_layout.html" %}
+
+{% block content %}
+Lista pokoi
+
+<table>
+    <tbody>
+
+        {% for room in rooms %}
+        <tr>
+            <td>{{ room.room_type_name }}</td>
+            <td>{{ room.occupied_space_count}} / {{ room.space_count }}</td>
+            <td>{{ room.sex }}</td>
+            <!-- <td><a href="/wp-admin/admin.php?page=resform_room_type_edit&room_type_id={{room_type.room_type_id}}">Edytuj</a></td>
+            <td><a href="/wp-admin/admin.php?page=resform_room_type_list&delete={{room_type.room_type_id}}">Usuń</a></td> -->
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+
+<!-- <a href="/wp-admin/admin.php?page=resform_room_type_add&event_id={{event.event_id}}">Dodaj Typ Pokoju</a> -->
+{% endblock %}
