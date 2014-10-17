@@ -35,10 +35,15 @@ class Event extends \Resform\Lib\Model {
     var $schema = 'schemas/event.json';
 
 
-    function get() {
-        $query = "SELECT * FROM {$this->db->prefix}resform_events LIMIT 20";
+    function get($limit, $page, $orderby, $sort) {
+        $query   = "SELECT * FROM {$this->db->prefix}resform_events LIMIT 20";
         $results = $this->db->get_results($query, ARRAY_A);
-        return $results;
+        $total_count = $this->_getTotalCount();
+        $pager = $this->_getPager($total_count, $limit, $page, $orderby, $sort);
+        return array(
+            'data' => $results,
+            'pager' => $pager
+        );
     }
 
     function find($id) {

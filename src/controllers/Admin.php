@@ -103,7 +103,12 @@ class Admin {
             $this->event->delete($id);
         }
 
-        $events = $this->event->get();
+        $limit = (isset($_GET['limit'])) ? $_GET['limit'] : 10;
+        $page  = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
+        $orderby = (isset($_GET['orderby'])) ? $_GET['orderby'] : 'event_id';
+        $sort = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
+
+        $events = $this->event->get($limit, $page, $orderby, $sort);
 
         echo $this->view->render('admin/event/list.html', array('events' => $events));
     }
@@ -215,7 +220,7 @@ class Admin {
         $id = $_GET['room_type_id'];
 
         $room_type = $this->room_type->find($id);
-        
+
         echo $this->view->render('admin/room_type/form.html', array(
             'event_id' => $room_type->event_id,
             'room_type' => $room_type));

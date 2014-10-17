@@ -1,24 +1,84 @@
 {% extends "admin/_layout.html" %}
 
 {% block content %}
-Lista wydarzeń
+<h2>Wydarzenia<a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Dodaj nowe</a></h2>
 
-<table>
-    <tbody>
+<form name="external_author" action="/wp-admin/admin.php?page=handimania_external_authors" method="post">
 
-        {% for event in events %}
-        <tr>
-            <td>{{ event.name }}</td>
-            <td><a href="/wp-admin/admin.php?page=resform_event_edit&event_id={{event.event_id}}">Edytuj</a></td>
-            <td><a href="/wp-admin/admin.php?page=resform_event_list&event_id={{event.event_id}}">Usuń</a></td>
+    <table class="wp-list-table widefat">
+        <thead>
+            <tr>
+                <th>Nazwa</th>
+                <th>Data wydarzenia</th>
+                <th>Data zapisów</th>
+                <th>Akcje</th>
+                {#
+                {% if external_hosts.pager.orderby == 'visits' %}
+                    {% set sort = (external_hosts.pager.sort == 'asc') ? 'desc' : 'asc' %}
+                {% else %}
+                    {% set sort = 'asc' %}
+                {% endif %}
 
-            <td><a href="/wp-admin/admin.php?page=resform_room_type_list&event_id={{event.event_id}}">Typy Pokoi</a></td>
-            <td><a href="/wp-admin/admin.php?page=resform_room_list&event_id={{event.event_id}}">Lista Pokoi</a></td>
-        </tr>
-        {% endfor %}
 
-    </tbody>
-</table>
+                <th scope="col" id="date" class="manage-column sortable {{ sort }}" style="">
+                    <a href="/wp-admin/admin.php?page=handimania_external_authors&orderby=visits&order={{ sort }}">
+                        <span>Vists</span>
+                        <span class="sorting-indicator"></span>
+                    </a>
+                </th>
 
-<a href="/wp-admin/admin.php?page=resform_event_add">Dodaj wydarzenie</a>
+                {% if external_hosts.pager.orderby == 'external_links' %}
+                    {% set sort = (external_hosts.pager.sort == 'asc') ? 'desc' : 'asc' %}
+                {% else %}
+                    {% set sort = 'desc' %}
+                {% endif %}
+
+                <th scope="col" id="date" class="manage-column sortable desc" style="">
+                    <a href="/wp-admin/admin.php?page=handimania_external_authors&orderby=external_links&order={{ sort }}">
+                        <span>Unique Links</span>
+                        <span class="sorting-indicator"></span>
+                    </a>
+                </th>
+                #}
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events.data %}
+            <tr{% if loop.index is odd %} class="alternate"{% endif %}>
+                <td>{{ event.name }}</td>
+                <td>{{ event.start_time|date('d.m.Y') }} - {{ event.start_time|date('d.m.Y') }}</td>
+                <td>{{ event.reservation_start_time }} - {{ event.reservation_end_time }}</td>
+                <td>
+                    <a href="/wp-admin/admin.php?page=resform_event_edit&event_id={{event.event_id}}">Edytuj</a>
+                    <a href="/wp-admin/admin.php?page=resform_event_list&event_id={{event.event_id}}">Usuń</a>
+                    <a href="/wp-admin/admin.php?page=resform_room_type_list&event_id={{event.event_id}}">Typy Pokoi</a>
+                    <a href="/wp-admin/admin.php?page=resform_room_list&event_id={{event.event_id}}">Lista Pokoi</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="tablenav bottom">
+
+        <div class="alignleft actions">
+            <button class="button action">Update</button>
+        </div>
+        {% set pager = events.pager %}
+        <div class="tablenav-pages">
+            <span class="displaying-num">{{ pager.total_count }} items</span>
+            <span class="pagination-links">
+                <a class="first-page{% if not pager.first %} disabled{% endif %}" title="Go to the first page" href="/wp-admin/admin.php?page=handimania_external_authors">«</a>
+                <a class="prev-page{% if not pager.prev %} disabled{% endif %}" title="Go to the previous page" href="/wp-admin/admin.php?page=handimania_external_authors&paged={{ pager.prev }}">‹</a>
+                <span class="paging-input">{{ pager.current }} of <span class="total-pages">{{ pager.count }}</span></span>
+                <a class="next-page{% if not pager.next %} disabled{% endif %}" title="Go to the next page" href="/wp-admin/admin.php?page=handimania_external_authors&paged={{ pager.next }}">›</a>
+                <a class="last-page{% if not pager.last %} disabled{% endif %}" title="Go to the last page" href="/wp-admin/admin.php?page=handimania_external_authors&paged={{ pager.last }}">»</a>
+            </span>
+        </div>
+        <br class="clear">
+
+    </div>
+
+</form>
+
 {% endblock %}

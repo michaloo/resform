@@ -35,22 +35,6 @@ abstract class Model {
         return $this->filter->filter($data);
     }
 
-
-    //
-    // function fromPost($post) {
-    //
-    //     $values = array_map(function ($key) use ($post) {
-    //
-    //         if ($post[$key] === 'false') {
-    //             return false;
-    //         }
-    //         return $post[$key];
-    //     }, $this->keys);
-    //
-    //     $this->data = array_merge($this->data, array_combine($this->keys, $values));
-    //     return $this;
-    // }
-
     function getMap($keys, $data) {
 
         $values = array_map(function ($key) use ($data) {
@@ -86,22 +70,30 @@ abstract class Model {
         return implode(', ', $pairs);
     }
 
-    // public function __set($name, $value) {
-    //     $this->data[$name] = $value;
-    // }
-    //
-    // public function __get($name) {
-    //     if (array_key_exists($name, $this->data)) {
-    //         return $this->data[$name];
-    //     }
-    //     return null;
-    // }
-    //
-    // public function __isset($name) {
-    //     return isset($this->data[$name]);
-    // }
-    //
-    // public function __unset($name) {
-    //     unset($this->data[$name]);
-    // }
+    protected function _getTotalCount() {
+        $total_count = $this->db->get_results("SELECT FOUND_ROWS() AS total_count");
+        return (int) array_pop($total_count)->total_count;
+    }
+
+    protected function _getPager($total_count, $limit, $page, $orderby, $sort) {
+
+        $count = max(floor($total_count / $limit), 1);
+        $next_page = ($page < $count) ? $page + 1 : null;
+        $last_page = ($page < $count) ? $count : null;
+
+        $prev_page = ($page > 1) ? $page - 1 : null;
+        $first_page = ($page > 1) ? 1 : null;
+
+        return array(
+            'current' => $page,
+            'count'   => $count,
+            'next'    => $next_page,
+            'last'    => $last_page,
+            'first'   => $first_page,
+            'prev'    => $prev_page,
+            'orderby' => $orderby,
+            'sort'    => $sort,
+            'total_count' => $total_count
+        );
+    }
 }
