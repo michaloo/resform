@@ -1,0 +1,128 @@
+<form action="{{ action_url }}" method="POST">
+    <input type="hidden" name="step" value="2">
+
+    <fieldset>
+        <label>
+            <span>K</span>
+            <input type="radio" name="sex" value="female">
+        </label>
+        <label>
+            <span>M</span>
+            <input type="radio" name="sex" value="male">
+        </label>
+        <hr>
+        <label>
+            <span>Imię:</span>
+            <input type="text" name="first_name" value="">
+        </label>
+        <label>
+            <span>Nazwisko:</span>
+            <input type="text" name="last_name" value="">
+        </label>
+        <label>
+            <span>Data urodzenia:</span>
+            <input type="text" name="birth_date" value="">
+        </label>
+        <hr>
+        <label>
+            <span>Adres e-mail:</span>
+            <input type="text" name="email" value="">
+        </label>
+
+        <label>
+            <span>Numer telefonu:</span>
+            <input type="text" name="phone" value="">
+        </label>
+
+        <label>
+            <span>Miasto:</span>
+            <input type="text" name="city" value="">
+        </label>
+    <fieldset>
+
+    <fieldset>
+        <label>
+            <span>osobą niepełnosprawną:</span>
+            <input type="checkbox" name="disabled" value="1">
+        </label>
+        <label>
+            <span>opiekunem osoby niepełnosprawnej</span>
+            <input type="checkbox" name="disabled_guardian" value="1">
+        </label>
+
+        <fieldset>
+            <label>
+                <span>Stopień/rodzaj niepełnosprawności:</span>
+                <input type="text" name="disability_type">
+            </label>
+
+            <label>Czy możesz chodzić po schodach?</label>
+            <label>
+                <span>tak</span>
+                <input type="radio" name="stairs_accessibility" value="1">
+            </label>
+
+            <label>
+                <span>nie</span>
+                <input type="radio" name="stairs_accessibility" value="0">
+            </label>
+
+            <label>
+                <span>Imię i nazwisko opiekuna:</span>
+                <input type="text" name="guardian_person_name">
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <label>
+                <span>Imię i nazwisko osoby niepełnosprawnej, którą się opiekuję:</span>
+                <input type="text" name="disabled_person_name">
+            </label>
+        </fieldset>
+    </fieldset>
+
+    <fieldset>
+
+        <label>
+            <span>Jestem osobą niepełnoletnią, będę na wyjeździe bez opieki rodziców/prawnych opiekunów</span>
+            <input type="checkbox" name="underaged" value="alone">
+        </label>
+
+        <label>
+            <span>Jestem osobą niepełnoletnią, wezmę udział w rekolekcjach z opiekunem, który nie jest moim rodzicem/opiekunem prawnym</span>
+            <input type="checkbox" name="underaged_guardian" value="with_guardian">
+        </label>
+
+        <fieldset>
+            <label>
+                <span>Jestem opiekunem osoby niepełnoletniej</span>
+                <input type="text" name="underaged_person_name">
+            </label>
+        </fieldset>
+
+    </fieldset>
+
+    <fieldset>
+        <button id="add_family_member">Dodaj członka rodziny/dziecko</button>
+
+        <div style="display: none;" id="form-template">
+            <fieldset>
+                <label>
+                    <span>Imię:</span>
+                    <input type="text" name="first_name" value="">
+                </label>
+                <label>
+                    <span>Nazwisko:</span>
+                    <input type="text" name="last_name" value="">
+                </label>
+                <label>
+                    <span>Data urodzenia:</span>
+                    <input type="text" name="birth_date" value="">
+                </label>
+            </fieldset>
+        </div>
+    </fieldset>
+
+    <button>Idź dalej</button>
+    <button name="step" value="0">Wróc do początku</button>
+</form>

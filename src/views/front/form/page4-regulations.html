@@ -1,0 +1,17 @@
+
+<form action="{{ action_url }}" method="POST">
+    <input type="hidden" name="step" value="4">
+
+    <label>
+        <span>Akceptuję regulamin</span>
+        <input type="checkbox" name="accept_regulation" />
+    </label>
+
+    <label>
+        <span>Wyrażam zgodę na przetwarzanie moich danych osobowych przez Fundację Malak dla potrzeb niezbędnych do realizacji wyjazdu "Weekend pełen Łaski" zgodnie z Ustawą z dnia 29.08.1997 roku o Ochronie Danych Osobowych ( Dz.U. z 2002r. Nr 101, poz. 926 ze zm.).</span>
+        <input type="checkbox" name="accept_information" />
+    </label>
+
+    <button>Idź dalej</button>
+    <button name="step" value="0">Wróc do początku</button>
+</form>
