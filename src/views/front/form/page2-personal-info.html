@@ -1,56 +1,61 @@
-<form action="{{ action_url }}" method="POST">
+<form action="{{ action_url }}" method="post" class="resform">
     <input type="hidden" name="step" value="2">
 
     <fieldset>
-        <label>
-            <span>K</span>
-            <input type="radio" name="sex" value="female">
-        </label>
-        <label>
-            <span>M</span>
-            <input type="radio" name="sex" value="male">
-        </label>
-        <hr>
-        <label>
+        <h2>Dane osobowe</h2>
+        <fieldset class="one-line">
+            <label class="main">Płeć:</label>
+            <label>
+                <span>Kobieta:</span>
+                <input type="radio" name="sex" value="female">
+            </label>
+            <label>
+                <span>Mężczyzna:</span>
+                <input type="radio" name="sex" value="male">
+            </label>
+        </fieldset>
+        <label class="two-line main">
             <span>Imię:</span>
             <input type="text" name="first_name" value="">
         </label>
-        <label>
+        <label class="two-line main">
             <span>Nazwisko:</span>
             <input type="text" name="last_name" value="">
         </label>
-        <label>
+        <label class="two-line main">
             <span>Data urodzenia:</span>
             <input type="text" name="birth_date" value="">
         </label>
-        <hr>
-        <label>
+        <label class="two-line main">
             <span>Adres e-mail:</span>
             <input type="text" name="email" value="">
         </label>
 
-        <label>
+        <label class="two-line main">
             <span>Numer telefonu:</span>
             <input type="text" name="phone" value="">
         </label>
 
-        <label>
+        <label class="two-line main">
             <span>Miasto:</span>
             <input type="text" name="city" value="">
         </label>
     <fieldset>
-
+    <h2>Informacje dodatkowe</h2>
     <fieldset>
-        <label>
+        <h3>Osoba niepełnosprawna/opiekun osoby niepełnosprawnej</h3>
+        <p>W przypadku osób niepełnosprawnych oraz ich opiekunów, proszę podać imię i nazwisko opiekuna / osoby niepełnosprawnej, którą się opiekujesz - ułatwi to nam przydzielenie do wspólnego pokoju.</p>
+        <label class="main two-line">Jestem:</label>
+        <label class="one-line">
             <span>osobą niepełnosprawną:</span>
-            <input type="checkbox" name="disabled" value="1">
+            <input type="checkbox" name="disabled" value="1" data-set-id="disabled_set">
         </label>
         <label>
-            <span>opiekunem osoby niepełnosprawnej</span>
-            <input type="checkbox" name="disabled_guardian" value="1">
+            <span>opiekunem osoby niepełnosprawnej:</span>
+            <input type="checkbox" name="disabled_guardian" value="1" data-set-id="disabled_guardian_set">
         </label>
 
-        <fieldset>
+        <fieldset id="disabled_set" class="optional">
             <label>
                 <span>Stopień/rodzaj niepełnosprawności:</span>
                 <input type="text" name="disability_type">
@@ -73,7 +78,7 @@
             </label>
         </fieldset>
 
-        <fieldset>
+        <fieldset id="disabled_guardian_set" class="optional">
             <label>
                 <span>Imię i nazwisko osoby niepełnosprawnej, którą się opiekuję:</span>
                 <input type="text" name="disabled_person_name">
@@ -82,47 +87,55 @@
     </fieldset>
 
     <fieldset>
-
+        <h3>Niepełnoletni uczestnicy i ich opiekunowie</h3>
+        <p></p>
         <label>
-            <span>Jestem osobą niepełnoletnią, będę na wyjeździe bez opieki rodziców/prawnych opiekunów</span>
+            <span class="main">Jestem osobą niepełnoletnią, będę na wyjeździe bez opieki rodziców/prawnych opiekunów:</span>
             <input type="checkbox" name="underaged" value="alone">
+            <span class="description">W rekolekcjach mogą wziąć udział osoby niepełnoletnie bez opieki i obecności rodziców/prawnych opiekunów. Muszą jednak mieć co najmniej 16 lat i przesłać do Organizatora zgodę rodziców/prawnych opiekunów na udział ich dziecka/podopiecznego w rekolekcjach - pismo do uzupełnienia i podpisania zostanie wysłane w mailu potwierdzającym zapis. Zgodę należy przesłać jako skan na adres zapisyrekolekcje@gmail.com w ciągu 3 dni od zapisu, oryginał natomiast uczestnik rekolekcji przekaże Organizatorowi przy zakwaterowaniu.</span>
         </label>
 
         <label>
-            <span>Jestem osobą niepełnoletnią, wezmę udział w rekolekcjach z opiekunem, który nie jest moim rodzicem/opiekunem prawnym</span>
+            <span class="main">Jestem osobą niepełnoletnią, wezmę udział w rekolekcjach z opiekunem, który nie jest moim rodzicem/opiekunem prawnym</span>
             <input type="checkbox" name="underaged_guardian" value="with_guardian">
+            <span class="description">Jeżeli nieletni uczestnik bierze udział w rekolekcjach pod opieką osoby niebędącej jego rodzicem/opiekunem prawnym, zobowiązany jest przesłać do Organizatora zgodę rodziców/prawnych opiekunów na udział ich dziecka/podopiecznego w rekolekcjach oraz wskazanie opiekuna - pismo do uzupełnienia i podpisania zostanie wysłane w mailu potwierdzającym zapis. Zgodę należy przesłać jako skan na adres: zapisyrekolekcje@gmail.com w ciągu 3 dni od zapisu, oryginał natomiast uczestnik rekolekcji przekaże Organizatorowi przy zakwaterowaniu. Jeśli dotyczy to Państwa, prosimy również o zaznaczenie odpowiedniego pola poniżej.</span>
         </label>
 
         <fieldset>
             <label>
-                <span>Jestem opiekunem osoby niepełnoletniej</span>
+                <span class="main">Jestem opiekunem osoby niepełnoletniej</span>
+                <span>Wpisz imię i nazwisko osoby, za którą bierzesz odpowiedzialność:</span>
                 <input type="text" name="underaged_person_name">
             </label>
         </fieldset>
 
     </fieldset>
 
-    <fieldset>
-        <button id="add_family_member">Dodaj członka rodziny/dziecko</button>
+    <fieldset id="family_fieldset">
+        <h3>Członkowie rodziny</h3>
+        <button id="family_button">Dodaj członka rodziny/dziecko</button>
 
-        <div style="display: none;" id="form-template">
+        <div style="display: none;" id="family_template">
             <fieldset>
                 <label>
                     <span>Imię:</span>
-                    <input type="text" name="first_name" value="">
+                    <input type="text" name="family_first_name[]" value="">
                 </label>
                 <label>
                     <span>Nazwisko:</span>
-                    <input type="text" name="last_name" value="">
+                    <input type="text" name="family_last_name[]" value="">
                 </label>
                 <label>
                     <span>Data urodzenia:</span>
-                    <input type="text" name="birth_date" value="">
+                    <input type="text" name="family_birth_date[]" value="">
                 </label>
+                <label class="family_remove">Usuń</label>
             </fieldset>
         </div>
     </fieldset>
 
-    <button>Idź dalej</button>
-    <button name="step" value="0">Wróc do początku</button>
+    <fieldset class="submit">
+        <button>Idź dalej</button>
+        <button name="step" value="0">Wróc do początku</button>
+    </fieldset>
 </form>

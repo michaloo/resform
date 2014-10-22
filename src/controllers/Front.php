@@ -54,7 +54,9 @@ class Front {
     }
 
     function enqueue_script() {
-        wp_enqueue_script('resform-main', $this->assetsUrl . 'js/main.js', array('jquery'), true);
+        // theme we are working on uses CDN jQuery which makes offline development testing impossible
+        wp_enqueue_script('jquery-fallback', includes_url() . '/js/jquery/jquery.js');
+        wp_enqueue_script('resform-main', $this->assetsUrl . 'js/main.js', array('jquery-fallback'), true);
     }
 
     function show_form($atts) {
@@ -66,6 +68,7 @@ class Front {
 
         //var_dump($_SESSION);
         $_SESSION['test'] = true;
+        var_dump($_POST);
 
         switch ($step) {
             default:

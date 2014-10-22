@@ -1,0 +1,73 @@
+.resform .optional {
+    height: 0;
+    display: none;
+}
+
+.resform .optional.open {
+    display: block;
+    height: auto;
+}
+
+.resform label.two-line {
+    display: block;
+}
+
+.resform label.two-line span {
+    display: inline-block;
+    width: 100%;
+}
+
+.resform label.two-line input {
+    width: 70%;
+}
+
+.resform .main {
+    font-weight: bold;
+}
+
+.resform h1,
+.resform h2 {
+    border-bottom: 1px solid black;
+    margin-bottom: 1vw;
+}
+
+.resform hr {
+    border-top: 1px solid black;
+}
+
+.resform .one-line {
+    display: inline-block;
+    width: 100%;
+}
+
+
+.resform .description {
+    font-size: 0.9em;
+    display: inline-block;
+    line-height: 1em;
+    color: grey;
+}
+
+
+.resform .submit {
+    margin-top: 3vh;
+    text-align: center;
+    padding-top: 1vh;
+    border-top: 1px solid black;
+}
+
+.resform button {
+    font-size: 0.875em;
+    line-height: 2.2857em;
+    padding: 0.2em 0.75em;
+    background-color: #000;
+    color: #FFF;
+    border: medium none;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.resform p {
+    margin: 0 0 1vh;
+    line-height: 1em;
+}
