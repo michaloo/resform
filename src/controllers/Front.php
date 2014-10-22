@@ -5,33 +5,59 @@ namespace Resform\Controller;
 
 class Front {
 
-    var $validation = array(
+    var $validators = array(
         array(),
         array(
-            'sex'        => '',
-            'first_name' => '',
-            'last_name'  => '',
-            'birth_date' => '',
-            'email'      => '',
-            'phone'      => '',
-            'city'       => '',
+            'sex',
+            // 'first_name',
+            // 'last_name',
+            // 'birth_date',
+            // 'email',
+            // 'phone',
+            // 'city'
         ),
         array(
-            'room_type' => '',
-            'transport' => '',
-            'comments'  => '',
+            'room_type',
+            'transport',
+            'comments'
         ),
         array(
-            'accept_regulation'  => '',
-            'accept_information' => ''
+            'accept_regulation',
+            'accept_information'
+        )
+    );
+
+    var $filters = array(
+        array(),
+        array(
+            'sex',
+            // 'first_name'
+            // 'last_name'
+            // 'birth_date'
+            // 'email'
+            // 'phone'
+            // 'city'
+            'family_first_name',
+            'family_last_name',
+            'family_birth_date'
+        ),
+        array(
+            'room_type',
+            'transport',
+            'comments'
+        ),
+        array(
+            'accept_regulation',
+            'accept_information'
         )
     );
 
 
-    function __construct($view, $event) {
+    function __construct($view, $event, $front) {
         $this->view = $view;
 
         $this->event = $event;
+        $this->front = $front;
 
         $this->assetsUrl = str_replace('controllers/', '', plugin_dir_url(__FILE__) . 'assets/');
 
@@ -81,12 +107,35 @@ class Front {
                 break;
 
             case 2:
-                $template = 'page3-details.html';
+                $template   = 'page3-details.html';
                 break;
 
             case 3:
                 $template = 'page4-regulations.html';
                 break;
+        }
+
+
+        if (count($_POST) > 1) {
+            $validators = $this->validators[$step];
+            $filters    = $this->filters[$step];
+
+            $filtered = array();
+            $errors  = array();
+            foreach ($filters as $key) {
+                $filtered[$key] = call_user_func(array($this->front, 'filter_' . $key), $_POST[$key]);
+            }
+
+            foreach ($validators as $key) {
+                $error = call_user_func(array($this->front, 'validate_' . $key), $filtered[$key]);
+
+                if ($error) {
+                    $errors[$key] = $error;
+                }
+
+            }
+
+            var_dump($errors);
         }
 
         echo $this->view->render(
