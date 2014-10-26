@@ -3,32 +3,51 @@
 
     <fieldset>
         <h2>Dane osobowe</h2>
-        <fieldset class="one-line">
+        <fieldset class="one-line{% if errors.sex %} error{% endif %}">
+            {% if errors.sex %}
+            <span class="error_desc">{{ errors.sex }}</span>
+            {% endif %}
             <label class="main">Płeć:</label>
             <label>
                 <span>Kobieta:</span>
-                <input type="radio" name="sex" value="female">
+                <input type="radio" name="sex" value="female"{% if values.sex == 'female' %} checked{% endif %}>
             </label>
             <label>
                 <span>Mężczyzna:</span>
-                <input type="radio" name="sex" value="male">
+                <input type="radio" name="sex" value="male"{% if values.sex == 'male' %} checked{% endif %}>
             </label>
         </fieldset>
-        <label class="two-line main">
+
+        <label class="two-line main{% if errors.first_name %} error{% endif %}">
+            {% if errors.first_name %}
+            <span class="error_desc">{{ errors.first_name }}</span>
+            {% endif %}
             <span>Imię:</span>
-            <input type="text" name="first_name" value="">
+            <input type="text" name="first_name" value="{{ values.first_name }}">
         </label>
-        <label class="two-line main">
+
+        <label class="two-line main{% if errors.first_name %} error{% endif %}">
+            {% if errors.last_name %}
+            <span class="error_desc">{{ errors.last_name }}</span>
+            {% endif %}
             <span>Nazwisko:</span>
-            <input type="text" name="last_name" value="">
+            <input type="text" name="last_name" value="{{ values.last_name }}">
         </label>
-        <label class="two-line main">
+
+        <label class="two-line main{% if errors.birth_date %} error{% endif %}">
+            {% if errors.birth_date %}
+            <span class="error_desc">{{ errors.birth_date }}</span>
+            {% endif %}
             <span>Data urodzenia:</span>
-            <input type="text" name="birth_date" value="">
+            <input type="text" name="birth_date" value="{{ values.birth_date }}" placeholder="dd-mm-rrrr">
         </label>
-        <label class="two-line main">
+
+        <label class="two-line main{% if errors.email %} error{% endif %}">
+            {% if errors.email %}
+            <span class="error_desc">{{ errors.email }}</span>
+            {% endif %}
             <span>Adres e-mail:</span>
-            <input type="text" name="email" value="">
+            <input type="text" name="email" value="{{ values.email }}">
         </label>
 
         <label class="two-line main">
@@ -116,26 +135,36 @@
         <button id="family_button">Dodaj członka rodziny/dziecko</button>
 
         <div style="display: none;" id="family_template">
-            <fieldset>
-                <label>
+            <fieldset disabled>
+                <label data-name="first_name">
                     <span>Imię:</span>
                     <input type="text" name="family_first_name[]" value="">
                 </label>
-                <label>
+                <label data-name="last_name">
                     <span>Nazwisko:</span>
                     <input type="text" name="family_last_name[]" value="">
                 </label>
-                <label>
+                <label data-name="birth_date">
                     <span>Data urodzenia:</span>
                     <input type="text" name="family_birth_date[]" value="">
                 </label>
                 <label class="family_remove">Usuń</label>
             </fieldset>
         </div>
+        <script id="family_data">
+            window.resform_family_data = {
+                first_names: {{ values.family_first_name|json_encode()|raw }},
+                last_names: {{ values.family_last_name|json_encode()|raw }},
+                birth_dates: {{ values.family_birth_date|json_encode()|raw }},
+                first_names_errors: {{ errors.family_first_name|json_encode()|raw }},
+                last_name_errors: {{ errors.family_last_name|json_encode()|raw }},
+                birth_date_errors: {{ errors.family_birth_date|json_encode()|raw }}
+            };
+        </script>
     </fieldset>
 
     <fieldset class="submit">
         <button>Idź dalej</button>
-        <button name="step" value="0">Wróc do początku</button>
+        <button name="step" value="0">Wróc do poprzedniego kroku</button>
     </fieldset>
 </form>

@@ -9,12 +9,15 @@ class Front {
         array(),
         array(
             'sex',
-            // 'first_name',
-            // 'last_name',
-            // 'birth_date',
-            // 'email',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'email',
             // 'phone',
-            // 'city'
+            // 'city',
+            'family_first_name',
+            'family_last_name',
+            'family_birth_date'
         ),
         array(
             'room_type',
@@ -31,10 +34,10 @@ class Front {
         array(),
         array(
             'sex',
-            // 'first_name'
-            // 'last_name'
-            // 'birth_date'
-            // 'email'
+            'first_name',
+            'last_name',
+            'birth_date',
+            'email',
             // 'phone'
             // 'city'
             'family_first_name',
@@ -88,13 +91,43 @@ class Front {
     function show_form($atts) {
 
         $event = $this->event->getActive();
-        //var_dump($event);
 
         $step = (isset($_POST['step'])) ? (int) $_POST['step'] : 0;
 
-        //var_dump($_SESSION);
-        $_SESSION['test'] = true;
-        var_dump($_POST);
+
+        $values = array_merge($_SESSION, $_POST);
+
+        if (count($values) > 1) {
+            $validators = $this->validators[$step - 1];
+            $filters    = $this->filters[$step - 1];
+
+            $filtered = array();
+            $errors  = array();
+            foreach ($filters as $key) {
+                $filtered[$key] = call_user_func(array($this->front, 'filter_' . $key), $values[$key]);
+            }
+
+            foreach ($validators as $key) {
+                $error = call_user_func(array($this->front, 'validate_' . $key), $filtered[$key]);
+
+                if ($error) {
+                    $errors[$key] = $error;
+                }
+
+            }
+
+            if (count($errors) > 0) {
+                $step--;
+            }
+
+            var_dump($errors);
+
+            $values   = array_merge($values, $filtered);
+            $_SESSION = $values;
+        }
+
+        var_dump("filtered", $values);
+
 
         switch ($step) {
             default:
@@ -115,33 +148,12 @@ class Front {
                 break;
         }
 
-
-        if (count($_POST) > 1) {
-            $validators = $this->validators[$step];
-            $filters    = $this->filters[$step];
-
-            $filtered = array();
-            $errors  = array();
-            foreach ($filters as $key) {
-                $filtered[$key] = call_user_func(array($this->front, 'filter_' . $key), $_POST[$key]);
-            }
-
-            foreach ($validators as $key) {
-                $error = call_user_func(array($this->front, 'validate_' . $key), $filtered[$key]);
-
-                if ($error) {
-                    $errors[$key] = $error;
-                }
-
-            }
-
-            var_dump($errors);
-        }
-
         echo $this->view->render(
             'front/form/' . $template,
             array(
-                'action_url' => get_page_link()
+                'action_url' => get_page_link(),
+                'errors'     => $errors,
+                'values'     => $values
             ));
     }
 

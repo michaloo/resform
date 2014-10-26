@@ -71,3 +71,11 @@
     margin: 0 0 1vh;
     line-height: 1em;
 }
+
+.resform .error {
+    border: 1px solid red;
+}
+
+.resform .error .error_desc {
+    display: block;
+}
