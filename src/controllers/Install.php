@@ -7,11 +7,23 @@ class Install {
 
     function __construct($db) {
         $this->db = $db;
+    }
 
-        register_activation_hook(__FILE__, array($this, 'install'));
+    function uninstall() {
+        remove_role( 'resform_admin' );
     }
 
     function install() {
+        add_role(
+            'resform_admin',
+            __( 'Administrator Zapisów' ),
+            array(
+                'read'           => true,
+                'manage_options' => true,
+                'resform_read'   => true,
+                'resform_write'  => true,
+            )
+        );
 
         $directory = plugin_dir_path( __FILE__ ) . '../db/';
 

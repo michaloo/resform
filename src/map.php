@@ -19,3 +19,5 @@ require_once(plugin_dir_path( __FILE__ ) . 'models/Transport.php');
 require_once(plugin_dir_path( __FILE__ ) . 'models/Person.php');
 require_once(plugin_dir_path( __FILE__ ) . 'models/Room.php');
 require_once(plugin_dir_path( __FILE__ ) . 'models/RoomType.php');
+require_once(plugin_dir_path( __FILE__ ) . 'models/User.php');
+require_once(plugin_dir_path( __FILE__ ) . 'models/AuditLog.php');

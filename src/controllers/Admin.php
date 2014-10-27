@@ -5,31 +5,45 @@ namespace Resform\Controller;
 
 class Admin {
 
-    function __construct($view, $db, $event, $transport, $room_type, $room, $person) {
+    function __construct($view, $db, $event, $transport, $room_type, $room, $person, $user, $audit_log) {
         $this->view   = $view;
         $this->db     = $db;
-
 
         $this->event     = $event;
         $this->transport = $transport;
         $this->room_type = $room_type;
         $this->room      = $room;
         $this->person    = $person;
+        $this->user      = $user;
+        $this->audit_log = $audit_log;
 
         add_action( 'admin_menu', array($this, 'register_menu_page'));
+        add_action( 'init', array($this, 'set_user'));
+    }
+
+    function set_user() {
+        $this->user->setUser();
     }
 
     function register_menu_page() {
         add_menu_page(
             'Wydarzenia',
             'Formularz rezerwacji',
-            'manage_options',
+            'resform_read',
             'resform_event_list',
             array($this, 'event_list'),
             'dashicons-media-text',
             30
         );
 
+        add_submenu_page(
+            'resform_event_list',
+            'Page Title',
+            'Logi',
+            'resform_read',
+            'resform_audit_log',
+            array($this, 'audit_log')
+        );
 
         add_submenu_page(
             null,
@@ -44,7 +58,7 @@ class Admin {
             null,
             'Page Title',
             'Edytuj wydarzenie',
-            'manage_options',
+            'resform_write',
             'resform_event_edit',
             array($this, 'event_edit')
         );
@@ -53,7 +67,7 @@ class Admin {
             null,
             'Page Title',
             'Dodaj sposób dojazdu',
-            'manage_options',
+            'resform_read',
             'resform_transport_list',
             array($this, 'transport_list')
         );
@@ -61,7 +75,7 @@ class Admin {
             null,
             'Page Title',
             'Dodaj wydarzenie',
-            'manage_options',
+            'resform_read',
             'resform_transport_add',
             array($this, 'transport_add')
         );
@@ -69,7 +83,7 @@ class Admin {
             null,
             'Page Title',
             'Edytuj wydarzenie',
-            'manage_options',
+            'resform_write',
             'resform_transport_edit',
             array($this, 'transport_edit')
         );
@@ -79,7 +93,7 @@ class Admin {
             null,
             'Page Title',
             'Lista Typów Pokoi',
-            'manage_options',
+            'resform_read',
             'resform_room_type_list',
             array($this, 'room_type_list')
         );
@@ -87,7 +101,7 @@ class Admin {
             null,
             'Page Title',
             'Dodaj wydarzenie',
-            'manage_options',
+            'resform_write',
             'resform_room_type_add',
             array($this, 'room_type_add')
         );
@@ -95,7 +109,7 @@ class Admin {
             null,
             'Page Title',
             'Edytuj wydarzenie',
-            'manage_options',
+            'resform_wrte',
             'resform_room_type_edit',
             array($this, 'room_type_edit')
         );
@@ -104,7 +118,7 @@ class Admin {
             null,
             'Page Title',
             'Lista Pokoi',
-            'manage_options',
+            'resform_read',
             'resform_room_list',
             array($this, 'room_list')
         );
@@ -113,7 +127,7 @@ class Admin {
             null,
             'Page Title',
             'Dodaj sposób dojazdu',
-            'manage_options',
+            'resform_read',
             'resform_person_list',
             array($this, 'person_list')
         );
@@ -336,6 +350,16 @@ var_dump($rooms);
         echo $this->view->render('admin/person/list.html', array(
             'persons' => $persons,
             'event'   => $event
+        ));
+    }
+
+    function audit_log() {
+
+
+        $audit_logs = $this->audit_log->get();
+
+        echo $this->view->render('admin/audit_log/list.html', array(
+            'audit_logs' => $audit_logs
         ));
     }
 

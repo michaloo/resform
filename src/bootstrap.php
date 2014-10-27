@@ -14,6 +14,7 @@ $container['view'] = function ($c) {
 
 $container['db'] = function ($c) {
     global $wpdb;
+
     date_default_timezone_set('Europe/Warsaw');
     $origin_dtz = new DateTimeZone('Europe/Warsaw');
     $remote_dtz = new DateTimeZone('UTC');
@@ -28,6 +29,7 @@ $container['db'] = function ($c) {
     $interval = DateTime::createFromFormat('U', abs($offset));
     $mysql_interval = $interval->format($char . "H:i");
     $wpdb->query("SET time_zone = '$mysql_interval';");
+
     return $wpdb;
 };
 
@@ -44,7 +46,9 @@ $container['admin_controller'] = function($c) {
         $c['transport_model'],
         $c['room_type_model'],
         $c['room_model'],
-        $c['person_model']
+        $c['person_model'],
+        $c['user_model'],
+        $c['audit_log_model']
     );
 };
 
@@ -72,6 +76,14 @@ $container['filter'] = $container->factory(function($c) {
 
 
 // Models:
+
+$container['user_model'] = function($c) {
+    return new \Resform\Model\User($c['db'], $c['filter'], $c['validator']);
+};
+
+$container['audit_log_model'] = function($c) {
+    return new \Resform\Model\AuditLog($c['db'], $c['filter'], $c['validator']);
+};
 
 $container['event_model'] = function($c) {
     return new \Resform\Model\Event($c['db'], $c['filter'], $c['validator']);

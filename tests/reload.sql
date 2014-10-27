@@ -1,6 +1,6 @@
 
-\. db/clear.sql
-\. db/schema.sql
-\. db/functions.sql
-\. db/views.sql
-\. db/triggers.sql
+\. tests/clear.sql
+\. src/db/schema.sql
+\. src/db/functions.sql
+\. src/db/views.sql
+\. src/db/triggers.sql

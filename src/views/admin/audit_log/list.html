@@ -1,0 +1,10 @@
+{% extends "admin/_layout.html" %}
+
+{% block content %}
+<pre>
+{% for audit_log in audit_logs %}
+    {{ audit_log.add_time }} {{ audit_log.user }} {{ audit_log.log }}
+{% endfor %}
+</pre>
+
+{% endblock %}

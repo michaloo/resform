@@ -35,3 +35,6 @@ require_once(plugin_dir_path( __FILE__ ) . 'bootstrap.php');
 $AdminController   = $container['admin_controller'];
 $InstallController = $container['install_controller'];
 $FrontController   = $container['front_controller'];
+
+register_activation_hook(__FILE__, array($InstallController, 'install'));
+register_deactivation_hook( __FILE__, array($InstallController, 'uninstall') );

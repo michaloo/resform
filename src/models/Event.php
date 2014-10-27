@@ -46,9 +46,10 @@ class Event extends \Resform\Lib\Model {
             FROM {$this->db->prefix}resform_events AS re
             LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (event_id)
             LEFT JOIN {$this->db->prefix}resform_persons AS rp USING (room_type_id)
+            GROUP BY event_id
             LIMIT 20";
         $results = $this->db->get_results($query, ARRAY_A);
-        var_dump($this->db->last_error);
+
         $total_count = $this->_getTotalCount();
         $pager = $this->_getPager($total_count, $limit, $page, $orderby, $sort);
         return array(
