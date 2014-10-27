@@ -79,3 +79,8 @@
 .resform .error .error_desc {
     display: block;
 }
+
+
+.resform label textarea {
+    width: 100%;
+}

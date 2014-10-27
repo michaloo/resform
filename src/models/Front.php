@@ -81,14 +81,23 @@ class Front extends \Resform\Lib\Model {
     }
 
     function filter_family_first_name($first_names) {
+        if (!is_array($first_names)) {
+            $first_names = array();
+        }
         return array_map(array($this, "filter_first_name"), $first_names);
     }
 
     function filter_family_last_name($last_names) {
+        if (!is_array($last_names)) {
+            $last_names = array();
+        }
         return array_map(array($this, "filter_last_name"), $last_names);
     }
 
     function filter_family_birth_date($birth_dates) {
+        if (!is_array($birth_dates)) {
+            $birth_dates = array();
+        }
         return array_map(array($this, "filter_birth_date"), $birth_dates);
     }
 
@@ -102,5 +111,29 @@ class Front extends \Resform\Lib\Model {
 
     function validate_family_birth_date($birth_dates) {
         return array_filter(array_map(array($this, "validate_birth_date"), $birth_dates));
+    }
+
+    function filter_accept_regulation($accept_regulation) {
+        return (bool) $accept_regulation;
+    }
+
+    function validate_accept_regulation($accept_regulation) {
+        if (! $accept_regulation) {
+            return "Akceptacja jest wymagana";
+        }
+
+        return false;
+    }
+
+    function filter_accept_information($accept_information) {
+        return (bool) $accept_information;
+    }
+
+    function validate_accept_information($accept_information) {
+        if (! $accept_information) {
+            return "Akceptacja jest wymagana";
+        }
+
+        return false;
     }
 }

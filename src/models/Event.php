@@ -75,9 +75,66 @@ class Event extends \Resform\Lib\Model {
     }
 
     function getActive() {
-        $query = "SELECT * FROM {$this->db->prefix}resform_events LIMIT 1";
+        $query = <<<SQL
+        SELECT re.*,
+            GROUP_CONCAT(CONCAT_WS(',', rrt.room_type_id, rrt.name)  SEPARATOR ';') AS room_types,
+            GROUP_CONCAT(CONCAT_WS(',', rt.transport_id, rt.name)  SEPARATOR ';') AS transports
+        FROM {$this->db->prefix}resform_events AS re
+        LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (event_id)
+        LEFT JOIN {$this->db->prefix}resform_transports AS rt USING (event_id)
+        LIMIT 1
+SQL;
         $results = $this->db->get_results($query, ARRAY_A);
 
+        $results = array_map(function($row) {
+            $row['room_types'] = explode(';', $row['room_types']);
+            $row['room_types'] = array_map(function($rt) {
+                $rt = array_combine(array("id", "name"), explode(",", $rt));
+                return $rt;
+            }, $row['room_types']);
+            return $row;
+        }, $results);
+
         return $results;
+    }
+
+    function register($values) {
+        $family_members_count = max(
+            count($values['family_first_name']),
+            count($values['family_last_name']),
+            count($values['family_birth_date'])
+        );
+        $family = array();
+        for ($i = 0; $i < $family_members_count; $i++) {
+            array_push($family, array_combine(
+                array("first_name", "last_name", "birth_date"),
+                array(
+                    $values['family_first_name'][$i],
+                    $values['family_last_name'][$i],
+                    $values['family_birth_date'][$i]
+                )
+            ));
+        }
+        unset(
+            $values['step'],
+            $values['family_first_name'],
+            $values['family_last_name'],
+            $values['family_birth_date'],
+            $values['accept_regulation'],
+            $values['accept_information']
+        );
+
+        $sql_values = $this->getValues(array_keys($values), $values);
+        $sql_keys = $this->getKeys(array_keys($values));
+
+        $query = <<<SQL
+        INSERT INTO  {$this->db->prefix}resform_persons (
+            {$sql_keys}
+        ) VALUES (
+            {$sql_values}
+        );
+SQL;
+        var_dump($query);
+        var_dump($this->db->query($query));
     }
 }

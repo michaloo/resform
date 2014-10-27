@@ -2,15 +2,21 @@
 <form action="{{ action_url }}" method="post" class="resform">
     <input type="hidden" name="step" value="3">
 
-    <select name="room_type" id="room_type">
+    <select name="room_type_id" id="room_type">
         <option value="">Wybierz typ pokoju</option>
+        {% for room_type in event.room_types %}
+        <option value="{{ room_type.id }}">{{ room_type.name }}</option>
+        {% endfor %}
     </select>
 
-    <select name="transport" id="room_type">
-        <option value="">Wybierz typ pokoju</option>
+    <select name="transport_id" id="room_type">
+        <option value="">Wybierz typ transportu</option>
     </select>
 
-    <textarea name="comments"></textarea>
+    <label class="two-line main{% if errors.comments %} error{% endif %}">
+        <span>Uwagi/komentarze:</span>
+        <textarea name="comments"></textarea>
+    </label>
 
     <button>Idź dalej</button>
     <button name="step" value="1">Wróc do poprzedniego kroku</button>

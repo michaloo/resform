@@ -90,10 +90,9 @@ class Front {
 
     function show_form($atts) {
 
-        $event = $this->event->getActive();
+        $event = array_pop($this->event->getActive());
 
         $step = (isset($_POST['step'])) ? (int) $_POST['step'] : 0;
-
 
         $values = array_merge($_SESSION, $_POST);
 
@@ -120,13 +119,9 @@ class Front {
                 $step--;
             }
 
-            var_dump($errors);
-
             $values   = array_merge($values, $filtered);
             $_SESSION = $values;
         }
-
-        var_dump("filtered", $values);
 
 
         switch ($step) {
@@ -140,23 +135,28 @@ class Front {
                 break;
 
             case 2:
-                $template   = 'page3-details.html';
+                $template = 'page3-details.html';
                 break;
 
             case 3:
                 $template = 'page4-regulations.html';
+                break;
+
+            case 4:
+                $this->event->register($values);
+                $template = 'done.html';
+                $_SESSION = null;
                 break;
         }
 
         echo $this->view->render(
             'front/form/' . $template,
             array(
+                'event'      => $event,
                 'action_url' => get_page_link(),
                 'errors'     => $errors,
                 'values'     => $values
             ));
     }
-
-
 
 }
