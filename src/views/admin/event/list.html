@@ -49,9 +49,10 @@
                 <td>{{ event.start_time|date('d.m.Y') }} - {{ event.start_time|date('d.m.Y') }}</td>
                 <td>{{ event.reservation_start_time }} - {{ event.reservation_end_time }}</td>
                 <td>
-                    <a href="/wp-admin/admin.php?page=resform_event_edit&event_id={{event.event_id}}">Edytuj</a>
-                    <a href="/wp-admin/admin.php?page=resform_event_list&event_id={{event.event_id}}">Usuń</a>
-                    <a href="/wp-admin/admin.php?page=resform_room_type_list&event_id={{event.event_id}}">Typy Pokoi</a>
+                    <a href="/wp-admin/admin.php?page=resform_event_edit&event_id={{event.event_id}}">Edytuj</a> |
+                    <a href="/wp-admin/admin.php?page=resform_event_list&event_id={{event.event_id}}">Usuń</a> |
+                    <a href="/wp-admin/admin.php?page=resform_transport_list&event_id={{event.event_id}}">Opcje Transportu</a> |
+                    <a href="/wp-admin/admin.php?page=resform_room_type_list&event_id={{event.event_id}}">Typy Pokoi</a> |
                     <a href="/wp-admin/admin.php?page=resform_room_list&event_id={{event.event_id}}">Lista Pokoi</a>
                 </td>
             </tr>

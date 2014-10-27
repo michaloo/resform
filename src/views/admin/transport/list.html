@@ -1,0 +1,21 @@
+{% extends "admin/_layout.html" %}
+
+{% block content %}
+Lista typów pokoi
+
+<table>
+    <tbody>
+
+        {% for transport in transports %}
+        <tr>
+            <td>{{ transport.name }}</td>
+            <td><a href="/wp-admin/admin.php?page=resform_transport_edit&room_type_id={{transport.transport_id}}">Edytuj</a></td>
+            <td><a href="/wp-admin/admin.php?page=resform_transport_list&delete={{transport.transport_id}}">Usuń</a></td>
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+
+<a href="/wp-admin/admin.php?page=resform_transport_add&event_id={{event.event_id}}">Dodaj Opcję Transportu</a>
+{% endblock %}

@@ -20,8 +20,8 @@ class Front {
             'family_birth_date'
         ),
         array(
-            'room_type',
-            'transport',
+            'room_type_id',
+            'transport_id',
             'comments'
         ),
         array(
@@ -45,8 +45,8 @@ class Front {
             'family_birth_date'
         ),
         array(
-            'room_type',
-            'transport',
+            'room_type_id',
+            'transport_id',
             'comments'
         ),
         array(
@@ -123,7 +123,6 @@ class Front {
             $_SESSION = $values;
         }
 
-
         switch ($step) {
             default:
             case 0:
@@ -143,9 +142,17 @@ class Front {
                 break;
 
             case 4:
-                $this->event->register($values);
+                //$_SESSION = array();
+                $register_errors = $this->event->register($values);
+
+                if (array_search("Column 'room_id' cannot be null", $register_errors)) {
+                    $errors['register'] = "Wybrany pokój jest za mały";
+                } elseif (count($register_errors)) {
+                    $errors['register'] = "Wystąpił błąd zapisu, spróbuj ponownie";
+                }
+
                 $template = 'done.html';
-                $_SESSION = null;
+                //$_SESSION = array();
                 break;
         }
 

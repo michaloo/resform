@@ -2,16 +2,31 @@
 <form action="{{ action_url }}" method="post" class="resform">
     <input type="hidden" name="step" value="3">
 
-    <select name="room_type_id" id="room_type">
-        <option value="">Wybierz typ pokoju</option>
-        {% for room_type in event.room_types %}
-        <option value="{{ room_type.id }}">{{ room_type.name }}</option>
-        {% endfor %}
-    </select>
+    <label class="two-line main{% if errors.room_type_id %} error{% endif %}">
+        {% if errors.room_type_id %}
+        <span class="error_desc">{{ errors.room_type_id }}</span>
+        {% endif %}
+        <span>Typ pokoju</span>
+        <select name="room_type_id" id="room_type">
+            <option value="">Wybierz typ pokoju</option>
+            {% for room_type in event.room_types %}
+            <option value="{{ room_type.id }}"{% if values.room_type_id == room_type.id %} selected{% endif %}>{{ room_type.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
 
-    <select name="transport_id" id="room_type">
-        <option value="">Wybierz typ transportu</option>
-    </select>
+    <label class="two-line main{% if errors.transport_id %} error{% endif %}">
+        {% if errors.transport_id %}
+        <span class="error_desc">{{ errors.transport_id }}</span>
+        {% endif %}
+        <span>Transport:</span>
+        <select name="transport_id" id="room_type">
+            <option value="">Wybierz typ transportu</option>
+            {% for transport in event.transports %}
+            <option value="{{ transport.id }}"{% if values.transport_id == transport.id %} selected{% endif %}>{{ transport.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
 
     <label class="two-line main{% if errors.comments %} error{% endif %}">
         <span>Uwagi/komentarze:</span>

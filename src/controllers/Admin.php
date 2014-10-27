@@ -53,8 +53,24 @@ class Admin {
             'Page Title',
             'Dodaj sposób dojazdu',
             'manage_options',
-            'resform_transports_add',
+            'resform_transport_list',
+            array($this, 'transport_list')
+        );
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Dodaj wydarzenie',
+            'manage_options',
+            'resform_transport_add',
             array($this, 'transport_add')
+        );
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Edytuj wydarzenie',
+            'manage_options',
+            'resform_transport_edit',
+            array($this, 'transport_edit')
         );
 
 
@@ -150,19 +166,65 @@ class Admin {
         echo $this->view->render('admin/event/form.html', array('event' => $event));
     }
 
+    function transport_list() {
+
+        if (isset($_GET['transport_id'])) {
+
+            $id = $_GET['transport_id'];
+
+            $this->transport->delete($id);
+
+        }
+
+        $event_id = $_GET['event_id'];
+
+        $event = $this->event->find($event_id);
+
+        $transports = $this->transport->get($event['event_id']);
+
+        echo $this->view->render('admin/transport/list.html', array(
+            'transports' => $transports,
+            'event'      => $event
+        ));
+    }
+
     function transport_add() {
-        global $wpdb;
 
         if ($_POST) {
 
-            $name = mysqli_real_escape_string($wpdb->dbh, $_POST['name']);
+            $filtered = $this->transport->filter($_POST);
+            $errors   = $this->transport->validate($filtered);
 
-            $query = "INSERT INTO {$wpdb->prefix}resform_events (name) VALUES ('$name')";
-            var_dump($query);
-            $wpdb->query($query);
+            if (count($errors) === 0) {
+                $this->transport->save($filtered);
+            } else {
+                var_dump($errors);
+            }
         }
 
-        require_once(plugin_dir_path( __FILE__ ) . '../views/admin/transport/form.php');
+        echo $this->view->render('admin/transport/form.html', array('event_id' => $_GET['event_id']));
+    }
+
+    function transport_edit() {
+
+        if ($_POST) {
+            $filtered = $this->room_type->filter($_POST);
+            $errors   = $this->room_type->validate($filtered);
+
+            if (count($errors) === 0) {
+                $this->room_type->update($filtered);
+            } else {
+                var_dump($errors);
+            }
+        }
+
+        $id = $_GET['transport_id'];
+
+        $room_type = $this->room_type->find($id);
+
+        echo $this->view->render('admin/transport/form.html', array(
+            'event_id' => $room_type->event_id,
+            'transport' => $transport));
     }
 
     function room_type_list() {
@@ -238,9 +300,9 @@ class Admin {
 
         $event_id = $_GET['event_id'];
 
-        $event = $this->events->find($event_id);
+        $event = $this->event->find($event_id);
 
-        $rooms = $this->room->get($event->event_id);
+        $rooms = $this->room->get($event['event_id']);
 var_dump($rooms);
         echo $this->view->render('admin/room/list.html', array(
             'rooms' => $rooms,

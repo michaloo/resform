@@ -5,22 +5,41 @@ namespace Resform\Model;
 
 class Transport extends \Resform\Lib\Model {
 
-    var $keys = array('name', 'start_time', 'end_time');
+    var $editable = array('event_id', 'name', 'price');
 
-    function save() {
-        $query = "INSERT INTO {$this->db->prefix}resform_room_types ({$this->showKeys()}) VALUES ({$this->showValues()})";
+    var $schema = 'schemas/room_type.json';
+
+    var $filters = array(
+        'transport_id' => 'integer',
+        'event_id'     => 'integer',
+
+        'name'        => 'stringtrim',
+        'price'       => 'double',
+    );
+
+    function get($event_id) {
+        $query = "SELECT * FROM {$this->db->prefix}resform_transports WHERE event_id = $event_id LIMIT 20";
+        var_dump($query);
+        $results = $this->db->get_results($query, ARRAY_A);
+        return $results;
+    }
+
+    function save($data) {
+        $query = "INSERT INTO {$this->db->prefix}resform_transports ({$this->getKeys($this->editable)})
+        VALUES ({$this->getValues($this->editable, $data)})";
         var_dump($query);
         return $this->db->query($query);
     }
 
-    function update() {
-        $query = "UPDATE {$this->db->prefix}resform_room_types SET {$this->showPairs()} WHERE room_type_id = {$this->data['event_id']} LIMIT 1";
+    function update($data) {
+        $query = "UPDATE {$this->db->prefix}resform_transports
+        SET {$this->getPairs($this->editable, $data)} WHERE transport_id = {$data['transport_id']} LIMIT 1";
         var_dump($query);
         return $this->db->query($query);
     }
 
-    function delete() {
-        $query = "DELETE FROM {$this->db->prefix}resform_room_types WHERE room_type_id = {$this->data['event_id']} LIMIT 1";
+    function delete($data) {
+        $query = "DELETE FROM {$this->db->prefix}transports WHERE transport_id = {$data['transport_id']} LIMIT 1";
         var_dump($query);
         return $this->db->query($query);
     }

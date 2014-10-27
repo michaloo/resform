@@ -92,6 +92,13 @@ SQL;
                 $rt = array_combine(array("id", "name"), explode(",", $rt));
                 return $rt;
             }, $row['room_types']);
+
+            $row['transports'] = explode(';', $row['transports']);
+            $row['transports'] = array_map(function($rt) {
+                $rt = array_combine(array("id", "name"), explode(",", $rt));
+                return $rt;
+            }, $row['transports']);
+
             return $row;
         }, $results);
 
@@ -115,6 +122,11 @@ SQL;
                 )
             ));
         }
+
+        if (count($family) > 0) {
+            $values['family_guardian'] = true;
+        }
+
         unset(
             $values['step'],
             $values['family_first_name'],
@@ -135,6 +147,39 @@ SQL;
         );
 SQL;
         var_dump($query);
-        var_dump($this->db->query($query));
+        //$this->db->show_errors();
+        $this->db->query("START TRANSACTION");
+        $errors = array();
+        $this->db->query($query);
+        array_push($errors, $this->db->last_error);
+        $family_person_id = $this->db->insert_id;
+
+        foreach ($family as $family_member) {
+            $family_member_values = array_merge($values, $family_member);
+            $family_member_values['family_person_id'] = $family_person_id;
+            unset(
+                $family_member_values['family_guardian']
+            );
+            $sql_values = $this->getValues(array_keys($family_member_values), $family_member_values);
+            $sql_keys = $this->getKeys(array_keys($family_member_values));
+
+            $query = <<<SQL
+            INSERT INTO {$this->db->prefix}resform_persons (
+                {$sql_keys}
+            ) VALUES (
+                {$sql_values}
+            );
+SQL;
+            $this->db->query($query);
+            array_push($errors, $this->db->last_error);
+        }
+
+        if (count(array_filter($errors)) === 0) {
+            $this->db->query("COMMIT");
+            return array();
+        } else {
+            $this->db->query("ROLLBACK");
+            return $errors;
+        }
     }
 }

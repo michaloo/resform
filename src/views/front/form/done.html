@@ -1,3 +1,12 @@
+{% if errors.register %}
+{{ errors.register }}
+
+<form action="{{ action_url }}" method="post" class="resform">
+    <button name="step" value="2">Zmień pokój</button>
+</form>
+
+{% else %}
 <div>
     Dzięki za zapisanie się :)
 </div>
+{% endif %}

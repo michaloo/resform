@@ -113,6 +113,41 @@ class Front extends \Resform\Lib\Model {
         return array_filter(array_map(array($this, "validate_birth_date"), $birth_dates));
     }
 
+
+    function filter_room_type_id($room_type_id) {
+        return (int) $room_type_id;
+    }
+
+    function validate_room_type_id($room_type_id) {
+        if (! $room_type_id) {
+            return "Akceptacja jest wymagana";
+        }
+
+        return false;
+    }
+
+    function filter_transport_id($transport_id) {
+        return (int) $transport_id;
+    }
+
+    function validate_transport_id($transport_id) {
+        if (! $transport_id) {
+            return "Akceptacja jest wymagana";
+        }
+
+        return false;
+    }
+
+    function filter_comments($comments) {
+        return $comments;
+    }
+
+    function validate_comments($comments) {
+
+        return false;
+    }
+
+
     function filter_accept_regulation($accept_regulation) {
         return (bool) $accept_regulation;
     }
