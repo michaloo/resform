@@ -1,14 +1,28 @@
 (function($) {
 
     function dataSets() {
-        $('[data-set-id]').on("click", function(ev, el) {
+        $('[data-set-id]').on("click", function(ev) {
 
             var data_set = $('#' + $(ev.currentTarget).attr("data-set-id"));
 
             if ($(ev.currentTarget).is(":checked")) {
                 data_set.addClass("open");
+                data_set.attr("disabled", false);
             } else {
                 data_set.removeClass("open");
+                data_set.attr("disabled", true);
+            }
+        });
+
+        $('[data-set-id]').each(function(index, el) {
+            var data_set = $('#' + $(el).attr("data-set-id"));
+
+            if ($(el).is(":checked")) {
+                data_set.addClass("open");
+                data_set.attr("disabled", false);
+            } else {
+                data_set.removeClass("open");
+                data_set.attr("disabled", true);
             }
         });
     }

@@ -13,8 +13,8 @@ class Front {
             'last_name',
             'birth_date',
             'email',
-            // 'phone',
-            // 'city',
+            'phone',
+            'city',
             'family_first_name',
             'family_last_name',
             'family_birth_date'
@@ -38,8 +38,11 @@ class Front {
             'last_name',
             'birth_date',
             'email',
-            // 'phone'
-            // 'city'
+            'phone',
+            'city',
+            'disabled',
+            'disabled_guardian',
+            'stairs_accessibility',
             'family_first_name',
             'family_last_name',
             'family_birth_date'

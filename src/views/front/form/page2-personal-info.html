@@ -50,14 +50,20 @@
             <input type="text" name="email" value="{{ values.email }}">
         </label>
 
-        <label class="two-line main">
+        <label class="two-line main{% if errors.phone %} error{% endif %}">
+            {% if errors.phone %}
+            <span class="error_desc">{{ errors.phone }}</span>
+            {% endif %}
             <span>Numer telefonu:</span>
-            <input type="text" name="phone" value="">
+            <input type="text" name="phone" value="{{ values.phone }}">
         </label>
 
-        <label class="two-line main">
+        <label class="two-line main{% if errors.city %} error{% endif %}">
+            {% if errors.city %}
+            <span class="error_desc">{{ errors.city }}</span>
+            {% endif %}
             <span>Miasto:</span>
-            <input type="text" name="city" value="">
+            <input type="text" name="city" value="{{ values.city }}">
         </label>
     <fieldset>
     <h2>Informacje dodatkowe</h2>
@@ -67,37 +73,45 @@
         <label class="main two-line">Jestem:</label>
         <label class="one-line">
             <span>osobą niepełnosprawną:</span>
-            <input type="checkbox" name="disabled" value="1" data-set-id="disabled_set">
+            <input type="hidden" name="disabled" value="0" />
+            <input type="checkbox" name="disabled" value="1"
+                data-set-id="disabled_set"
+                {% if values.disabled == '1' %} checked{% endif %}>
         </label>
         <label>
             <span>opiekunem osoby niepełnosprawnej:</span>
-            <input type="checkbox" name="disabled_guardian" value="1" data-set-id="disabled_guardian_set">
+            <input type="hidden" name="disabled_guardian" value="0" />
+            <input type="checkbox" name="disabled_guardian" value="1"
+                data-set-id="disabled_guardian_set"
+                {% if values.disabled_guardian == '1' %} checked{% endif %}>
         </label>
 
-        <fieldset id="disabled_set" class="optional">
+        <fieldset id="disabled_set" class="optional" disabled>
             <label>
                 <span>Stopień/rodzaj niepełnosprawności:</span>
-                <input type="text" name="disability_type">
+                <input type="text" name="disability_type" value="{{ values.disability_type }}">
             </label>
 
             <label>Czy możesz chodzić po schodach?</label>
             <label>
                 <span>tak</span>
-                <input type="radio" name="stairs_accessibility" value="1">
+                <input type="radio" name="stairs_accessibility" value="1"
+                    {% if values.stairs_accessibility == '1' %} checked{% endif %}>
             </label>
 
             <label>
                 <span>nie</span>
-                <input type="radio" name="stairs_accessibility" value="0">
+                <input type="radio" name="stairs_accessibility" value="0"
+                    {% if values.stairs_accessibility == '0' %} checked{% endif %}>
             </label>
 
             <label>
                 <span>Imię i nazwisko opiekuna:</span>
-                <input type="text" name="guardian_person_name">
+                <input type="text" name="guardian_person_name" value="{{ values.guardian_person_name }}">
             </label>
         </fieldset>
 
-        <fieldset id="disabled_guardian_set" class="optional">
+        <fieldset id="disabled_guardian_set" class="optional" disabled>
             <label>
                 <span>Imię i nazwisko osoby niepełnosprawnej, którą się opiekuję:</span>
                 <input type="text" name="disabled_person_name">
@@ -124,7 +138,7 @@
             <label>
                 <span class="main">Jestem opiekunem osoby niepełnoletniej</span>
                 <span>Wpisz imię i nazwisko osoby, za którą bierzesz odpowiedzialność:</span>
-                <input type="text" name="underaged_person_name">
+                <input type="text" name="underaged_person_name" value="{{ values.underaged_person_name }}">
             </label>
         </fieldset>
 

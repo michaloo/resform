@@ -80,6 +80,30 @@ class Person extends \Resform\Lib\Model {
         return false;
     }
 
+    function filter_phone($phone) {
+        return trim($phone);
+    }
+
+    function validate_phone($phone) {
+        if (! $phone) {
+            return "Pole jest wymagane";
+        }
+
+        return false;
+    }
+
+    function filter_city($city) {
+        return trim($city);
+    }
+
+    function validate_city($city) {
+        if (! $city) {
+            return "Pole jest wymagane";
+        }
+
+        return false;
+    }
+
     function filter_family_first_name($first_names) {
         if (!is_array($first_names)) {
             $first_names = array();
@@ -147,6 +171,17 @@ class Person extends \Resform\Lib\Model {
         return false;
     }
 
+    function filter_disabled($disabled) {
+        return (bool) $disabled;
+    }
+
+    function filter_disabled_guardian($disabled_guardian) {
+        return (bool) $disabled_guardian;
+    }
+
+    function filter_stairs_accessibility($stairs_accessibility) {
+        return (bool) $stairs_accessibility;
+    }
 
     function filter_accept_regulation($accept_regulation) {
         return (bool) $accept_regulation;
