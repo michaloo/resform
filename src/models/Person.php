@@ -203,6 +203,11 @@ class Person extends \Resform\Lib\Model {
             $values['accept_information']
         );
 
+        $values['birth_date'] = array(
+            "function" => "STR_TO_DATE(?, '%d-%m-%Y')",
+            "value"    => $values['birth_date']
+        );
+
         $sql_values = $this->getValues(array_keys($values), $values);
         $sql_keys = $this->getKeys(array_keys($values));
 
@@ -227,6 +232,12 @@ SQL;
             unset(
                 $family_member_values['family_guardian']
             );
+
+            $family_member_values['birth_date'] = array(
+                "function" => "STR_TO_DATE(?, '%d-%m-%Y')",
+                "value"    => $family_member_values['birth_date']
+            );
+
             $sql_values = $this->getValues(array_keys($family_member_values), $family_member_values);
             $sql_keys = $this->getKeys(array_keys($family_member_values));
 
@@ -240,7 +251,7 @@ SQL;
             $this->db->query($query);
             array_push($errors, $this->db->last_error);
         }
-
+        var_dump($errors);
         if (count(array_filter($errors)) === 0) {
             $this->db->query("COMMIT");
             return array();

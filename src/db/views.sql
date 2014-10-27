@@ -14,6 +14,7 @@ CREATE VIEW _prefix_rooms_space_count AS
 
 CREATE VIEW _prefix_room_types_space_count AS
     SELECT
+        event_id,
         room_type_id,
         room_type_name,
         SUM(occupied_space_count) AS occupied_space_count,

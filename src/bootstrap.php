@@ -49,7 +49,12 @@ $container['admin_controller'] = function($c) {
 };
 
 $container['front_controller'] = function($c) {
-    return new \Resform\Controller\Front($c['view'], $c['event_model'], $c['person_model']);
+    return new \Resform\Controller\Front(
+        $c['view'],
+        $c['event_model'],
+        $c['transport_model'],
+        $c['room_type_model'],
+        $c['person_model']);
 };
 
 $container['validator'] = $container->factory(function($c) {

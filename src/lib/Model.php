@@ -39,6 +39,10 @@ abstract class Model {
 
         $values = array_map(function ($key) use ($data) {
 
+            if (is_array($data[$key])) {
+                return str_replace('?', "'" . mysqli_real_escape_string($this->db->dbh, $data[$key]["value"]) . "'", $data[$key]["function"]);
+            }
+
             if (is_bool($data[$key])) {
                 return ($data[$key] == true) ? 'true' : 'false';
             }

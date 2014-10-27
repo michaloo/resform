@@ -22,6 +22,17 @@ class RoomType extends \Resform\Lib\Model {
 
     var $schema = 'schemas/room_type.json';
 
+    function getFree($event_id) {
+        $query = "SELECT
+                room_type_name AS name,
+                room_type_id AS room_type_id,
+                r.*
+            FROM {$this->db->prefix}resform_room_types_space_count AS r
+            WHERE event_id = $event_id LIMIT 20";
+        var_dump($query);
+        $results = $this->db->get_results($query, ARRAY_A);
+        return $results;
+    }
 
     function get($event_id) {
 

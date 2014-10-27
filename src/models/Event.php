@@ -88,8 +88,6 @@ class Event extends \Resform\Lib\Model {
     function getActive() {
         $query = <<<SQL
         SELECT re.*,
-            GROUP_CONCAT(CONCAT_WS(',', rrt.room_type_id, rrt.name)  SEPARATOR ';') AS room_types,
-            GROUP_CONCAT(CONCAT_WS(',', rt.transport_id, rt.name)  SEPARATOR ';') AS transports,
             (SELECT SUM(free_space_count) FROM {$this->db->prefix}resform_rooms_space_count
                 WHERE event_id = event_id GROUP BY event_id) AS free_space_count
         FROM {$this->db->prefix}resform_events AS re
@@ -100,22 +98,6 @@ class Event extends \Resform\Lib\Model {
         LIMIT 1
 SQL;
         $results = $this->db->get_results($query, ARRAY_A);
-        var_dump($results, $this->db->last_error);
-        $results = array_map(function($row) {
-            $row['room_types'] = explode(';', $row['room_types']);
-            $row['room_types'] = array_map(function($rt) {
-                $rt = array_combine(array("id", "name"), explode(",", $rt));
-                return $rt;
-            }, $row['room_types']);
-
-            $row['transports'] = explode(';', $row['transports']);
-            $row['transports'] = array_map(function($rt) {
-                $rt = array_combine(array("id", "name"), explode(",", $rt));
-                return $rt;
-            }, $row['transports']);
-
-            return $row;
-        }, $results);
 
         return $results;
     }

@@ -6,11 +6,13 @@
         {% if errors.room_type_id %}
         <span class="error_desc">{{ errors.room_type_id }}</span>
         {% endif %}
-        <span>Typ pokoju</span>
+        <span>Typ pokoju (liczba wolnych miejsc):</span>
         <select name="room_type_id" id="room_type">
             <option value="">Wybierz typ pokoju</option>
-            {% for room_type in event.room_types %}
-            <option value="{{ room_type.id }}"{% if values.room_type_id == room_type.id %} selected{% endif %}>{{ room_type.name }}</option>
+            {% for room_type in room_types %}
+            <option value="{{ room_type.room_type_id }}"
+            {% if room_type.free_space_count == 0 %} disabled{% endif %}
+            {% if values.room_type_id == room_type.room_type_id %} selected{% endif %}>{{ room_type.name }} ({{ room_type.free_space_count }})</option>
             {% endfor %}
         </select>
     </label>
@@ -22,8 +24,8 @@
         <span>Transport:</span>
         <select name="transport_id" id="room_type">
             <option value="">Wybierz typ transportu</option>
-            {% for transport in event.transports %}
-            <option value="{{ transport.id }}"{% if values.transport_id == transport.id %} selected{% endif %}>{{ transport.name }}</option>
+            {% for transport in transports %}
+            <option value="{{ transport.transport_id }}"{% if values.transport_id == transport.transport_id %} selected{% endif %}>{{ transport.name }}</option>
             {% endfor %}
         </select>
     </label>

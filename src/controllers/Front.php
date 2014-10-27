@@ -56,11 +56,13 @@ class Front {
     );
 
 
-    function __construct($view, $event, $person) {
+    function __construct($view, $event, $transport, $room_type, $person) {
         $this->view = $view;
 
-        $this->event  = $event;
-        $this->person = $person;
+        $this->event     = $event;
+        $this->transport = $transport;
+        $this->room_type = $room_type;
+        $this->person    = $person;
 
         $this->assetsUrl = str_replace('controllers/', '', plugin_dir_url(__FILE__) . 'assets/');
 
@@ -91,6 +93,8 @@ class Front {
     function show_form($atts) {
 
         $events = $this->event->getActive();
+        $room_types = array();
+        $transports = array();
         if (count($events) === 0) {
             $template = 'none.html';
         } else {
@@ -143,6 +147,8 @@ class Front {
                         break;
 
                     case 2:
+                        $room_types = $this->room_type->getFree($event['event_id']);
+                        $transports = $this->transport->get($event['event_id']);
                         $template = 'page3-details.html';
                         break;
 
@@ -173,6 +179,8 @@ class Front {
             'front/form/' . $template,
             array(
                 'event'      => $event,
+                'room_types' => $room_types,
+                'transports' => $transports,
                 'action_url' => get_page_link(),
                 'errors'     => $errors,
                 'values'     => $values
