@@ -1,0 +1,51 @@
+{% extends "admin/_layout.html" %}
+
+{% block content %}
+<h2>Osoby<span class="add-new-h2">Dodaj nowe</a></h2>
+
+<form name="external_author" action="/wp-admin/admin.php?page=handimania_external_authors" method="post">
+
+    <table class="wp-list-table widefat">
+        <thead>
+            <tr>
+                <th>Imię</th>
+                <th>Nazwisko</th>
+                <th>Płeć</th>
+                <th>Data rejestracji</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for person in persons.data %}
+            <tr{% if loop.index is odd %} class="alternate"{% endif %}>
+                <td>{{ person.first_name }}</td>
+                <td>{{ person.last_name }}</td>
+                <td>{{ person.sex }}</td>
+                <td>{{ person.add_time }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="tablenav bottom">
+
+        <div class="alignleft actions">
+            <button class="button action">Update</button>
+        </div>
+        {% set pager = events.pager %}
+        <div class="tablenav-pages">
+            <span class="displaying-num">{{ pager.total_count }} items</span>
+            <span class="pagination-links">
+                <a class="first-page{% if not pager.first %} disabled{% endif %}" title="Go to the first page" href="/wp-admin/admin.php?page=handimania_external_authors">«</a>
+                <a class="prev-page{% if not pager.prev %} disabled{% endif %}" title="Go to the previous page" href="/wp-admin/admin.php?page=handimania_external_authors&paged={{ pager.prev }}">‹</a>
+                <span class="paging-input">{{ pager.current }} of <span class="total-pages">{{ pager.count }}</span></span>
+                <a class="next-page{% if not pager.next %} disabled{% endif %}" title="Go to the next page" href="/wp-admin/admin.php?page=handimania_external_authors&paged={{ pager.next }}">›</a>
+                <a class="last-page{% if not pager.last %} disabled{% endif %}" title="Go to the last page" href="/wp-admin/admin.php?page=handimania_external_authors&paged={{ pager.last }}">»</a>
+            </span>
+        </div>
+        <br class="clear">
+
+    </div>
+
+</form>
+
+{% endblock %}

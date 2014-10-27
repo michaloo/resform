@@ -5,7 +5,7 @@ namespace Resform\Controller;
 
 class Admin {
 
-    function __construct($view, $db, $event, $transport, $room_type, $room) {
+    function __construct($view, $db, $event, $transport, $room_type, $room, $person) {
         $this->view   = $view;
         $this->db     = $db;
 
@@ -14,6 +14,7 @@ class Admin {
         $this->transport = $transport;
         $this->room_type = $room_type;
         $this->room      = $room;
+        $this->person    = $person;
 
         add_action( 'admin_menu', array($this, 'register_menu_page'));
     }
@@ -106,6 +107,15 @@ class Admin {
             'manage_options',
             'resform_room_list',
             array($this, 'room_list')
+        );
+
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Dodaj sposób dojazdu',
+            'manage_options',
+            'resform_person_list',
+            array($this, 'person_list')
         );
     }
 
@@ -309,4 +319,24 @@ var_dump($rooms);
             'event' => $event
         ));
     }
+
+    function person_list() {
+
+        $event_id = $_GET['event_id'];
+
+        $event = $this->event->find($event_id);
+
+        $limit = (isset($_GET['limit'])) ? $_GET['limit'] : 10;
+        $page  = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
+        $orderby = (isset($_GET['orderby'])) ? $_GET['orderby'] : 'person_id';
+        $sort = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
+
+        $persons = $this->person->get($limit, $page, $orderby, $sort, $event['event_id']);
+
+        echo $this->view->render('admin/person/list.html', array(
+            'persons' => $persons,
+            'event'   => $event
+        ));
+    }
+
 }

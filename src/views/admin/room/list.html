@@ -11,6 +11,7 @@ Lista pokoi
             <td>{{ room.room_type_name }}</td>
             <td>{{ room.occupied_space_count}} / {{ room.space_count }}</td>
             <td>{{ room.sex }}</td>
+            {% if room.family_person_id %}<td>Pokój rodzinny</td>{% endif %}
             <!-- <td><a href="/wp-admin/admin.php?page=resform_room_type_edit&room_type_id={{room_type.room_type_id}}">Edytuj</a></td>
             <td><a href="/wp-admin/admin.php?page=resform_room_type_list&delete={{room_type.room_type_id}}">Usuń</a></td> -->
         </tr>

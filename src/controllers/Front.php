@@ -56,11 +56,11 @@ class Front {
     );
 
 
-    function __construct($view, $event, $front) {
+    function __construct($view, $event, $person) {
         $this->view = $view;
 
-        $this->event = $event;
-        $this->front = $front;
+        $this->event  = $event;
+        $this->person = $person;
 
         $this->assetsUrl = str_replace('controllers/', '', plugin_dir_url(__FILE__) . 'assets/');
 
@@ -90,70 +90,83 @@ class Front {
 
     function show_form($atts) {
 
-        $event = array_pop($this->event->getActive());
+        $events = $this->event->getActive();
+        if (count($events) === 0) {
+            $template = 'none.html';
+        } else {
 
-        $step = (isset($_POST['step'])) ? (int) $_POST['step'] : 0;
+            $event = array_pop($events);
 
-        $values = array_merge($_SESSION, $_POST);
+            if ($event['free_space_count'] == '0') {
+                $template = 'closed.html';
+            } else {
 
-        if (count($values) > 1) {
-            $validators = $this->validators[$step - 1];
-            $filters    = $this->filters[$step - 1];
+                $step = (isset($_POST['step'])) ? (int) $_POST['step'] : 0;
 
-            $filtered = array();
-            $errors  = array();
-            foreach ($filters as $key) {
-                $filtered[$key] = call_user_func(array($this->front, 'filter_' . $key), $values[$key]);
-            }
+                $values = array_merge($_SESSION, $_POST);
 
-            foreach ($validators as $key) {
-                $error = call_user_func(array($this->front, 'validate_' . $key), $filtered[$key]);
+                if ($step > 1) {
+                    $validators = $this->validators[$step - 1];
+                    $filters    = $this->filters[$step - 1];
 
-                if ($error) {
-                    $errors[$key] = $error;
+                    $filtered = array();
+                    $errors  = array();
+                    foreach ($filters as $key) {
+                        $filtered[$key] = call_user_func(array($this->person, 'filter_' . $key), $values[$key]);
+                    }
+
+                    foreach ($validators as $key) {
+                        $error = call_user_func(array($this->person, 'validate_' . $key), $filtered[$key]);
+
+                        if ($error) {
+                            $errors[$key] = $error;
+                        }
+
+                    }
+
+                    if (count($errors) > 0) {
+                        $step--;
+                    }
+
+                    $values   = array_merge($values, $filtered);
+                    $_SESSION = $values;
                 }
 
-            }
+                switch ($step) {
+                    default:
+                    case 0:
+                        $template = 'page1-general-info.html';
+                        break;
 
-            if (count($errors) > 0) {
-                $step--;
-            }
+                    case 1:
+                        $template = 'page2-personal-info.html';
+                        break;
 
-            $values   = array_merge($values, $filtered);
-            $_SESSION = $values;
-        }
+                    case 2:
+                        $template = 'page3-details.html';
+                        break;
 
-        switch ($step) {
-            default:
-            case 0:
-                $template = 'page1-general-info.html';
-                break;
+                    case 3:
+                        $template = 'page4-regulations.html';
+                        break;
 
-            case 1:
-                $template = 'page2-personal-info.html';
-                break;
+                    case 4:
+                        //$_SESSION = array();
+                        $register_errors = $this->person->register($values);
 
-            case 2:
-                $template = 'page3-details.html';
-                break;
+                        if (array_search("Column 'room_id' cannot be null", $register_errors) !== false) {
+                            $errors['register'] = "Brak dostępnych pokoi albo wybrany pokój jest za mały";
+                        } elseif (count($register_errors)) {
+                            $errors['register'] = "Wystąpił błąd zapisu, spróbuj ponownie";
+                        } else {
+                            $_SESSION = array();
+                        }
 
-            case 3:
-                $template = 'page4-regulations.html';
-                break;
+                        $template = 'done.html';
 
-            case 4:
-                //$_SESSION = array();
-                $register_errors = $this->event->register($values);
-
-                if (array_search("Column 'room_id' cannot be null", $register_errors)) {
-                    $errors['register'] = "Wybrany pokój jest za mały";
-                } elseif (count($register_errors)) {
-                    $errors['register'] = "Wystąpił błąd zapisu, spróbuj ponownie";
+                        break;
                 }
-
-                $template = 'done.html';
-                //$_SESSION = array();
-                break;
+            }
         }
 
         echo $this->view->render(

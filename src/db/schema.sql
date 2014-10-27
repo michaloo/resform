@@ -73,6 +73,8 @@ CREATE TABLE IF NOT EXISTS _prefix_persons (
   family_guardian BOOLEAN NOT NULL DEFAULT 0,
   sex ENUM('male', 'female') NOT NULL,
   comments TEXT,
+  status TEXT,
+  color TEXT,
   add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY(room_type_id) REFERENCES _prefix_room_types(room_type_id),
