@@ -5,7 +5,7 @@ namespace Resform\Model;
 
 class Event extends \Resform\Lib\Model {
 
-    var $filters = array(
+    var $input_filters = array(
         'event_id'   => 'integer',
 
         'name'       => 'stringtrim',
@@ -20,20 +20,25 @@ class Event extends \Resform\Lib\Model {
         'regulations'    => 'stringtrim'
     );
 
-    var $editable = array(
-        'name',
-        'start_time',
-        'end_time',
-        'reservation_start_time',
-        'reservation_end_time',
-        'front_info',
-        'room_type_info',
-        'transport_info',
-        'regulations',
+    var $validators = array(
+
+        'name'       => array('required()(Nazwa jest wymagana) | minlength(min=2)(Nazwa musi mieć conajmniej dwa znaki)(Name)'),
+        'start_time' => array('required()(Data rozpoczęcia jest wymagana)'),
+        'end_time'   => array('required()(Data zakończenia jest wymagana)'),
+        'reservation_start_time' => array('required'),
+        'reservation_end_time'   => array('required'),
+        'front_info'     => array('required'),
+        'room_type_info' => array('required'),
+        'transport_info' => array('required'),
+        'regulations'    => array('required')
     );
 
-    var $schema = 'schemas/event.json';
-
+    var $output_filters = array(
+        'start_time' => 'nullify | normalizedate(input_format=d-m-Y&output_format=Y-m-d)',
+        'end_time'   => 'nullify | normalizedate(input_format=d-m-Y&output_format=Y-m-d)',
+        'reservation_start_time' => 'nullify | normalizedate({"input_format":"H:i d-m-Y","output_format":"Y-m-d H:i:s"})',
+        'reservation_end_time'   => 'nullify | normalizedate({"input_format":"H:i d-m-Y","output_format":"Y-m-d H:i:s"})'
+    );
 
     function get($limit, $page, $orderby, $sort) {
         $query   = "SELECT
@@ -68,14 +73,14 @@ class Event extends \Resform\Lib\Model {
 
     function save($data) {
         $query = "INSERT INTO
-        {$this->db->prefix}resform_events ({$this->getKeys($this->editable)})
-            VALUES ({$this->getValues($this->editable, $data)})";
+        {$this->db->prefix}resform_events ({$this->getKeys($this->validators)})
+            VALUES ({$this->getValues($this->validators, $data)})";
         var_dump($query);
         return $this->db->query($query);
     }
 
     function update($data) {
-        $query = "UPDATE {$this->db->prefix}resform_events SET {$this->getPairs($this->editable, $data)} WHERE event_id = {$data['event_id']} LIMIT 1";
+        $query = "UPDATE {$this->db->prefix}resform_events SET {$this->getPairs($this->validators, $data)} WHERE event_id = {$data['event_id']} LIMIT 1";
         var_dump($query);
         return $this->db->query($query);
     }

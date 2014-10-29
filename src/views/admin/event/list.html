@@ -46,7 +46,7 @@
             {% for event in events.data %}
             <tr{% if loop.index is odd %} class="alternate"{% endif %}>
                 <td>{{ event.name }}</td>
-                <td>{{ event.start_time|date('d.m.Y') }} - {{ event.start_time|date('d.m.Y') }}</td>
+                <td>{{ event.start_time|date('d-m-Y') }} - {{ event.start_time|date('d-m-Y') }}</td>
                 <td>{{ event.reservation_start_time }} - {{ event.reservation_end_time }}</td>
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_event_edit&event_id={{event.event_id}}">Edytuj</a> |

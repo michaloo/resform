@@ -4,44 +4,61 @@ namespace Resform\Lib;
 
 abstract class Model {
 
-    protected $filters = array();
-    protected $schema  = array();
+    protected $input_filters  = array();
+    protected $output_filters = array();
+    protected $validators     = array();
 
     protected $db;
-    protected $filter;
+    protected $input_filter;
+    protected $output_filter;
     protected $validator;
 
-    function __construct($db, $filter, $validator) {
-        $this->db        = $db;
-        $this->filter    = $filter;
-        $this->validator = $validator;
+    function __construct($db, $input_filter, $output_filter, $validator) {
+        $this->db            = $db;
+        $this->input_filter  = $input_filter;
+        $this->output_filter = $output_filter;
+        $this->validator     = $validator;
+
+        if (! empty($this->input_filters)) {
+            $this->input_filter->add($this->input_filters);
+        }
+
+        if (! empty($this->output_filters)) {
+            $this->output_filter->add($this->output_filters);
+        }
+
+        if (! empty($this->validators)) {
+            $this->validator->add($this->validators);
+        }
 
         return $this;
     }
 
 
     function validate($data) {
-        $schema = json_decode(file_get_contents(plugin_dir_path( __FILE__ ) . '../' . $this->schema));
 
-        $this->validator->check((object) $data, $schema);
-        return $this->validator->getErrors();
+        $this->validator->validate($data);
+        return $this->validator->getMessages();
     }
 
 
-    function filter($data) {
-        $this->filter->add($this->filters);
+    function input_filter($data) {
 
-        $data = array_intersect_key($data, $this->filters);
-        return $this->filter->filter($data);
+        $data = array_intersect_key($data, $this->input_filters);
+        return $this->input_filter->filter($data);
+    }
+
+    function output_filter($data) {
+        return $this->output_filter->filter($data);
     }
 
     function getMap($keys, $data) {
 
         $values = array_map(function ($key) use ($data) {
 
-            if (is_array($data[$key])) {
-                return str_replace('?', "'" . mysqli_real_escape_string($this->db->dbh, $data[$key]["value"]) . "'", $data[$key]["function"]);
-            }
+            // if (is_array($data[$key])) {
+            //     return str_replace('?', "'" . mysqli_real_escape_string($this->db->dbh, $data[$key]["value"]) . "'", $data[$key]["function"]);
+            // }
 
             if (is_bool($data[$key])) {
                 return ($data[$key] == true) ? 'true' : 'false';
@@ -59,16 +76,16 @@ abstract class Model {
         return array_combine($keys, $values);
     }
 
-    function getValues($keys, $data) {
-        return join(', ', $this->getMap($keys, $data));
+    function getValues($fields, $data) {
+        return join(', ', $this->getMap(array_keys($fields), $data));
     }
 
-    function getKeys($keys) {
-        return join(', ', $keys);
+    function getKeys($fields) {
+        return join(', ', array_keys($fields));
     }
 
-    function getPairs($keys, $data) {
-        $pairs = $this->getMap($keys, $data);
+    function getPairs($fields, $data) {
+        $pairs = $this->getMap(array_keys($fields), $data);
         array_walk($pairs, create_function('&$i,$k','$i=" $k=$i";'));
 
         return implode(', ', $pairs);

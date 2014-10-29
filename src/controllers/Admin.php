@@ -49,7 +49,7 @@ class Admin {
             null,
             'Page Title',
             'Dodaj wydarzenie',
-            'manage_options',
+            'resform_read',
             'resform_event_add',
             array($this, 'event_add')
         );
@@ -109,7 +109,7 @@ class Admin {
             null,
             'Page Title',
             'Edytuj wydarzenie',
-            'resform_wrte',
+            'resform_write',
             'resform_room_type_edit',
             array($this, 'room_type_edit')
         );
@@ -130,6 +130,15 @@ class Admin {
             'resform_read',
             'resform_person_list',
             array($this, 'person_list')
+        );
+
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Dodaj sposób dojazdu',
+            'resform_read',
+            'resform_person_edit',
+            array($this, 'person_edit')
         );
     }
 
@@ -155,29 +164,34 @@ class Admin {
 
     function event_add() {
 
+        $errors = array();
+
         if ($_POST) {
 
-            $filtered = $this->event->filter($_POST);
+            $filtered = $this->event->input_filter($_POST);
             $errors   = $this->event->validate($filtered);
 
             if (count($errors) === 0) {
-                $this->event->save($filtered);
+                $to_save = $this->event->input_filter($filtered);
+                $this->event->save($to_save);
             } else {
-                var_dump($errors);
             }
         }
 
-        echo $this->view->render('admin/event/form.html');
+        echo $this->view->render('admin/event/form.html',
+            array('errors' => $errors)
+        );
     }
 
     function event_edit() {
-
+        $errors = array();
         if ($_POST) {
-            $filtered = $this->event->filter($_POST);
+            $filtered = $this->event->input_filter($_POST);
             $errors   = $this->event->validate($filtered);
 
             if (count($errors) === 0) {
-                $this->event->update($filtered);
+                $to_save = $this->event->output_filter($filtered);
+                $this->event->update($to_save);
             } else {
                 var_dump($errors);
             }
@@ -187,7 +201,10 @@ class Admin {
 
         $event = $this->event->find($id);
 
-        echo $this->view->render('admin/event/form.html', array('event' => $event));
+        echo $this->view->render('admin/event/form.html', array(
+            'event'  => $event,
+            'errors' => $errors
+        ));
     }
 
     function transport_list() {
@@ -293,7 +310,7 @@ class Admin {
     function room_type_edit() {
 
         if ($_POST) {
-            $filtered = $this->room_type->filter($_POST);
+            $filtered = $this->room_type->input_filter($_POST);
             $errors   = $this->room_type->validate($filtered);
 
             if (count($errors) === 0) {
@@ -351,6 +368,27 @@ var_dump($rooms);
             'persons' => $persons,
             'event'   => $event
         ));
+    }
+
+    function person_edit() {
+
+        if ($_POST) {
+            $filtered = $this->person->filter($_POST);
+            $errors   = $this->person->validate($filtered);
+
+            if (count($errors) === 0) {
+                $this->person->update($filtered);
+            } else {
+                var_dump($errors);
+            }
+        }
+
+        $id = $_GET['person_id'];
+
+        $person = $this->person->find($id);
+
+        echo $this->view->render('admin/person/form.html', array(
+            'person' => $person));
     }
 
     function audit_log() {

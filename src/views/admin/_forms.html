@@ -1,0 +1,23 @@
+{% macro input(type, name, display_name, value, placeholder) %}
+    <tr>
+        <th scope="row">{{ display_name }}</th>
+        <td>
+            <label for="{{ name }}">
+                <input id="{{ name }}" type="{{ type|default('text') }}" name="{{ name }}" value="{{ value|e }}" placeholder="{{ placeholder }}" />
+            </label>
+        </td>
+    </tr>
+
+{% endmacro %}
+
+{% macro textarea(name, display_name, value) %}
+    <tr>
+        <th scope="row">{{ display_name }}</th>
+        <td>
+            <label for="{{ name }}">
+                <textarea id="{{ name }}" name="{{ name }}" cols="30" rows="5">{{ value }}</textarea>
+            </label>
+        </td>
+    </tr>
+
+{% endmacro %}

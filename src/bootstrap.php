@@ -62,7 +62,7 @@ $container['front_controller'] = function($c) {
 };
 
 $container['validator'] = $container->factory(function($c) {
-    return new JsonSchema\Validator();
+    return new \Sirius\Validation\Validator();
 });
 
 $container['filter'] = $container->factory(function($c) {
@@ -78,29 +78,35 @@ $container['filter'] = $container->factory(function($c) {
 // Models:
 
 $container['user_model'] = function($c) {
-    return new \Resform\Model\User($c['db'], $c['filter'], $c['validator']);
+    return new \Resform\Model\User($c['db'], $c['filter'], $c['filter'], $c['validator']);
 };
 
 $container['audit_log_model'] = function($c) {
-    return new \Resform\Model\AuditLog($c['db'], $c['filter'], $c['validator']);
+    return new \Resform\Model\AuditLog($c['db'], $c['filter'], $c['filter'], $c['validator']);
 };
 
 $container['event_model'] = function($c) {
-    return new \Resform\Model\Event($c['db'], $c['filter'], $c['validator']);
+    return new \Resform\Model\Event($c['db'], $c['filter'], $c['filter'], $c['validator']);
 };
 
 $container['room_type_model'] = function($c) {
-    return new \Resform\Model\RoomType($c['db'], $c['filter'], $c['validator']);
+    return new \Resform\Model\RoomType($c['db'], $c['filter'], $c['filter'], $c['validator']);
 };
 
 $container['transport_model'] = function($c) {
-    return new \Resform\Model\Transport($c['db'], $c['filter'], $c['validator']);
+    return new \Resform\Model\Transport($c['db'], $c['filter'], $c['filter'], $c['validator']);
 };
 
 $container['person_model'] = function($c) {
-    return new \Resform\Model\Person($c['db'], $c['filter'], $c['validator']);
+    return new \Resform\Model\Person(
+        $c['db'],
+        $c['filter'],
+        $c['filter'],
+        $c['validator'],
+        array($c['filter'], $c['filter'], $c['filter'], $c['filter']),
+        array($c['validator'], $c['validator'], $c['validator'], $c['validator']));
 };
 
 $container['room_model'] = function($c) {
-    return new \Resform\Model\Room($c['db'], $c['filter'], $c['validator']);
+    return new \Resform\Model\Room($c['db'], $c['filter'], $c['filter'], $c['validator']);
 };

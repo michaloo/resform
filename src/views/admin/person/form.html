@@ -1,0 +1,21 @@
+{% extends "admin/_layout.html" %}
+
+{% block content %}
+
+<h2>Edytuj osobę</h2>
+
+<div id="poststuff">
+    <div id="post-body" class="metabox-holder columns-2">
+        <div id="post-body-content">
+            <form name="post" action="/wp-admin/admin.php?page=resform_person_edit" method="post">
+
+                <input type="text" name="first_name" placeholder="imię" value="{{person.first_name}}" /><br />
+                <input type="text" name="last_name" placeholder="imię" value="{{person.last_name}}" /><br />
+
+                <button>Edytuj</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

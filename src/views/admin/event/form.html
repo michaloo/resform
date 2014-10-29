@@ -1,4 +1,5 @@
 {% extends "admin/_layout.html" %}
+{% import "admin/_forms.html" as forms %}
 
 {% block content %}
 
@@ -10,31 +11,51 @@
 
 <h2>Nowe wydarzenie</h2>
 
-<div id="poststuff">
-    <div id="post-body" class="metabox-holder columns-2">
-        <div id="post-body-content">
-            <form name="post" action="/wp-admin/admin.php?page=resform_event_{{action}}" method="post">
-                {% if event %}
-                <input type="hidden" name="event_id" value="{{event.event_id}}" />
-                {% endif %}
-                <input type="text" name="name" placeholder="nazwa" value="{{event.name}}" /><br />
-                <input type="text" name="start_time" placeholder="data rozpoczęcia" value="{{event.start_time}}" /><br />
-                <input type="text" name="end_time" placeholder="data zakończenia" value="{{event.end_time}}" /><br />
-                <input type="text" name="reservation_start_time" placeholder="data rozpoczęcia zapisów" value="{{event.reservation_start_time}}" /><br />
-                <input type="text" name="reservation_end_time" placeholder="data zakończenia zapisów" value="{{event.reservation_end_time}}" /><br />
-
-                <textarea name="front_info" placeholder="informacja początkowa">{{event.front_info}}</textarea><br />
-
-                <textarea name="room_type_info" placeholder="informacja o pokojach">{{event.room_type_info}}</textarea><br />
-
-                <textarea name="transport_info" placeholder="informacja o rodzajach dojazdu">{{event.transport_info}}</textarea><br />
-
-                <textarea name="regulations" placeholder="regulamin">{{event.regulations}}</textarea><br />
-
-                <button>Dodaj</button>
-            </form>
-        </div>
-    </div>
+{% if errors %}
+<div class="error">
+    {% for error in errors %}
+    {{ error.0 }}<br />
+    {% endfor %}
 </div>
+{% endif %}
+
+<form name="post" action="/wp-admin/admin.php?page=resform_event_{{action}}" method="post">
+
+    <table class="form-table">
+        <tbody>
+
+            {% if event %}
+            <input type="hidden" name="event_id" value="{{event.event_id}}" />
+            {% endif %}
+
+            {{ forms.input('text', 'name', 'Nazwa', event.name, 'Wpisz nazwę') }}
+
+            {{ forms.input('text', 'start_time', 'Data rozpoczęcia',
+            event.start_time is empty ? "" : event.start_time|date('d-m-Y'), 'dd-mm-rrrr') }}
+            {{ forms.input('text', 'end_time', 'Data zakończenia',
+            event.end_time is empty ? "" : event.end_time|date('d-m-Y'), 'dd-mm-rrrr') }}
+
+            {{ forms.input('text', 'reservation_start_time', 'Data rozpoczęcia zapisów',
+            event.reservation_end_time is empty ? "" : event.reservation_start_time|date('H:i d-m-Y'), 'gg:mm dd-mm-rrrr') }}
+            {{ forms.input('text', 'reservation_end_time', 'Data zakończenia zapisów',
+            event.reservation_start_time is empty ? "" : event.reservation_end_time|date('H:i d-m-Y'), 'gg:mm dd-mm-rrrr') }}
+
+            {{ forms.textarea('front_info', 'Informacja początkowa', event.front_info) }}
+            {{ forms.textarea('room_type_info', 'Informacja o pokojach', event.room_type_info) }}
+            {{ forms.textarea('transport_info', 'Informacja o transporcie', event.transport_info) }}
+            {{ forms.textarea('regulations', 'Regulamin', event.regulations) }}
+
+
+        </tbody>
+    </table>
+    <p class="submit">
+        {% if event %}
+        <button class="button button-primary">Edytuj</button>
+        {% else %}
+        <button class="button button-primary">Dodaj</button>
+        {% endif %}
+    </p>
+
+</form>
 
 {% endblock %}

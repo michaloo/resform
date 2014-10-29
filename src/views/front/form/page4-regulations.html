@@ -4,7 +4,7 @@
 
     <label class="two-line main{% if errors.accept_regulation %} error{% endif %}">
         {% if errors.accept_regulation %}
-        <span class="error_desc">{{ errors.accept_regulation }}</span>
+        <span class="error_desc">{{ errors.accept_regulation.0 }}</span>
         {% endif %}
         <span>Akceptuję regulamin</span>
         <input type="hidden" name="accept_regulation" value="0" />
@@ -13,7 +13,7 @@
 
     <label class="two-line main{% if errors.accept_information %} error{% endif %}">
         {% if errors.accept_information %}
-        <span class="error_desc">{{ errors.accept_information }}</span>
+        <span class="error_desc">{{ errors.accept_information.0 }}</span>
         {% endif %}
         <span>Wyrażam zgodę na przetwarzanie moich danych osobowych przez Fundację Malak dla potrzeb niezbędnych do realizacji wyjazdu "Weekend pełen Łaski" zgodnie z Ustawą z dnia 29.08.1997 roku o Ochronie Danych Osobowych ( Dz.U. z 2002r. Nr 101, poz. 926 ze zm.).</span>
         <input type="hidden" name="accept_information" value="0" />

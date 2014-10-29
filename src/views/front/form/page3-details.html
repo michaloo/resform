@@ -4,7 +4,7 @@
 
     <label class="two-line main{% if errors.room_type_id %} error{% endif %}">
         {% if errors.room_type_id %}
-        <span class="error_desc">{{ errors.room_type_id }}</span>
+        <span class="error_desc">{{ errors.room_type_id.0 }}</span>
         {% endif %}
         <span>Typ pokoju (liczba wolnych miejsc):</span>
         <select name="room_type_id" id="room_type">
@@ -19,7 +19,7 @@
 
     <label class="two-line main{% if errors.transport_id %} error{% endif %}">
         {% if errors.transport_id %}
-        <span class="error_desc">{{ errors.transport_id }}</span>
+        <span class="error_desc">{{ errors.transport_id.0 }}</span>
         {% endif %}
         <span>Transport:</span>
         <select name="transport_id" id="room_type">

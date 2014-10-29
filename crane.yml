@@ -16,6 +16,17 @@ containers:
             env-file: [".env"]
             net: host
             detach: true
+    webdev:
+        image: michaloo/web-dev
+        run:
+            volumes-from: ["resform_data_web"]
+            volume: ["./src:/var/www/html/wp-content/plugins/resform"]
+            net: host
+            detach: true
+            env-file: [".env"]
+            env:
+            - "MYSQL_USER=root"
+            - "MYSQL_PASS=root"
     mysql_it:
         image: michaloo/mariadb
         run:
@@ -32,7 +43,7 @@ containers:
             rm: true
             cmd: -c /bin/bash # /app/bin/connect
     webdev_it:
-        image: michaloo/webdev
+        image: michaloo/web-dev
         run:
             volumes-from: ["resform_data_web"]
             volume: [".:/resform", "./src:/var/www/html/wp-content/plugins/resform"]

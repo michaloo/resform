@@ -1,3 +1,5 @@
+{% import "front/_forms.html" as forms %}
+
 <form action="{{ action_url }}" method="post" class="resform">
     <input type="hidden" name="step" value="2">
 
@@ -5,7 +7,7 @@
         <h2>Dane osobowe</h2>
         <fieldset class="one-line{% if errors.sex %} error{% endif %}">
             {% if errors.sex %}
-            <span class="error_desc">{{ errors.sex }}</span>
+            <span class="error_desc">{{ errors.sex.0 }}</span>
             {% endif %}
             <label class="main">Płeć:</label>
             <label>
@@ -18,53 +20,18 @@
             </label>
         </fieldset>
 
-        <label class="two-line main{% if errors.first_name %} error{% endif %}">
-            {% if errors.first_name %}
-            <span class="error_desc">{{ errors.first_name }}</span>
-            {% endif %}
-            <span>Imię:</span>
-            <input type="text" name="first_name" value="{{ values.first_name }}">
-        </label>
+        {{ forms.label_input('Imię:', 'text', 'first_name', values.first_name, errors.first_name) }}
 
-        <label class="two-line main{% if errors.first_name %} error{% endif %}">
-            {% if errors.last_name %}
-            <span class="error_desc">{{ errors.last_name }}</span>
-            {% endif %}
-            <span>Nazwisko:</span>
-            <input type="text" name="last_name" value="{{ values.last_name }}">
-        </label>
+        {{ forms.label_input('Nazwisko:', 'text', 'last_name', values.last_name, errors.last_name) }}
 
-        <label class="two-line main{% if errors.birth_date %} error{% endif %}">
-            {% if errors.birth_date %}
-            <span class="error_desc">{{ errors.birth_date }}</span>
-            {% endif %}
-            <span>Data urodzenia:</span>
-            <input type="text" name="birth_date" value="{{ values.birth_date }}" placeholder="dd-mm-rrrr">
-        </label>
+        {{ forms.label_input('Data urodzenia:', 'text', 'birth_date', values.birth_date, errors.birth_date, 'dd-mm-rrrr') }}
 
-        <label class="two-line main{% if errors.email %} error{% endif %}">
-            {% if errors.email %}
-            <span class="error_desc">{{ errors.email }}</span>
-            {% endif %}
-            <span>Adres e-mail:</span>
-            <input type="text" name="email" value="{{ values.email }}">
-        </label>
+        {{ forms.label_input('Adres e-mail:', 'text', 'email', values.email, errors.email, 'twoj@adres.com') }}
 
-        <label class="two-line main{% if errors.phone %} error{% endif %}">
-            {% if errors.phone %}
-            <span class="error_desc">{{ errors.phone }}</span>
-            {% endif %}
-            <span>Numer telefonu:</span>
-            <input type="text" name="phone" value="{{ values.phone }}">
-        </label>
+        {{ forms.label_input('Numer telefonu:', 'text', 'phone', values.phone, errors.phone) }}
 
-        <label class="two-line main{% if errors.city %} error{% endif %}">
-            {% if errors.city %}
-            <span class="error_desc">{{ errors.city }}</span>
-            {% endif %}
-            <span>Miasto:</span>
-            <input type="text" name="city" value="{{ values.city }}">
-        </label>
+        {{ forms.label_input('Miasto:', 'text', 'city', values.city, errors.city) }}
+
     <fieldset>
     <h2>Informacje dodatkowe</h2>
     <fieldset>

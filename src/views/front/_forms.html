@@ -1,0 +1,12 @@
+{% macro label_input(display_name, type, name, value, error, placeholder, classes) %}
+    <label class="{{ classes|default('two-line main') }}{% if error %} error{% endif %}">
+        {% if error %}
+        <span class="error_desc">{{ error.0 }}</span>
+        {% endif %}
+        <span>{{ display_name }}</span>
+        <input
+            type="{{ type }}"
+            name="{{ name }}"
+            value="{{ value }}"{% if placeholder %} placeholder="{{ placeholder }}"{% endif %}>
+    </label>
+{% endmacro %}

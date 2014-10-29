@@ -5,7 +5,7 @@ namespace Resform\Model;
 
 class RoomType extends \Resform\Lib\Model {
 
-    var $filters = array(
+    var $input_filters = array(
         'room_type_id' => 'integer',
         'event_id'     => 'integer',
 
@@ -16,11 +16,14 @@ class RoomType extends \Resform\Lib\Model {
         'bathroom'    => 'boolify',
     );
 
-    var $editable = array(
-        'name', 'space_count', 'room_count', 'price', 'bathroom', 'event_id'
+    var $validators = array(
+        'name'        => array("required"),
+        'space_count' => array("required"),
+        'room_count'  => array("required"),
+        'price'       => array("required"),
+        'bathroom'    => array("required"),
+        'event_id'    => array("required")
     );
-
-    var $schema = 'schemas/room_type.json';
 
     function getFree($event_id) {
         $query = "SELECT
@@ -53,14 +56,14 @@ class RoomType extends \Resform\Lib\Model {
 
     function save($data) {
         $query = "INSERT INTO
-            {$this->db->prefix}resform_room_types ({$this->getKeys($this->editable)})
-            VALUES ({$this->getValues($this->editable, $data)})";
+            {$this->db->prefix}resform_room_types ({$this->getKeys($this->validators)})
+            VALUES ({$this->getValues($this->validators, $data)})";
         var_dump($query);
         return $this->db->query($query);
     }
 
     function update($data) {
-        $query = "UPDATE {$this->db->prefix}resform_room_types SET {$this->getPairs($this->editable, $data)} WHERE room_type_id = {$data['room_type_id']} LIMIT 1";
+        $query = "UPDATE {$this->db->prefix}resform_room_types SET {$this->getPairs($this->validators, $data)} WHERE room_type_id = {$data['room_type_id']} LIMIT 1";
         var_dump($query);
         return $this->db->query($query);
     }

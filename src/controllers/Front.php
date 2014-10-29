@@ -5,60 +5,6 @@ namespace Resform\Controller;
 
 class Front {
 
-    var $validators = array(
-        array(),
-        array(
-            'sex',
-            'first_name',
-            'last_name',
-            'birth_date',
-            'email',
-            'phone',
-            'city',
-            'family_first_name',
-            'family_last_name',
-            'family_birth_date'
-        ),
-        array(
-            'room_type_id',
-            'transport_id',
-            'comments'
-        ),
-        array(
-            'accept_regulation',
-            'accept_information'
-        )
-    );
-
-    var $filters = array(
-        array(),
-        array(
-            'sex',
-            'first_name',
-            'last_name',
-            'birth_date',
-            'email',
-            'phone',
-            'city',
-            'disabled',
-            'disabled_guardian',
-            'stairs_accessibility',
-            'family_first_name',
-            'family_last_name',
-            'family_birth_date'
-        ),
-        array(
-            'room_type_id',
-            'transport_id',
-            'comments'
-        ),
-        array(
-            'accept_regulation',
-            'accept_information'
-        )
-    );
-
-
     function __construct($view, $event, $transport, $room_type, $person) {
         $this->view = $view;
 
@@ -98,6 +44,7 @@ class Front {
         $events = $this->event->getActive();
         $room_types = array();
         $transports = array();
+
         if (count($events) === 0) {
             $template = 'none.html';
         } else {
@@ -113,23 +60,26 @@ class Front {
                 $values = array_merge($_SESSION, $_POST);
 
                 if ($step > 1) {
-                    $validators = $this->validators[$step - 1];
-                    $filters    = $this->filters[$step - 1];
+                    // $validators = $this->person->validators[$step - 1];
+                    // $filters    = $this->filters[$step - 1];
+                    //
+                    // $filtered = array();
+                    // $errors  = array();
+                    // foreach ($filters as $key) {
+                    //     $filtered[$key] = call_user_func(array($this->person, 'filter_' . $key), $values[$key]);
+                    // }
+                    //
+                    // foreach ($validators as $key) {
+                    //     $error = call_user_func(array($this->person, 'validate_' . $key), $filtered[$key]);
+                    //
+                    //     if ($error) {
+                    //         $errors[$key] = $error;
+                    //     }
+                    //
+                    // }
 
-                    $filtered = array();
-                    $errors  = array();
-                    foreach ($filters as $key) {
-                        $filtered[$key] = call_user_func(array($this->person, 'filter_' . $key), $values[$key]);
-                    }
-
-                    foreach ($validators as $key) {
-                        $error = call_user_func(array($this->person, 'validate_' . $key), $filtered[$key]);
-
-                        if ($error) {
-                            $errors[$key] = $error;
-                        }
-
-                    }
+                    $filtered = $this->person->input_filter_step($step, $values);
+                    $errors   = $this->person->validate_step($step, $filtered);
 
                     if (count($errors) > 0) {
                         $step--;
@@ -161,7 +111,8 @@ class Front {
 
                     case 4:
                         //$_SESSION = array();
-                        $register_errors = $this->person->register($values);
+                        $to_register = $this->person->output_filter($values);
+                        $register_errors = $this->person->register($to_register);
 
                         if (array_search("Column 'room_id' cannot be null", $register_errors) !== false) {
                             $errors['register'] = "Brak dostępnych pokoi albo wybrany pokój jest za mały";

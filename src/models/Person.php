@@ -5,7 +5,124 @@ namespace Resform\Model;
 
 class Person extends \Resform\Lib\Model {
 
-    function filter_sex($sex) {
+    var $input_filters = array(
+        'person_id'    => 'integer',
+        'room_type_id' => 'integer | nullify',
+        'transport_id' => 'integer | nullify',
+
+        'sex'        => 'stringtrim',
+        'first_name' => 'stringtrim',
+        'last_name'  => 'stringtrim',
+        'birth_date' => 'stringtrim',
+        'email'      => 'stringtrim',
+        'phone'      => 'stringtrim',
+        'city'       => 'stringtrim',
+
+        'disabled'             => 'boolify',
+        'disabled_guardian'    => 'boolify',
+        'stairs_accessibility' => 'boolify',
+        'family_first_name'    => 'cleanarray',
+        'family_last_name'     => 'cleanarray',
+        'family_birth_date'    => 'cleanarray',
+
+        'accept_regulation'  => 'boolify',
+        'accept_information' => 'boolify',
+
+    );
+
+    var $validators = array(
+        'sex'        => array('required | inlist({"list":["male","female"]})'),
+        'first_name' => array("required"),
+        'last_name'  => array("required"),
+        'birth_date' => array('required | Datetime({"format":"d-m-Y"})(Błędny format daty)()'),
+        'email'      => array("required"),
+        'phone'      => array("required"),
+        'city'       => array("required"),
+
+        'room_type_id' => array("required"),
+        'transport_id' => array("required"),
+
+        'accept_regulation'  => array('required | inlist({"list":[true]})'),
+        'accept_information' => array('required | inlist({"list":[true]})'),
+    );
+
+    var $output_filters = array(
+        'birth_date' => 'nullify | normalizedate(input_format=d-m-Y&output_format=Y-m-d)'
+    );
+
+    var $steps = array(
+        array(),
+        array(
+            'sex',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'email',
+            'phone',
+            'city',
+            'disabled',
+            'disabled_guardian',
+            'stairs_accessibility',
+            'family_first_name',
+            'family_last_name',
+            'family_birth_date'
+        ),
+        array(
+            'room_type_id',
+            'transport_id',
+            'comments'
+        ),
+        array(
+            'accept_regulation',
+            'accept_information'
+        )
+    );
+
+    protected $step_filters;
+    protected $step_validators;
+
+    function __construct($db, $input_filter, $output_filter, $validator, $step_filters, $step_validators) {
+        parent::__construct($db, $input_filter, $output_filter, $validator);
+
+        $this->step_filters    = $step_filters;
+        $this->step_validators = $step_validators;
+
+        return $this;
+    }
+
+    function validate_step($step, $data) {
+
+        if (isset($this->step_validators[$step])) {
+            $validators = array_intersect_key($this->validators, array_flip($this->steps[$step-1]));
+            $this->step_validators[$step]->add($validators);
+
+            $this->step_validators[$step]->validate($data);
+            $errors = $this->step_validators[$step]->getMessages();
+        } else {
+            $errors = $this->validate($data);
+        }
+
+        return $errors;
+    }
+
+
+    function input_filter_step($step, $data) {
+
+        if (isset($this->step_filters[$step])) {
+
+            $filters = array_intersect_key($this->input_filters, array_flip($this->steps[$step-1]));
+            $this->step_filters[$step]->add($filters);
+
+            $data = array_intersect_key($data, $filters);
+            $filtered = $this->step_filters[$step]->filter($data);
+        } else {
+            $filtered = $this->input_filter($data);
+        }
+
+        return $filtered;
+    }
+
+    /*function filter_sex($sex) {
         return strtolower($sex);
     }
 
@@ -205,7 +322,7 @@ class Person extends \Resform\Lib\Model {
         }
 
         return false;
-    }
+    }*/
 
     function register($values) {
         $family_members_count = max(
@@ -238,13 +355,13 @@ class Person extends \Resform\Lib\Model {
             $values['accept_information']
         );
 
-        $values['birth_date'] = array(
-            "function" => "STR_TO_DATE(?, '%d-%m-%Y')",
-            "value"    => $values['birth_date']
-        );
+        // $values['birth_date'] = array(
+        //     "function" => "STR_TO_DATE(?, '%d-%m-%Y')",
+        //     "value"    => $values['birth_date']
+        // );
 
-        $sql_values = $this->getValues(array_keys($values), $values);
-        $sql_keys = $this->getKeys(array_keys($values));
+        $sql_values = $this->getValues($values, $values);
+        $sql_keys = $this->getKeys($values);
 
         $query = <<<SQL
         INSERT INTO  {$this->db->prefix}resform_persons (
@@ -273,8 +390,8 @@ SQL;
                 "value"    => $family_member_values['birth_date']
             );
 
-            $sql_values = $this->getValues(array_keys($family_member_values), $family_member_values);
-            $sql_keys = $this->getKeys(array_keys($family_member_values));
+            $sql_values = $this->getValues($family_member_values, $family_member_values);
+            $sql_keys = $this->getKeys($family_member_values);
 
             $query = <<<SQL
             INSERT INTO {$this->db->prefix}resform_persons (
@@ -307,5 +424,13 @@ SQL;
         );
     }
 
+    function find($id) {
+
+        $query = "SELECT * FROM {$this->db->prefix}resform_persons WHERE person_id = $id LIMIT 1";
+        var_dump($query);
+
+        $results = $this->db->get_results($query, ARRAY_A);
+        return array_pop($results);
+    }
 
 }
