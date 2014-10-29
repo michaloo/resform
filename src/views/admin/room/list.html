@@ -1,17 +1,27 @@
 {% extends "admin/_layout.html" %}
 
 {% block content %}
-Lista pokoi
 
-<table>
+<h2>Lista pokoi</h2>
+
+<table class="wp-list-table widefat">
     <tbody>
-
+        <thead>
+            <tr>
+                <th>Typ pokoju</th>
+                <th>Zajęte miejsca</th>
+                <th>Wolne miejsca</th>
+                <th>Płeć / rodzina</th>
+            </tr>
+        </thead>
         {% for room in rooms %}
         <tr>
             <td>{{ room.room_type_name }}</td>
-            <td>{{ room.occupied_space_count}} / {{ room.space_count }}</td>
-            <td>{{ room.sex }}</td>
-            {% if room.family_person_id %}<td>Pokój rodzinny</td>{% endif %}
+            <td>{{ room.occupied_space_count}}</td>
+            <td>{{ room.space_count }}</td>
+            <td>
+                {% if room.family_person_id %}Pokój rodzinny{% else %}{{ room.sex }}{% endif %}
+            </td>
             <!-- <td><a href="/wp-admin/admin.php?page=resform_room_type_edit&room_type_id={{room_type.room_type_id}}">Edytuj</a></td>
             <td><a href="/wp-admin/admin.php?page=resform_room_type_list&delete={{room_type.room_type_id}}">Usuń</a></td> -->
         </tr>

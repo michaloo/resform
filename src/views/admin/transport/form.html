@@ -1,31 +1,54 @@
 {% extends "admin/_layout.html" %}
+{% import "admin/_forms.html" as forms %}
 
 {% block content %}
 
 {% set action = 'add' %}
 
-{% if room_type %}
+{% if transport %}
     {% set action = 'edit&transport_id=' ~ transport.transport_id %}
 {% endif %}
 
-<h2>Nowa opcja transportu</h2>
+{% if transport %}
+<h2>Edytuj Opcję dojazdu</h2>
+{% else %}
+<h2>Dodaj Opcję dojazdu</h2>
+{% endif %}
 
-<div id="poststuff">
-    <div id="post-body" class="metabox-holder columns-2">
-        <div id="post-body-content">
-            <form name="post" action="/wp-admin/admin.php?page=resform_transport_{{action}}" method="post">
-                {% if room_type %}
-                <input type="hidden" name="transport_id" value="{{transport.transport_id}}" />
-                <input type="hidden" name="event_id" value="{{transport.event_id}}" />
-                {% else %}
-                <input type="hidden" name="event_id" value="{{event_id}}" />
-                {% endif %}
-                <input type="text" name="name" placeholder="nazwa" value="{{transport.name}}" /><br />
-                <input type="number" name="price" placeholder="cena" value="{{room_type.price}}" /><br />
-                <button>Dodaj</button>
-            </form>
-        </div>
-    </div>
+
+{% if errors %}
+<div class="error">
+    {% for error in errors %}
+    {{ error.0 }}<br />
+    {% endfor %}
 </div>
+{% endif %}
+
+<form name="post" action="/wp-admin/admin.php?page=resform_transport_{{action}}" method="post">
+
+    <table class="form-table">
+        <tbody>
+
+            {% if transport %}
+            <input type="hidden" name="transport_id" value="{{transport.transport_id}}" />
+            <input type="hidden" name="event_id" value="{{transport.event_id}}" />
+            {% else %}
+            <input type="hidden" name="event_id" value="{{event_id}}" />
+            {% endif %}
+
+            {{ forms.input('text', 'name', 'Nazwa', transport.name, 'Wpisz nazwę') }}
+            {{ forms.input('number', 'price', 'Cena', transport.price, '0') }}
+
+        </tbody>
+    </table>
+    <p class="submit">
+        {% if room_type %}
+        <button class="button button-primary">Edytuj</button>
+        {% else %}
+        <button class="button button-primary">Dodaj</button>
+        {% endif %}
+    </p>
+
+</form>
 
 {% endblock %}

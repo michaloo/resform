@@ -1,21 +1,37 @@
 {% extends "admin/_layout.html" %}
 
 {% block content %}
-Lista typów pokoi
 
-<table>
+<h2>Lista typów pokoi<a href="/wp-admin/admin.php?page=resform_room_type_add&event_id={{event.event_id}}" class="add-new-h2">Dodaj nowy</a></h2>
+
+<table class="wp-list-table widefat">
+
+    <thead>
+        <tr>
+            <th>Nazwa</th>
+            <th>Cena</th>
+            <th>Liczba miejsc</th>
+            <th>Liczba pokoi</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+
     <tbody>
 
         {% for room_type in room_types %}
         <tr>
             <td>{{ room_type.name }}</td>
-            <td><a href="/wp-admin/admin.php?page=resform_room_type_edit&room_type_id={{room_type.room_type_id}}">Edytuj</a></td>
-            <td><a href="/wp-admin/admin.php?page=resform_room_type_list&delete={{room_type.room_type_id}}">Usuń</a></td>
+            <td>{{ room_type.price }}</td>
+            <td>{{ room_type.space_count }}</td>
+            <td>{{ room_type.room_count }}</td>
+            <td>
+                <a href="/wp-admin/admin.php?page=resform_room_type_edit&room_type_id={{room_type.room_type_id}}">Edytuj</a> |
+                <a href="/wp-admin/admin.php?page=resform_room_type_list&delete={{room_type.room_type_id}}">Usuń</a>
+            </td>
         </tr>
         {% endfor %}
 
     </tbody>
 </table>
 
-<a href="/wp-admin/admin.php?page=resform_room_type_add&event_id={{event.event_id}}">Dodaj Typ Pokoju</a>
 {% endblock %}

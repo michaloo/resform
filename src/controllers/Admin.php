@@ -172,7 +172,7 @@ class Admin {
             $errors   = $this->event->validate($filtered);
 
             if (count($errors) === 0) {
-                $to_save = $this->event->input_filter($filtered);
+                $to_save = $this->event->output_filter($filtered);
                 $this->event->save($to_save);
             } else {
             }
@@ -233,11 +233,12 @@ class Admin {
 
         if ($_POST) {
 
-            $filtered = $this->transport->filter($_POST);
+            $filtered = $this->transport->input_filter($_POST);
             $errors   = $this->transport->validate($filtered);
 
             if (count($errors) === 0) {
-                $this->transport->save($filtered);
+                $to_save = $this->transport->output_filter($filtered);
+                $this->transport->save($to_save);
             } else {
                 var_dump($errors);
             }
@@ -249,11 +250,12 @@ class Admin {
     function transport_edit() {
 
         if ($_POST) {
-            $filtered = $this->room_type->filter($_POST);
-            $errors   = $this->room_type->validate($filtered);
+            $filtered = $this->transport->input_filter($_POST);
+            $errors   = $this->transport->validate($filtered);
 
             if (count($errors) === 0) {
-                $this->room_type->update($filtered);
+                $to_save = $this->transport->output_filter($filtered);
+                $this->transport->update($to_save);
             } else {
                 var_dump($errors);
             }
@@ -261,10 +263,10 @@ class Admin {
 
         $id = $_GET['transport_id'];
 
-        $room_type = $this->room_type->find($id);
+        $transport = $this->transport->find($id);
 
         echo $this->view->render('admin/transport/form.html', array(
-            'event_id' => $room_type->event_id,
+            'event_id' => $transport['event_id'],
             'transport' => $transport));
     }
 
@@ -294,11 +296,12 @@ class Admin {
 
         if ($_POST) {
 
-            $filtered = $this->room_type->filter($_POST);
+            $filtered = $this->room_type->input_filter($_POST);
             $errors   = $this->room_type->validate($filtered);
 
             if (count($errors) === 0) {
-                $this->room_type->save($filtered);
+                $to_save = $this->room_type->output_filter($filtered);
+                $this->room_type->save($to_save);
             } else {
                 var_dump($errors);
             }
@@ -314,7 +317,8 @@ class Admin {
             $errors   = $this->room_type->validate($filtered);
 
             if (count($errors) === 0) {
-                $this->room_type->update($filtered);
+                $to_save = $this->room_type->output_filter($filtered);
+                $this->room_type->update($to_save);
             } else {
                 var_dump($errors);
             }
@@ -344,7 +348,7 @@ class Admin {
         $event = $this->event->find($event_id);
 
         $rooms = $this->room->get($event['event_id']);
-var_dump($rooms);
+
         echo $this->view->render('admin/room/list.html', array(
             'rooms' => $rooms,
             'event' => $event
@@ -373,11 +377,13 @@ var_dump($rooms);
     function person_edit() {
 
         if ($_POST) {
-            $filtered = $this->person->filter($_POST);
+            $filtered = $this->person->input_filter($_POST);
             $errors   = $this->person->validate($filtered);
 
             if (count($errors) === 0) {
-                $this->person->update($filtered);
+                $to_save = $this->person->output_filter($filtered);
+                var_dump($to_save);
+                $this->person->update($to_save);
             } else {
                 var_dump($errors);
             }
@@ -387,8 +393,14 @@ var_dump($rooms);
 
         $person = $this->person->find($id);
 
+        $room_types = $this->room_type->get($person['event_id']);
+        $transports = $this->transport->get($person['event_id']);
+
         echo $this->view->render('admin/person/form.html', array(
-            'person' => $person));
+            'person' => $person,
+            'room_types' => $room_types,
+            'transports' => $transports,
+            ));
     }
 
     function audit_log() {

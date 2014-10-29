@@ -137,9 +137,21 @@
                 first_names: {{ values.family_first_name|json_encode()|raw }},
                 last_names: {{ values.family_last_name|json_encode()|raw }},
                 birth_dates: {{ values.family_birth_date|json_encode()|raw }},
-                first_names_errors: {{ errors.family_first_name|json_encode()|raw }},
-                last_name_errors: {{ errors.family_last_name|json_encode()|raw }},
-                birth_date_errors: {{ errors.family_birth_date|json_encode()|raw }}
+                first_names_errors: [
+                    {% for i, b in values.family_first_name %}
+                    '{{ errors['family_first_name[' ~ i ~ ']'].0 }}',
+                    {% endfor %}
+                ],
+                last_name_errors: [
+                    {% for i, b in values.family_last_name %}
+                    '{{ errors['family_last_name[' ~ i ~ ']'].0 }}',
+                    {% endfor %}
+                ],
+                birth_date_errors: [
+                    {% for i, b in values.family_birth_date %}
+                    '{{ errors['family_birth_date[' ~ i ~ ']'].0 }}',
+                    {% endfor %}
+                ]
             };
         </script>
     </fieldset>

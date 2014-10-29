@@ -1,0 +1,11 @@
+{
+  "name": "resform",
+  "version": "0.1.0",
+  "devDependencies": {
+    "gulp": "^3.8.8",
+    "gulp-clean": "^0.3.1",
+    "gulp-ejs": "^0.3.0",
+    "gulp-rename": "^1.2.0",
+    "gulp-zip": "^0.4.0"
+  }
+}

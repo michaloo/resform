@@ -1,21 +1,82 @@
 {% extends "admin/_layout.html" %}
+{% import "admin/_forms.html" as forms %}
 
 {% block content %}
 
-<h2>Edytuj osobę</h2>
+<h2>Edytuj osobę<a href="/wp-admin/admin.php?page=resform_person_list&event_id={{person.event_id}}" class="add-new-h2">Wróc do listy</a></h2>
 
-<div id="poststuff">
-    <div id="post-body" class="metabox-holder columns-2">
-        <div id="post-body-content">
-            <form name="post" action="/wp-admin/admin.php?page=resform_person_edit" method="post">
+<form name="post" action="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}" method="post">
 
-                <input type="text" name="first_name" placeholder="imię" value="{{person.first_name}}" /><br />
-                <input type="text" name="last_name" placeholder="imię" value="{{person.last_name}}" /><br />
+    <table class="form-table">
+        <tbody>
 
-                <button>Edytuj</button>
-            </form>
-        </div>
-    </div>
-</div>
+            {% if person %}
+            <input type="hidden" name="person_id" value="{{person.person_id}}" />
+            {% endif %}
+
+            {{ forms.input('text', 'first_name', 'Imię', person.first_name, 'imię') }}
+            {{ forms.input('text', 'last_name', 'Nazwisko', person.last_name, 'nazwisko') }}
+
+            <tr>
+                <th scope="row">Płeć</th>
+                <td>
+                    <label>
+                        <span>Kobieta:</span>
+                        <input type="radio" name="sex" value="female"{% if person.sex == 'female' %} checked{% endif %}>
+                    </label>
+                    <label>
+                        <span>Mężczyzna:</span>
+                        <input type="radio" name="sex" value="male"{% if person.sex == 'male' %} checked{% endif %}>
+                    </label>
+                </td>
+            </tr>
+
+            {{ forms.input('text', 'birth_date', 'Data urodzenia',
+                person.birth_date is empty ? "" : person.birth_date|date('d-m-Y'), 'dd-mm-rrrr') }}
+
+            {{ forms.input('text', 'email', 'Adres e-mail', person.email, 'adres e-mail') }}
+            {{ forms.input('text', 'phone', 'Telefon', person.phone, 'numer telefonu') }}
+            {{ forms.input('text', 'city', 'Miasto', person.city, 'miasto') }}
+
+            <tr>
+                <th scope="row">Typ pokoju</th>
+                <td>
+                    <label for="bathroom">
+                        <select name="room_type_id" id="room_type">
+                            {% for room_type in room_types %}
+                            <option value="{{ room_type.room_type_id }}"
+                            {% if person.room_type_id == room_type.room_type_id %} selected{% endif %}>{{ room_type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </td>
+            </tr>
+
+            <tr>
+                <th scope="row">Opcja transportu</th>
+                <td>
+                    <label for="bathroom">
+                        <select name="transport_id" id="room_type">
+                            {% for transport in transports %}
+                            <option value="{{ transport.transport_id }}"{% if person.transport_id == transport.transport_id %} selected{% endif %}>{{ transport.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </td>
+            </tr>
+
+            {{ forms.textarea('comments', 'Uwagi', person.comments) }}
+            {{ forms.textarea('status', 'Status', person.status) }}
+            {{ forms.input('text', 'color', 'Kolor', person.color, 'red') }}
+
+            <input type="hidden" name="accept_information" value="1" />
+            <input type="hidden" name="accept_regulation" value="1" />
+        </tbody>
+    </table>
+    <p class="submit">
+        <button class="button button-primary">Edytuj</button>
+    </p>
+
+</form>
 
 {% endblock %}

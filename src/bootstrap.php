@@ -62,7 +62,12 @@ $container['front_controller'] = function($c) {
 };
 
 $container['validator'] = $container->factory(function($c) {
-    return new \Sirius\Validation\Validator();
+    $ruleFactory = new \Sirius\Validation\RuleFactory;
+
+    // register new validation class
+    //$ruleFactory->register('map', '\Resform\Lib\Map');
+
+    return new \Sirius\Validation\Validator($ruleFactory);
 });
 
 $container['filter'] = $container->factory(function($c) {

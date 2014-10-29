@@ -1,7 +1,7 @@
 
 <form action="{{ action_url }}" method="post" class="resform">
     <input type="hidden" name="step" value="3">
-
+    <div>{{ event.room_type_info }}</div>
     <label class="two-line main{% if errors.room_type_id %} error{% endif %}">
         {% if errors.room_type_id %}
         <span class="error_desc">{{ errors.room_type_id.0 }}</span>
@@ -17,6 +17,7 @@
         </select>
     </label>
 
+    <div>{{ event.transport_info }}</div>
     <label class="two-line main{% if errors.transport_id %} error{% endif %}">
         {% if errors.transport_id %}
         <span class="error_desc">{{ errors.transport_id.0 }}</span>

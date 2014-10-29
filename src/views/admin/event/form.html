@@ -9,7 +9,12 @@
     {% set action = 'edit&event_id=' ~ event.event_id %}
 {% endif %}
 
-<h2>Nowe wydarzenie</h2>
+{% if event %}
+<h2>Edytuj Wydarzenie</h2>
+{% else %}
+<h2>Dodaj nowe wydarzenie</h2>
+{% endif %}
+
 
 {% if errors %}
 <div class="error">

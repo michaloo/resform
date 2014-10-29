@@ -1,7 +1,7 @@
 {% extends "admin/_layout.html" %}
 
 {% block content %}
-<h2>Osoby<span class="add-new-h2">Dodaj nowe</a></h2>
+<h2>Osoby</h2>
 
 <form name="external_author" action="/wp-admin/admin.php?page=handimania_external_authors" method="post">
 
@@ -11,17 +11,19 @@
                 <th>Imię</th>
                 <th>Nazwisko</th>
                 <th>Płeć</th>
+                <th>Miasto</th>
                 <th>Data rejestracji</th>
                 <th>Akcje</th>
             </tr>
         </thead>
         <tbody>
             {% for person in persons.data %}
-            <tr{% if loop.index is odd %} class="alternate"{% endif %}>
+            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color %}style="background-color: {{ person.color }}"{% endif %}>
                 <td>{{ person.first_name }}</td>
                 <td>{{ person.last_name }}</td>
                 <td>{{ person.sex }}</td>
-                <td>{{ person.add_time }}</td>
+                <td>{{ person.city }}</td>
+                <td>{{ person.add_time|date("H:i d-m-Y") }}</td>
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>
                 </td>

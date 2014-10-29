@@ -1,7 +1,7 @@
 
 <form action="{{ action_url }}" method="post" class="resform">
     <input type="hidden" name="step" value="4">
-
+    <div>{{ event.regulations }}</div>
     <label class="two-line main{% if errors.accept_regulation %} error{% endif %}">
         {% if errors.accept_regulation %}
         <span class="error_desc">{{ errors.accept_regulation.0 }}</span>

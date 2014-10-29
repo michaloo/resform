@@ -21,12 +21,15 @@ class Person extends \Resform\Lib\Model {
         'disabled'             => 'boolify',
         'disabled_guardian'    => 'boolify',
         'stairs_accessibility' => 'boolify',
-        'family_first_name'    => 'cleanarray',
-        'family_last_name'     => 'cleanarray',
-        'family_birth_date'    => 'cleanarray',
+
+        'family_first_name[*]'    => 'cleanarray',
+        'family_last_name[*]'     => 'cleanarray',
+        'family_birth_date[*]'    => 'cleanarray',
 
         'accept_regulation'  => 'boolify',
         'accept_information' => 'boolify',
+        'status' => 'stringtrim',
+        'color' => 'stringtrim'
 
     );
 
@@ -39,6 +42,10 @@ class Person extends \Resform\Lib\Model {
         'phone'      => array("required"),
         'city'       => array("required"),
 
+        'family_first_name[*]' => array("required"),
+        'family_last_name[*]'  => array("required"),
+        'family_birth_date[*]' => array('required | Datetime({"format":"d-m-Y"})(Błędny format daty)()'),
+
         'room_type_id' => array("required"),
         'transport_id' => array("required"),
 
@@ -47,7 +54,24 @@ class Person extends \Resform\Lib\Model {
     );
 
     var $output_filters = array(
-        'birth_date' => 'nullify | normalizedate(input_format=d-m-Y&output_format=Y-m-d)'
+        'birth_date' => 'normalizedate(input_format=d-m-Y&output_format=Y-m-d)',
+
+        'family_birth_date[*]' => 'normalizedate(input_format=d-m-Y&output_format=Y-m-d)'
+    );
+
+    var $editable = array(
+        'sex'        => array('required | inlist({"list":["male","female"]})'),
+        'first_name' => array("required"),
+        'last_name'  => array("required"),
+        'birth_date' => array('required | Datetime({"format":"d-m-Y"})(Błędny format daty)()'),
+        'email'      => array("required"),
+        'phone'      => array("required"),
+        'city'       => array("required"),
+        'status'     => array("required"),
+        'color'     => array("required"),
+
+        'room_type_id' => array("required"),
+        'transport_id' => array("required"),
     );
 
     var $steps = array(
@@ -60,12 +84,14 @@ class Person extends \Resform\Lib\Model {
             'email',
             'phone',
             'city',
+
             'disabled',
             'disabled_guardian',
             'stairs_accessibility',
-            'family_first_name',
-            'family_last_name',
-            'family_birth_date'
+
+            'family_first_name[*]',
+            'family_last_name[*]',
+            'family_birth_date[*]'
         ),
         array(
             'room_type_id',
@@ -111,9 +137,9 @@ class Person extends \Resform\Lib\Model {
         if (isset($this->step_filters[$step])) {
 
             $filters = array_intersect_key($this->input_filters, array_flip($this->steps[$step-1]));
-            $this->step_filters[$step]->add($filters);
 
-            $data = array_intersect_key($data, $filters);
+            $this->step_filters[$step]->add($filters);
+            //$data = array_intersect_key($data, $filters);
             $filtered = $this->step_filters[$step]->filter($data);
         } else {
             $filtered = $this->input_filter($data);
@@ -385,10 +411,10 @@ SQL;
                 $family_member_values['family_guardian']
             );
 
-            $family_member_values['birth_date'] = array(
-                "function" => "STR_TO_DATE(?, '%d-%m-%Y')",
-                "value"    => $family_member_values['birth_date']
-            );
+            // $family_member_values['birth_date'] = array(
+            //     "function" => "STR_TO_DATE(?, '%d-%m-%Y')",
+            //     "value"    => $family_member_values['birth_date']
+            // );
 
             $sql_values = $this->getValues($family_member_values, $family_member_values);
             $sql_keys = $this->getKeys($family_member_values);
@@ -426,11 +452,25 @@ SQL;
 
     function find($id) {
 
-        $query = "SELECT * FROM {$this->db->prefix}resform_persons WHERE person_id = $id LIMIT 1";
+        $query = "
+            SELECT
+                p.*,
+                rt.event_id
+            FROM {$this->db->prefix}resform_persons AS p
+            LEFT JOIN {$this->db->prefix}resform_room_types AS rt USING (room_type_id)
+            WHERE person_id = $id LIMIT 1
+        ";
+
         var_dump($query);
 
         $results = $this->db->get_results($query, ARRAY_A);
         return array_pop($results);
+    }
+
+    function update($data) {
+        $query = "UPDATE {$this->db->prefix}resform_persons SET {$this->getPairs($this->editable, $data)} WHERE person_id = {$data['person_id']} LIMIT 1";
+        var_dump($query);
+        return $this->db->query($query);
     }
 
 }

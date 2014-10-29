@@ -24,6 +24,9 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+define( 'WP_USE_EXT_MYSQL', false);
+ini_set('eaccelerator.enable', '0');
+ini_set('eaccelerator.optimizer', '0');
 
 require_once(plugin_dir_path( __FILE__ ) . 'vendor/autoload.php');
 
