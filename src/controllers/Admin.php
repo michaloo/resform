@@ -17,8 +17,12 @@ class Admin {
         $this->user      = $user;
         $this->audit_log = $audit_log;
 
+        $this->assetsUrl = str_replace('controllers/', '', plugin_dir_url(__FILE__) . 'assets/');
+
         add_action( 'admin_menu', array($this, 'register_menu_page'));
         add_action( 'init', array($this, 'set_user'));
+
+        add_action('admin_enqueue_scripts', array($this, "enqueue_script"));
     }
 
     function set_user() {
@@ -142,6 +146,15 @@ class Admin {
         );
     }
 
+    function enqueue_script() {
+
+        wp_enqueue_style('resform-admin', $this->assetsUrl . 'css/admin.css');
+
+        wp_enqueue_script('jquery-fallback', includes_url() . '/js/jquery/jquery.js');
+        wp_enqueue_script('resform-jqueryui', $this->assetsUrl . 'vendor/jquery-ui/jquery-ui.min.js', array('jquery-fallback'), true);
+
+        wp_enqueue_script('resform-admin', $this->assetsUrl . 'js/admin.js', array('jquery-fallback'), true);
+    }
 
     function event_list() {
 
@@ -152,10 +165,10 @@ class Admin {
             $this->event->delete($id);
         }
 
-        $limit = (isset($_GET['limit'])) ? $_GET['limit'] : 10;
-        $page  = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
+        $limit   = (isset($_GET['limit'])) ? $_GET['limit'] : 10;
+        $page    = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
         $orderby = (isset($_GET['orderby'])) ? $_GET['orderby'] : 'event_id';
-        $sort = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
+        $sort    = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
 
         $events = $this->event->get($limit, $page, $orderby, $sort);
 
@@ -361,16 +374,39 @@ class Admin {
 
         $event = $this->event->find($event_id);
 
-        $limit = (isset($_GET['limit'])) ? $_GET['limit'] : 10;
-        $page  = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
+        $limit   = (isset($_GET['limit'])) ? $_GET['limit'] : 10;
+        $page    = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
         $orderby = (isset($_GET['orderby'])) ? $_GET['orderby'] : 'person_id';
-        $sort = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
+        $sort    = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
+        $view    = (isset($_GET['view'])) ? $_GET['view'] : 'view';
 
         $persons = $this->person->get($limit, $page, $orderby, $sort, $event['event_id']);
 
-        echo $this->view->render('admin/person/list.html', array(
+        if ($view === "room") {
+            $rooms = array(
+                "data" => array(),
+                "pager" => $persons["pager"]
+            );
+
+            foreach ($persons["data"] as $person) {
+                if (! isset($rooms["data"][$person["room_id"]])) {
+                    $rooms["data"][$person["room_id"]] = array(
+                        "persons" => array(),
+                        "room_id" => $person["room_id"],
+                        "room_type_id" => $person["room_type_id"],
+                        "room_type_name" => $person["room_type_name"]
+                    );
+                }
+                $rooms["data"][$person["room_id"]]["persons"][] = $person;
+            }
+
+            $persons = $rooms;
+        }
+
+        echo $this->view->render("admin/person/list-{$view}.html", array(
             'persons' => $persons,
-            'event'   => $event
+            'event'   => $event,
+            'view'    => $view
         ));
     }
 

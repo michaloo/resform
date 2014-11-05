@@ -14,8 +14,9 @@ class Transport extends \Resform\Lib\Model {
     );
 
     var $validators = array(
-        'name'  => array("required"),
-        'price' => array("required")
+        'event_id' => array("required"),
+        'name'     => array("required"),
+        'price'    => array("required")
     );
 
     function find($id) {

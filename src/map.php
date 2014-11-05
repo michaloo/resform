@@ -5,6 +5,7 @@
 require_once(plugin_dir_path( __FILE__ ) . 'lib/Controller.php');
 require_once(plugin_dir_path( __FILE__ ) . 'lib/Model.php');
 require_once(plugin_dir_path( __FILE__ ) . 'lib/Boolify.php');
+require_once(plugin_dir_path( __FILE__ ) . 'lib/Filters.php');
 
 
 // controllers

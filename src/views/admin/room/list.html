@@ -17,8 +17,8 @@
         {% for room in rooms %}
         <tr>
             <td>{{ room.room_type_name }}</td>
-            <td>{{ room.occupied_space_count}}</td>
-            <td>{{ room.space_count }}</td>
+            <td>{{ room.occupied_space_count }}</td>
+            <td>{{ room.space_count - room.occupied_space_count }}</td>
             <td>
                 {% if room.family_person_id %}Pokój rodzinny{% else %}{{ room.sex }}{% endif %}
             </td>

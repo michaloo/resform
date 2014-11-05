@@ -41,18 +41,19 @@ class Event extends \Resform\Lib\Model {
     );
 
     function get($limit, $page, $orderby, $sort) {
-        $query   = "SELECT
+        $query = "SELECT
                 re.*,
-                count(rp.person_id) AS persons_count,
-                (SELECT count(room_type_id) FROM {$this->db->prefix}resform_room_types WHERE
-                event_id = event_id GROUP BY event_id) AS room_types_count,
-                (SELECT count(room_id) FROM {$this->db->prefix}resform_rooms WHERE
-                room_type_id = room_type_id GROUP BY event_id) AS rooms_count
+                count(rp.person_id) AS persons_count
+                -- (SELECT count(room_type_id) FROM {$this->db->prefix}resform_room_types WHERE
+                -- event_id = event_id GROUP BY event_id) AS room_types_count,
+                -- (SELECT count(room_id) FROM {$this->db->prefix}resform_rooms WHERE
+                -- room_type_id = room_type_id GROUP BY event_id) AS rooms_count
             FROM {$this->db->prefix}resform_events AS re
             LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (event_id)
             LEFT JOIN {$this->db->prefix}resform_persons AS rp USING (room_type_id)
             GROUP BY event_id
             LIMIT 20";
+
         $results = $this->db->get_results($query, ARRAY_A);
 
         $total_count = $this->_getTotalCount();
@@ -93,9 +94,9 @@ class Event extends \Resform\Lib\Model {
 
     function getActive() {
         $query = <<<SQL
-        SELECT re.*,
-            (SELECT SUM(free_space_count) FROM {$this->db->prefix}resform_rooms_space_count
-                WHERE event_id = event_id GROUP BY event_id) AS free_space_count
+        SELECT re.* -- ,
+            -- (SELECT SUM(free_space_count) FROM {$this->db->prefix}resform_rooms_space_count
+            --    WHERE event_id = event_id GROUP BY event_id) AS free_space_count
         FROM {$this->db->prefix}resform_events AS re
         LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (event_id)
         LEFT JOIN {$this->db->prefix}resform_transports AS rt USING (event_id)

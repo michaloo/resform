@@ -1,29 +1,61 @@
 {% extends "admin/_layout.html" %}
 
+{% import "admin/person/_macros.html" as macros %}
+
 {% block content %}
-<h2>Osoby</h2>
+<h2>Osoby<a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a></h2>
+
+{{ macros.form(event, view) }}
 
 <form name="external_author" action="/wp-admin/admin.php?page=handimania_external_authors" method="post">
 
     <table class="wp-list-table widefat">
         <thead>
             <tr>
+                <th>Osoba</th>
                 <th>Imię</th>
                 <th>Nazwisko</th>
+                <th>E-mail</th>
+                <th>Wiek</th>
                 <th>Płeć</th>
                 <th>Miasto</th>
                 <th>Data rejestracji</th>
+                <th>Notatki</th>
                 <th>Akcje</th>
             </tr>
         </thead>
         <tbody>
             {% for person in persons.data %}
             <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color %}style="background-color: {{ person.color }}"{% endif %}>
+
+                <td>
+                {% if person.family_guardian %}
+                👪
+                {% endif %}
+
+                {% if person.family_person_id %}
+                    {% if person.sex == "male" %}
+                    👦
+                    {% else %}
+                    👧
+                    {% endif %}
+                {% else %}
+                    {% if person.sex == "male" %}
+                    👨
+                    {% else %}
+                    👩
+                    {% endif %}
+                {% endif %}
+                </td>
+
                 <td>{{ person.first_name }}</td>
                 <td>{{ person.last_name }}</td>
+                <td>{{ person.email }}</td>
+                <td>{{ person.birth_date|age }}</td>
                 <td>{{ person.sex }}</td>
                 <td>{{ person.city }}</td>
                 <td>{{ person.add_time|date("H:i d-m-Y") }}</td>
+                <td>{{ person.status }}</td>
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>
                 </td>

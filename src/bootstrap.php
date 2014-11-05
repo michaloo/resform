@@ -9,7 +9,12 @@ $container["view_path"] = plugin_dir_path( __FILE__ ) . 'views';
 $container['view'] = function ($c) {
 
     $loader = new Twig_Loader_Filesystem($c["view_path"]);
-    return new Twig_Environment($loader);
+    $twig = new Twig_Environment($loader);
+
+    $filter = new Twig_SimpleFilter('age', array('\Resform\Lib\Filters', 'rot13Filter'));
+    $twig->addFilter($filter);
+
+    return $twig;
 };
 
 $container['db'] = function ($c) {

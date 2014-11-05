@@ -440,7 +440,12 @@ SQL;
     }
 
     function get($limit, $page, $orderby, $sort) {
-        $query   = "SELECT * FROM {$this->db->prefix}resform_persons LIMIT 20";
+        $query   = <<<SQL
+            SELECT rp.*, rrt.name AS room_type_name, rrt.room_type_id FROM {$this->db->prefix}resform_persons AS rp
+            LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (room_type_id)
+            LIMIT 20
+SQL;
+
         $results = $this->db->get_results($query, ARRAY_A);
         $total_count = $this->_getTotalCount();
         $pager = $this->_getPager($total_count, $limit, $page, $orderby, $sort);

@@ -14,12 +14,16 @@
     ],
     "minimum-stability": "stable",
     "config": {
-        "vendor-dir": "src/vendor"
+        "vendor-dir": "src/vendor",
+        "component-dir": "src/assets/vendor"
+
     },
     "require": {
         "twig/twig": "1.*",
         "pimple/pimple": "~3.0",
         "siriusphp/filtration": "~1.2",
-        "siriusphp/validation": "1.2.*"
+        "siriusphp/validation": "1.2.*",
+        "components/jquery": "~2.1",
+        "components/jqueryui": "~1.11"
     }
 }

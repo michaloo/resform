@@ -1,0 +1,14 @@
+{% macro form(event, view) %}
+
+<form id="select_view" action="/wp-admin/admin.php" method="get">
+    <input type="hidden" name="page" value="resform_person_list" />
+    <input type="hidden" name="event_id" value="{{ event.event_id }}" />
+    <select name="view">
+        <option value="general"{% if view == "general" %} selected{% endif %}>Lista ogólna</option>
+        <option value="room"{% if view == "room" %} selected{% endif %}>Lista "pokojowa"</option>
+        <option value="transport">Lista transportowa</option>
+        <option value="payment">Lista płatności</option>
+    </select>
+</form>
+
+{% endmacro %}

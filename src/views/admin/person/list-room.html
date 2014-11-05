@@ -1,0 +1,28 @@
+{% extends "admin/_layout.html" %}
+{% import "admin/person/_macros.html" as macros %}
+
+{% block content %}
+<h2>Osoby<a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a></h2>
+
+{{ macros.form(event, view) }}
+
+<form name="external_author" action="/wp-admin/admin.php?page=handimania_external_authors" method="post">
+
+<div id="test">
+    {% for room in persons.data %}
+    <div class="room">
+        <span clas="name">{{ room.room_type_name }}</span>
+        <div class="droppable">
+            {% for person in room.persons %}
+            <div class="draggable">{{ person.first_name }} {{ person.last_name }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+</form>
+
+
+
+{% endblock %}
