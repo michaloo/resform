@@ -6,21 +6,24 @@
 
 {{ macros.form(event, view) }}
 
-<form name="external_author" action="/wp-admin/admin.php?page=handimania_external_authors" method="post">
+<form name="room_list" action="/wp-admin/admin.php?page=resform_person_list&event_id={{ event.event_id }}&view=room" method="post">
 
-<div id="test">
-    {% for room in persons.data %}
-    <div class="room">
-        <span clas="name">{{ room.room_type_name }}</span>
-        <div class="droppable">
-            {% for person in room.persons %}
-            <div class="draggable">{{ person.first_name }} {{ person.last_name }}</div>
-            {% endfor %}
+    <div id="test">
+        {% for room in rooms.data %}
+        <div class="room" data-room_id="{{ room.room_id }}">
+            <span clas="name">{{ room.room_type_name }}</span>
+            <div class="droppable">
+                {% for person in room.persons %}
+                <div class="draggable">
+                    <input type="hidden" name="person_id[{{ person.person_id }}]" value="{{ room.room_id }}" />
+                    {{ person.first_name }} {{ person.last_name }}</div>
+                {% endfor %}
+            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
 
+    <button>Dodaj</button>
 </form>
 
 

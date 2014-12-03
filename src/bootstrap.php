@@ -11,7 +11,7 @@ $container['view'] = function ($c) {
     $loader = new Twig_Loader_Filesystem($c["view_path"]);
     $twig = new Twig_Environment($loader);
 
-    $filter = new Twig_SimpleFilter('age', array('\Resform\Lib\Filters', 'rot13Filter'));
+    $filter = new Twig_SimpleFilter('age', array('\Resform\Lib\Filters', 'age'));
     $twig->addFilter($filter);
 
     return $twig;

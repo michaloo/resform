@@ -68,7 +68,8 @@ class Person extends \Resform\Lib\Model {
         'phone'      => array("required"),
         'city'       => array("required"),
         'status'     => array("required"),
-        'color'     => array("required"),
+        'color'      => array("required"),
+        'room_id'    => array("integer"),
 
         'room_type_id' => array("required"),
         'transport_id' => array("required"),
@@ -476,6 +477,42 @@ SQL;
         $query = "UPDATE {$this->db->prefix}resform_persons SET {$this->getPairs($this->editable, $data)} WHERE person_id = {$data['person_id']} LIMIT 1";
         var_dump($query);
         return $this->db->query($query);
+    }
+
+    function getRooms($persons) {
+        $rooms = array(
+            "data" => array(),
+            "pager" => $persons["pager"]
+        );
+
+        foreach ($persons["data"] as $person) {
+            if (! isset($rooms["data"][$person["room_id"]])) {
+                $rooms["data"][$person["room_id"]] = array(
+                    "persons"        => array(),
+                    "room_id"        => $person["room_id"],
+                    "room_type_id"   => $person["room_type_id"],
+                    "room_type_name" => $person["room_type_name"]
+                );
+            }
+            $rooms["data"][$person["room_id"]]["persons"][] = $person;
+        }
+        return $rooms;
+    }
+
+    function getPersonsToEdit($post_data, $persons) {
+        $persons_to_edit = array();
+        foreach ($post_data as $person_id => $room_id) {
+
+            $search_key = array_search($person_id, array_map(function ($p) { return $p["person_id"]; }, $persons["data"]));
+            $search_person = $persons["data"][$search_key];
+
+            if ($search_person["room_id"] != (int) $room_id) {
+
+                $search_person["room_id"] = (int) $room_id;
+                $persons_to_edit[] = $search_person;
+            }
+        }
+        return $persons_to_edit;
     }
 
 }

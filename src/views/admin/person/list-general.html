@@ -30,20 +30,22 @@
 
                 <td>
                 {% if person.family_guardian %}
-                👪
+                <span title="Opiekun rodziny">👪</span>
                 {% endif %}
 
                 {% if person.family_person_id %}
+                <span title="Członek rodziny">
                     {% if person.sex == "male" %}
                     👦
                     {% else %}
                     👧
                     {% endif %}
+                </span>
                 {% else %}
                     {% if person.sex == "male" %}
-                    👨
+                    <span title="Mężczyzna">👨</span>
                     {% else %}
-                    👩
+                    <span title="Kobieta">👩</span>
                     {% endif %}
                 {% endif %}
                 </td>

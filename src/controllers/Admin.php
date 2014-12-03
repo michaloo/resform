@@ -378,33 +378,25 @@ class Admin {
         $page    = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
         $orderby = (isset($_GET['orderby'])) ? $_GET['orderby'] : 'person_id';
         $sort    = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
-        $view    = (isset($_GET['view'])) ? $_GET['view'] : 'view';
+        $view    = (isset($_GET['view'])) ? $_GET['view'] : 'general';
 
         $persons = $this->person->get($limit, $page, $orderby, $sort, $event['event_id']);
-
+        $rooms = array();
         if ($view === "room") {
-            $rooms = array(
-                "data" => array(),
-                "pager" => $persons["pager"]
-            );
+            $rooms = $this->person->getRooms($persons);
+        }
 
-            foreach ($persons["data"] as $person) {
-                if (! isset($rooms["data"][$person["room_id"]])) {
-                    $rooms["data"][$person["room_id"]] = array(
-                        "persons" => array(),
-                        "room_id" => $person["room_id"],
-                        "room_type_id" => $person["room_type_id"],
-                        "room_type_name" => $person["room_type_name"]
-                    );
-                }
-                $rooms["data"][$person["room_id"]]["persons"][] = $person;
+        if (count($_POST) > 0) {
+            $persons_to_edit = $this->person->getPersonsToEdit($_POST["person_id"], $persons);
+
+            foreach ($persons_to_edit as $person) {
+                var_dump($this->person->update($person));
             }
-
-            $persons = $rooms;
         }
 
         echo $this->view->render("admin/person/list-{$view}.html", array(
             'persons' => $persons,
+            'rooms'   => $rooms,
             'event'   => $event,
             'view'    => $view
         ));

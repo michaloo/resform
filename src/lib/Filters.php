@@ -5,7 +5,7 @@ namespace Resform\Lib;
 
 class Filters {
 
-    static function rot13Filter($string) {
+    static function age($string) {
 
 
         $age = \DateTime::createFromFormat('Y-m-d', $string);
