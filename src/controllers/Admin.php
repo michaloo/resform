@@ -387,11 +387,13 @@ class Admin {
         }
 
         if (count($_POST) > 0) {
+            var_dump("EDITING");
             $persons_to_edit = $this->person->getPersonsToEdit($_POST["person_id"], $persons);
 
-            foreach ($persons_to_edit as $person) {
-                var_dump($this->person->update($person));
-            }
+            var_dump($this->person->updateRoomId($persons_to_edit));exit;
+            // foreach ($persons_to_edit as $person) {
+            //     var_dump($this->person->update($person));
+            // }
         }
 
         echo $this->view->render("admin/person/list-{$view}.html", array(

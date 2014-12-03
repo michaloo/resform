@@ -13,7 +13,7 @@ class RoomType extends \Resform\Lib\Model {
         'space_count' => 'integer',
         'room_count'  => 'integer',
         'price'       => 'double',
-        'bathroom'    => 'boolify',
+        'has_bathroom'    => 'boolify',
     );
 
     var $validators = array(
@@ -21,7 +21,7 @@ class RoomType extends \Resform\Lib\Model {
         'space_count' => array("required"),
         'room_count'  => array("required"),
         'price'       => array("required"),
-        'bathroom'    => array("required"),
+        'has_bathroom'    => array("required"),
         'event_id'    => array("required")
     );
 

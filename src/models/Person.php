@@ -18,9 +18,9 @@ class Person extends \Resform\Lib\Model {
         'phone'      => 'stringtrim',
         'city'       => 'stringtrim',
 
-        'disabled'             => 'boolify',
-        'disabled_guardian'    => 'boolify',
-        'stairs_accessibility' => 'boolify',
+        'is_disabled'             => 'boolify',
+        'is_disabled_guardian'    => 'boolify',
+        'has_stairs_accessibility' => 'boolify',
 
         'family_first_name[*]'    => 'cleanarray',
         'family_last_name[*]'     => 'cleanarray',
@@ -86,9 +86,9 @@ class Person extends \Resform\Lib\Model {
             'phone',
             'city',
 
-            'disabled',
-            'disabled_guardian',
-            'stairs_accessibility',
+            'is_disabled',
+            'is_disabled_guardian',
+            'has_stairs_accessibility',
 
             'family_first_name[*]',
             'family_last_name[*]',
@@ -370,7 +370,7 @@ class Person extends \Resform\Lib\Model {
         }
 
         if (count($family) > 0) {
-            $values['family_guardian'] = true;
+            $values['is_family_guardian'] = true;
         }
 
         unset(
@@ -409,7 +409,7 @@ SQL;
             $family_member_values = array_merge($values, $family_member);
             $family_member_values['family_person_id'] = $family_person_id;
             unset(
-                $family_member_values['family_guardian']
+                $family_member_values['is_family_guardian']
             );
 
             // $family_member_values['birth_date'] = array(
@@ -477,6 +477,52 @@ SQL;
         $query = "UPDATE {$this->db->prefix}resform_persons SET {$this->getPairs($this->editable, $data)} WHERE person_id = {$data['person_id']} LIMIT 1";
         var_dump($query);
         return $this->db->query($query);
+    }
+
+    function updateRoomId($persons) {
+        $this->db->query("START TRANSACTION");
+        $errors = array();
+
+        $updated_persons = array_filter($persons, function($person) use ($errors) {
+
+            $sql_values = $this->getMap(array_keys($person), $person);
+            //$sql_keys = $this->getKeys($family_member_values);
+
+            $query = <<<SQL
+            UPDATE {$this->db->prefix}resform_persons
+                SET room_id = NULL
+                WHERE person_id = {$sql_values["person_id"]}
+SQL;
+            $count = $this->db->query($query);
+            array_push($errors, $this->db->last_error);
+var_dump($query, $count);
+            return $count > 0;
+        });
+        $this->db->query("ROLLBACK");
+        var_dump($errors);exit;
+        foreach ($updatd_persons as $person) {
+
+            $sql_values = $this->getValues($family_member_values, $family_member_values);
+            //$sql_keys = $this->getKeys($family_member_values);
+
+            $query = <<<SQL
+            UPDATE {$this->db->prefix}resform_persons
+                SET room_id = {$sql_values["room_id"]}
+                WHERE person_id = {$sql_values["person_id"]}
+SQL;
+
+            $this->db->query($query);
+            array_push($errors, $this->db->last_error);
+        }
+
+        var_dump($errors);
+        if (count(array_filter($errors)) === 0) {
+            $this->db->query("COMMIT");
+            return array();
+        } else {
+            $this->db->query("ROLLBACK");
+            return $errors;
+        }
     }
 
     function getRooms($persons) {

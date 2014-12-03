@@ -40,15 +40,15 @@
         <label class="main two-line">Jestem:</label>
         <label class="one-line">
             <span>osobą niepełnosprawną:</span>
-            <input type="hidden" name="disabled" value="0" />
-            <input type="checkbox" name="disabled" value="1"
+            <input type="hidden" name="is_disabled" value="0" />
+            <input type="checkbox" name="is_disabled" value="1"
                 data-set-id="disabled_set"
                 {% if values.disabled == '1' %} checked{% endif %}>
         </label>
         <label>
             <span>opiekunem osoby niepełnosprawnej:</span>
-            <input type="hidden" name="disabled_guardian" value="0" />
-            <input type="checkbox" name="disabled_guardian" value="1"
+            <input type="hidden" name="is_disabled_guardian" value="0" />
+            <input type="checkbox" name="is_disabled_guardian" value="1"
                 data-set-id="disabled_guardian_set"
                 {% if values.disabled_guardian == '1' %} checked{% endif %}>
         </label>
@@ -62,14 +62,14 @@
             <label>Czy możesz chodzić po schodach?</label>
             <label>
                 <span>tak</span>
-                <input type="radio" name="stairs_accessibility" value="1"
-                    {% if values.stairs_accessibility == '1' %} checked{% endif %}>
+                <input type="radio" name="has_stairs_accessibility" value="1"
+                    {% if values.has_stairs_accessibility == '1' %} checked{% endif %}>
             </label>
 
             <label>
                 <span>nie</span>
-                <input type="radio" name="stairs_accessibility" value="0"
-                    {% if values.stairs_accessibility == '0' %} checked{% endif %}>
+                <input type="radio" name="has_stairs_accessibility" value="0"
+                    {% if values.has_stairs_accessibility == '0' %} checked{% endif %}>
             </label>
 
             <label>
@@ -97,7 +97,7 @@
 
         <label>
             <span class="main">Jestem osobą niepełnoletnią, wezmę udział w rekolekcjach z opiekunem, który nie jest moim rodzicem/opiekunem prawnym</span>
-            <input type="checkbox" name="underaged_guardian" value="with_guardian">
+            <input type="checkbox" name="is_underaged_guardian" value="with_guardian">
             <span class="description">Jeżeli nieletni uczestnik bierze udział w rekolekcjach pod opieką osoby niebędącej jego rodzicem/opiekunem prawnym, zobowiązany jest przesłać do Organizatora zgodę rodziców/prawnych opiekunów na udział ich dziecka/podopiecznego w rekolekcjach oraz wskazanie opiekuna - pismo do uzupełnienia i podpisania zostanie wysłane w mailu potwierdzającym zapis. Zgodę należy przesłać jako skan na adres: zapisyrekolekcje@gmail.com w ciągu 3 dni od zapisu, oryginał natomiast uczestnik rekolekcji przekaże Organizatorowi przy zakwaterowaniu. Jeśli dotyczy to Państwa, prosimy również o zaznaczenie odpowiedniego pola poniżej.</span>
         </label>
 

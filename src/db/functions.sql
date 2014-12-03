@@ -3,7 +3,7 @@ CREATE FUNCTION _prefix_rooms_available(
     new_room_type_id MEDIUMINT(9),
     new_sex ENUM('male', 'female'),
     new_family_person_id MEDIUMINT(9),
-    new_family_guardian BOOLEAN,
+    new_is_family_guardian BOOLEAN,
     new_room_id MEDIUMINT(9))
 RETURNS MEDIUMINT
 DETERMINISTIC
@@ -14,8 +14,8 @@ BEGIN
     WHERE (
         -- room is empty (only if we are not adding a family member)
         (occupied_space_count = 0 AND new_family_person_id IS NULL)
-        -- room is already occupied by same sex person (and we are not adding family_guardian)
-        OR (sex = new_sex AND new_family_guardian = false AND new_family_person_id IS NULL AND free_space_count > 0)
+        -- room is already occupied by same sex person (and we are not adding family_guardian or family person)
+        OR (sex = new_sex AND new_is_family_guardian = false AND new_family_person_id IS NULL AND free_space_count > 0)
         -- room is already occupied by family_person
         OR (new_family_person_id IS NOT NULL AND family_person_id = new_family_person_id AND free_space_count > 0)
     )

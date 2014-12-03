@@ -115,46 +115,71 @@ CREATE TRIGGER `_prefix_transports_after_delete`
 -- trigger query for new room_id for new persons record
 CREATE TRIGGER `_prefix_persons_before_insert`
     BEFORE INSERT ON `_prefix_persons`
-    FOR EACH ROW BEGIN
+    FOR EACH ROW proc:BEGIN
 
         SET @room_id = NULL;
 
-        SELECT _prefix_rooms_available(NEW.room_type_id, NEW.sex, NEW.family_person_id, NEW.family_guardian, NULL) INTO @room_id;
+        IF NEW.room_id IS NULL
+            AND NEW.room_type_id IS NULL
+            AND NEW.family_person_id IS NULL THEN
+            LEAVE proc;
+        END IF;
+
+        SELECT _prefix_rooms_available(NEW.room_type_id, NEW.sex, NEW.family_person_id, NEW.is_family_guardian, NEW.room_id) INTO @room_id;
+
+        IF @room_id IS NULL THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'This room is not available';
+        END IF;
 
         SET NEW.room_id = @room_id;
 
     END$$
 
 -- trigger updates room data only for family_guardian persons
-CREATE TRIGGER `_prefix_persons_after_insert`
-    AFTER INSERT ON `_prefix_persons`
-    FOR EACH ROW BEGIN
-
-        IF NEW.family_person_id IS NULL THEN
-            UPDATE _prefix_rooms SET sex = NEW.sex WHERE room_id = @room_id;
-        END IF;
-
-        IF NEW.family_guardian = true THEN
-            UPDATE _prefix_rooms SET family_person_id = NEW.person_id WHERE room_id = NEW.room_id;
-
-        END IF;
-
-        INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.person_id, "INSERT person", @user);
-
-    END$$
+-- CREATE TRIGGER `_prefix_persons_after_insert`
+--     AFTER INSERT ON `_prefix_persons`
+--     FOR EACH ROW BEGIN
+--
+--         IF NEW.family_person_id IS NULL THEN
+--             UPDATE _prefix_rooms SET sex = NEW.sex WHERE room_id = @room_id;
+--         END IF;
+--
+--         IF NEW.family_guardian = true THEN
+--             UPDATE _prefix_rooms SET family_person_id = NEW.person_id WHERE room_id = NEW.room_id;
+--
+--         END IF;
+--
+--         INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.person_id, "INSERT person", @user);
+--
+--     END$$
 
 -- trigger makes sure that updated room_id is checked before saving
 CREATE TRIGGER `_prefix_persons_before_update`
     BEFORE UPDATE ON `_prefix_persons`
     FOR EACH ROW proc:BEGIN
 
-        IF OLD.room_id = NEW.room_id THEN
+        IF (OLD.room_id = NEW.room_id
+            AND OLD.room_type_id = NEW.room_type_id)
+            AND NEW.family_person_id IS NULL THEN
+            LEAVE proc;
+        END IF;
+
+        IF NEW.room_id IS NULL
+            AND NEW.room_type_id IS NULL
+            AND NEW.family_person_id IS NULL THEN
             LEAVE proc;
         END IF;
 
         SET @room_id = NULL;
 
-        SELECT _prefix_rooms_available(NEW.room_type_id, NEW.sex, NEW.family_person_id, NEW.family_guardian, NEW.room_id) INTO @room_id;
+        SELECT _prefix_rooms_available(NEW.room_type_id, NEW.sex, NEW.family_person_id, NEW.is_family_guardian, NEW.room_id) INTO @room_id;
+
+        IF @room_id IS NULL THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'This room is not available';
+        END IF;
+
         SET NEW.room_id = @room_id;
 
     END$$
@@ -164,18 +189,18 @@ CREATE TRIGGER `_prefix_persons_after_update`
     AFTER UPDATE ON `_prefix_persons`
     FOR EACH ROW proc:BEGIN
 
-        IF OLD.room_id = NEW.room_id THEN
-            LEAVE proc;
-        END IF;
-
-        IF NEW.family_person_id IS NULL THEN
-            UPDATE _prefix_rooms SET sex = NEW.sex WHERE room_id = @room_id;
-        END IF;
-
-        IF NEW.family_guardian = true THEN
-            UPDATE _prefix_rooms SET family_person_id = NEW.person_id WHERE room_id = NEW.room_id;
-
-        END IF;
+        -- IF OLD.room_id = NEW.room_id THEN
+        --     LEAVE proc;
+        -- END IF;
+        --
+        -- IF NEW.family_person_id IS NULL THEN
+        --     UPDATE _prefix_rooms SET sex = NEW.sex WHERE room_id = @room_id;
+        -- END IF;
+        --
+        -- IF NEW.family_guardian = true THEN
+        --     UPDATE _prefix_rooms SET family_person_id = NEW.person_id WHERE room_id = NEW.room_id;
+        --
+        -- END IF;
 
         INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.person_id, "UPDATE person", @user);
 

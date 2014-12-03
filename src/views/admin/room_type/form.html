@@ -45,7 +45,7 @@
                 <th scope="row">Łazienka?</th>
                 <td>
                     <label for="bathroom">
-                        <select name="bathroom" placeholder="łazienka?" id="bathroom">
+                        <select name="has_bathroom" placeholder="łazienka?" id="bathroom">
                             <option value="1">Tak</option>
                             <option value="0"{% if not room_type.bathroom %} selected{% endif %}>Nie</option>
                         </select>
