@@ -141,6 +141,15 @@ class Admin {
             'Page Title',
             'Dodaj sposób dojazdu',
             'resform_read',
+            'resform_person_add',
+            array($this, 'person_add')
+        );
+
+        add_submenu_page(
+            null,
+            'Page Title',
+            'Dodaj sposób dojazdu',
+            'resform_read',
             'resform_person_edit',
             array($this, 'person_edit')
         );
@@ -401,6 +410,32 @@ class Admin {
             'rooms'   => $rooms,
             'event'   => $event,
             'view'    => $view
+        ));
+    }
+
+    function person_add() {
+
+        if ($_POST) {
+            $filtered = $this->person->input_filter($_POST);
+            $errors   = $this->person->validate($filtered);
+
+            if (count($errors) === 0) {
+                $to_save = $this->person->output_filter($filtered);
+                var_dump($to_save);
+                $this->person->register($to_save);
+            } else {
+                var_dump($errors);
+            }
+        }
+
+        $event_id = $_GET['event_id'];
+
+        $room_types = $this->room_type->get($event_id);
+        $transports = $this->transport->get($event_id);
+
+        echo $this->view->render('admin/person/form.html', array(
+            'room_types' => $room_types,
+            'transports' => $transports,
         ));
     }
 

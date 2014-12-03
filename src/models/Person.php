@@ -7,6 +7,7 @@ class Person extends \Resform\Lib\Model {
 
     var $input_filters = array(
         'person_id'    => 'integer',
+        'event_id'    => 'integer',
         'room_type_id' => 'integer | nullify',
         'transport_id' => 'integer | nullify',
 
@@ -442,7 +443,7 @@ SQL;
 
     function get($limit, $page, $orderby, $sort) {
         $query   = <<<SQL
-            SELECT rp.*, rrt.name AS room_type_name, rrt.room_type_id FROM {$this->db->prefix}resform_persons AS rp
+            SELECT rp.*, rrt.name AS room_type_name, rrt.room_type_id FROM {$this->db->prefix}resform_persons_with_price AS rp
             LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (room_type_id)
             LIMIT 20
 SQL;

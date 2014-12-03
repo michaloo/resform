@@ -44,8 +44,8 @@ BEGIN
 
 
     SELECT 'insert first man';
-    INSERT INTO _prefix_persons(transport_id, room_type_id, first_name, last_name, birth_date, email, phone, sex)
-        VALUES(@transport_id, @room_type_id, "John", "Smiths", '1990-12-31', 'test@test.com', '123', 'male');
+    INSERT INTO _prefix_persons(event_id, transport_id, room_type_id, first_name, last_name, birth_date, email, phone, sex)
+        VALUES(@event_id, @transport_id, @room_type_id, "John", "Smiths", '1990-12-31', 'test@test.com', '123', 'male');
 
     SET @first_man_id = LAST_INSERT_ID();
 
@@ -54,8 +54,8 @@ BEGIN
 
 
     SELECT 'insert second man';
-    INSERT INTO _prefix_persons(transport_id, room_type_id, first_name, last_name, birth_date, email, phone, sex)
-        VALUES(@transport_id, @room_type_id, "George", "Smiths", '1990-12-31', 'test@test.com', '123', 'male');
+    INSERT INTO _prefix_persons(event_id, transport_id, room_type_id, first_name, last_name, birth_date, email, phone, sex)
+        VALUES(@event_id, @transport_id, @room_type_id, "George", "Smiths", '1990-12-31', 'test@test.com', '123', 'male');
 
     SELECT occupied_space_count INTO @occupied_space_count FROM _prefix_rooms_space_count WHERE room_id = @first_room_id;
 
@@ -66,8 +66,8 @@ BEGIN
 
 
     SELECT 'insert fist woman';
-    INSERT INTO _prefix_persons(transport_id, room_type_id, first_name, last_name, birth_date, email, phone, sex)
-        VALUES(@transport_id, @room_type_id, "Ann", "Apple", '1990-12-31', 'test@test.com', '123', 'female');
+    INSERT INTO _prefix_persons(event_id, transport_id, room_type_id, first_name, last_name, birth_date, email, phone, sex)
+        VALUES(@event_id, @transport_id, @room_type_id, "Ann", "Apple", '1990-12-31', 'test@test.com', '123', 'female');
 
     SET @first_woman_id = LAST_INSERT_ID();
 
@@ -81,22 +81,22 @@ BEGIN
 
 
     SELECT 'insert first family guardian';
-    INSERT INTO _prefix_persons(transport_id, room_type_id, first_name, last_name, birth_date, email, phone, sex, is_family_guardian)
-        VALUES(@transport_id, @room_type_id, "Mary", "Apple", '1990-12-31', 'test@test.com', '123', 'female', true);
+    INSERT INTO _prefix_persons(event_id, transport_id, room_type_id, first_name, last_name, birth_date, email, phone, sex, is_family_guardian)
+        VALUES(@event_id, @transport_id, @room_type_id, "Mary", "Apple", '1990-12-31', 'test@test.com', '123', 'female', true);
 
     SET @first_family_guardian_id = LAST_INSERT_ID();
 
 
 
     SELECT 'insert a family memeber';
-    INSERT INTO _prefix_persons(transport_id, first_name, last_name, birth_date, email, phone, sex, family_person_id)
-        VALUES(@transport_id, "Theresa", "Apple", '1990-12-31', 'test@test.com', '123', 'female', @first_family_guardian_id);
+    INSERT INTO _prefix_persons(event_id, transport_id, first_name, last_name, birth_date, email, phone, sex, family_person_id)
+        VALUES(@event_id, @transport_id, "Theresa", "Apple", '1990-12-31', 'test@test.com', '123', 'female', @first_family_guardian_id);
 
 
 
     SELECT 'room is too small to add another family memeber - should trigger an error';
-    INSERT IGNORE INTO _prefix_persons(transport_id, first_name, last_name, birth_date, email, phone, sex, family_person_id)
-        VALUES(@transport_id, "Jenna", "Apple", '1990-12-31', 'test@test.com', '123', 'female', @first_family_guardian_id);
+    INSERT IGNORE INTO _prefix_persons(event_id, transport_id, first_name, last_name, birth_date, email, phone, sex, family_person_id)
+        VALUES(@event_id, @transport_id, "Jenna", "Apple", '1990-12-31', 'test@test.com', '123', 'female', @first_family_guardian_id);
 
 
 

@@ -51,10 +51,10 @@
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_event_edit&event_id={{event.event_id}}">Edytuj</a> |
                     <a href="/wp-admin/admin.php?page=resform_event_list&event_id={{event.event_id}}">Usuń</a> |
-                    <a href="/wp-admin/admin.php?page=resform_transport_list&event_id={{event.event_id}}">Opcje Transportu</a> |
+                    <a href="/wp-admin/admin.php?page=resform_transport_list&event_id={{event.event_id}}">Transport ({{ event.transports_count }})</a> |
                     <a href="/wp-admin/admin.php?page=resform_room_type_list&event_id={{event.event_id}}">Typy Pokoi ({{ event.room_types_count }})</a> |
-                    <a href="/wp-admin/admin.php?page=resform_room_list&event_id={{event.event_id}}">Lista Pokoi ({{ event.rooms_count }})</a> |
-                    <a href="/wp-admin/admin.php?page=resform_person_list&event_id={{event.event_id}}">Lista Osób ({{ event.persons_count }})</a>
+                    <a href="/wp-admin/admin.php?page=resform_room_list&event_id={{event.event_id}}">Pokoje ({{ event.rooms_count }})</a> |
+                    <a href="/wp-admin/admin.php?page=resform_person_list&event_id={{event.event_id}}">Osoby ({{ event.persons_count }})</a>
                 </td>
             </tr>
             {% endfor %}

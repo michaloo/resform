@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS _prefix_transports (
 CREATE TABLE IF NOT EXISTS _prefix_persons (
   person_id MEDIUMINT(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   family_person_id MEDIUMINT(9),
+  event_id MEDIUMINT(9),
   room_type_id MEDIUMINT(9), -- make nullable
   room_id MEDIUMINT(9), -- make nullable
   transport_id MEDIUMINT(9) NOT NULL,
@@ -80,6 +81,7 @@ CREATE TABLE IF NOT EXISTS _prefix_persons (
   FOREIGN KEY(room_type_id) REFERENCES _prefix_room_types(room_type_id),
   FOREIGN KEY(room_id) REFERENCES _prefix_rooms(room_id),
   FOREIGN KEY(transport_id) REFERENCES _prefix_transports(transport_id),
+  FOREIGN KEY(event_id) REFERENCES _prefix_events(event_id),
   FOREIGN KEY(family_person_id) REFERENCES _prefix_persons(person_id) ON DELETE CASCADE
 );
 

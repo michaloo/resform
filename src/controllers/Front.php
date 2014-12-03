@@ -58,6 +58,7 @@ class Front {
                 $step = (isset($_POST['step'])) ? (int) $_POST['step'] : 0;
 
                 $values = array_merge($_SESSION, $_POST);
+                $values["event_id"] = $event["event_id"];
 
                 if ($step > 1) {
                     // $validators = $this->person->validators[$step - 1];

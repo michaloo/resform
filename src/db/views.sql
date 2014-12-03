@@ -10,7 +10,7 @@ CREATE VIEW _prefix_rooms_space_count AS
         p.sex AS sex,
         IF(p.is_family_guardian, person_id, NULL) AS family_person_id
     FROM _prefix_rooms AS r
-    LEFT JOIN _prefix_persons AS p USING(room_id)
+    LEFT JOIN _prefix_persons_with_age AS p ON p.room_id = r.room_id AND p.age > 3
     LEFT JOIN _prefix_room_types AS rt ON r.room_type_id = rt.room_type_id
     GROUP BY r.room_id;
 
@@ -30,3 +30,33 @@ CREATE VIEW _prefix_persons_family AS
     LEFT JOIN _prefix_persons AS pc ON (p.person_id = pc.family_person_id)
     WHERE p.is_family_guardian = true
     GROUP BY p.person_id;
+
+CREATE VIEW _prefix_persons_with_age AS
+    SELECT
+        p.*,
+        TIMESTAMPDIFF( YEAR, p.birth_date, CURDATE( ) ) AS age
+    FROM _prefix_persons;
+
+
+CREATE VIEW _prefix_persons_with_price AS
+    SELECT
+        p.*,
+        CASE
+            WHEN p.age <= 3 THEN 0
+            WHEN p.age <= 10 THEN (rt.price + rrt.price) * 0.5
+            ELSE rt.price + rrt.price
+        END AS price
+    FROM _prefix_persons_with_age AS p
+    LEFT JOIN _prefix_room_types AS rrt USING (room_type_id)
+    LEFT JOIN _prefix_transports AS rt USING (transport_id);
+
+CREATE VIEW _prefix_persons_with_total_price AS
+    SELECT
+        p.*,
+        (
+            SELECT SUM(rc.price) FROM _prefix_persons_with_price AS rc
+            WHERE rc.family_person_id = p.person_id
+            GROUP BY rc.family_person_id
+        ) AS price_children
+    FROM _prefix_persons_with_price AS p
+    WHERE p.family_person_id IS NULL

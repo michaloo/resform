@@ -43,17 +43,20 @@ class Event extends \Resform\Lib\Model {
     function get($limit, $page, $orderby, $sort) {
         $query = "SELECT
                 re.*,
-                count(rp.person_id) AS persons_count
-                -- (SELECT count(room_type_id) FROM {$this->db->prefix}resform_room_types WHERE
-                -- event_id = event_id GROUP BY event_id) AS room_types_count,
-                -- (SELECT count(room_id) FROM {$this->db->prefix}resform_rooms WHERE
-                -- room_type_id = room_type_id GROUP BY event_id) AS rooms_count
+                (SELECT count(transport_id) FROM {$this->db->prefix}resform_transports WHERE
+                event_id = event_id GROUP BY event_id) AS transports_count,
+                (SELECT count(room_type_id) FROM {$this->db->prefix}resform_room_types WHERE
+                event_id = event_id GROUP BY event_id) AS room_types_count,
+                (SELECT count(room_id) FROM {$this->db->prefix}resform_rooms AS r
+                LEFT JOIN {$this->db->prefix}resform_room_types AS rt USING (room_type_id)
+                WHERE rt.event_id = event_id GROUP BY event_id) AS rooms_count,
+                (SELECT count(person_id) FROM {$this->db->prefix}resform_persons WHERE
+                event_id = event_id GROUP BY event_id) AS persons_count
             FROM {$this->db->prefix}resform_events AS re
-            LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (event_id)
-            LEFT JOIN {$this->db->prefix}resform_persons AS rp USING (room_type_id)
             GROUP BY event_id
             LIMIT 20";
 
+        var_dump($query);
         $results = $this->db->get_results($query, ARRAY_A);
 
         $total_count = $this->_getTotalCount();
