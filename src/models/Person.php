@@ -19,8 +19,10 @@ class Person extends \Resform\Lib\Model {
         'phone'      => 'stringtrim',
         'city'       => 'stringtrim',
 
-        'is_disabled'             => 'boolify',
-        'is_disabled_guardian'    => 'boolify',
+        'is_disabled'     => 'boolify',
+        'disability_type' => 'stringtrim | nullify',
+
+        'is_disabled_guardian'     => 'boolify',
         'has_stairs_accessibility' => 'boolify',
 
         'family_first_name[*]'    => 'cleanarray',
@@ -43,6 +45,9 @@ class Person extends \Resform\Lib\Model {
         'phone'      => array("required"),
         'city'       => array("required"),
 
+        'is_disabled'     => array("required"),
+        'disability_type' => array('requiredWhen({"item":"is_disabled","rule":"Equal","rule_options":{"value":true}})'),
+
         'family_first_name[*]' => array("required"),
         'family_last_name[*]'  => array("required"),
         'family_birth_date[*]' => array('required | Datetime({"format":"d-m-Y"})(Błędny format daty)()'),
@@ -61,19 +66,19 @@ class Person extends \Resform\Lib\Model {
     );
 
     var $editable = array(
-        'sex'        => array('required | inlist({"list":["male","female"]})'),
-        'first_name' => array("required"),
-        'last_name'  => array("required"),
-        'birth_date' => array('required | Datetime({"format":"d-m-Y"})(Błędny format daty)()'),
-        'email'      => array("required"),
-        'phone'      => array("required"),
-        'city'       => array("required"),
-        'status'     => array("required"),
-        'color'      => array("required"),
-        'room_id'    => array("integer"),
+        'sex'        => '',
+        'first_name' => '',
+        'last_name'  => '',
+        'birth_date' => '',
+        'email'      => '',
+        'phone'      => '',
+        'city'       => '',
+        'status'     => '',
+        'color'      => '',
+        'room_id'    => '',
 
-        'room_type_id' => array("required"),
-        'transport_id' => array("required"),
+        'room_type_id' => '',
+        'transport_id' => '',
     );
 
     var $steps = array(
@@ -88,6 +93,7 @@ class Person extends \Resform\Lib\Model {
             'city',
 
             'is_disabled',
+            'disability_type',
             'is_disabled_guardian',
             'has_stairs_accessibility',
 
@@ -126,6 +132,9 @@ class Person extends \Resform\Lib\Model {
 
             $this->step_validators[$step]->validate($data);
             $errors = $this->step_validators[$step]->getMessages();
+
+            var_dump('<pre>', $errors, '</pre>');
+
         } else {
             $errors = $this->validate($data);
         }

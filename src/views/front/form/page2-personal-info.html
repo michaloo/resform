@@ -43,7 +43,7 @@
             <input type="hidden" name="is_disabled" value="0" />
             <input type="checkbox" name="is_disabled" value="1"
                 data-set-id="disabled_set"
-                {% if values.disabled == '1' %} checked{% endif %}>
+                {% if values.is_disabled == '1' %} checked{% endif %}>
         </label>
         <label>
             <span>opiekunem osoby niepełnosprawnej:</span>
@@ -54,10 +54,11 @@
         </label>
 
         <fieldset id="disabled_set" class="optional" disabled>
-            <label>
+            {{ forms.label_input('Stopień/rodzaj niepełnosprawności:', 'text', 'disability_type', values.disability_type, errors.disability_type) }}
+            {# <label>
                 <span>Stopień/rodzaj niepełnosprawności:</span>
                 <input type="text" name="disability_type" value="{{ values.disability_type }}">
-            </label>
+            </label> #}
 
             <label>Czy możesz chodzić po schodach?</label>
             <label>
