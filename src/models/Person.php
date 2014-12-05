@@ -361,6 +361,15 @@ class Person extends \Resform\Lib\Model {
         return false;
     }*/
 
+    function countFamily($values) {
+        $family_members_count = max(
+            count($values['family_first_name']),
+            count($values['family_last_name']),
+            count($values['family_birth_date'])
+        );
+        return $family_members_count;
+    }
+
     function register($values) {
         $family_members_count = max(
             count($values['family_first_name']),

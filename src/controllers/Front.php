@@ -73,7 +73,7 @@ class Front {
                     $values   = array_merge($values, $filtered);
                     $_SESSION = $values;
                 }
-                $this->sendMail($values, $event);
+
                 switch ($step) {
                     default:
                     case 0:
@@ -85,7 +85,7 @@ class Front {
                         break;
 
                     case 2:
-                        $room_types = $this->room_type->getFree($event['event_id']);
+                        $room_types = $this->room_type->getFree($event['event_id'], $this->person->countFamily($values));
                         $transports = $this->transport->get($event['event_id']);
                         $template = 'page3-details.html';
                         break;
@@ -95,7 +95,6 @@ class Front {
                         break;
 
                     case 4:
-                        //$_SESSION = array();
                         $to_register = $this->person->output_filter($values);
                         $register_errors = $this->person->register($to_register);
 
@@ -105,7 +104,7 @@ class Front {
                             $errors['register'] = "Wystąpił błąd zapisu, spróbuj ponownie";
                         } else {
                             $_SESSION = array();
-
+                            $this->sendMail($values, $event);
                         }
 
                         $template = 'done.html';

@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS _prefix_room_types (
 CREATE TABLE IF NOT EXISTS _prefix_rooms (
   room_id mediumint(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   room_type_id MEDIUMINT(9) NOT NULL,
+  room_manual_number MEDIUMINT(9),
   -- sex ENUM('male', 'female'),
   -- family_person_id MEDIUMINT(9),
   -- status ENUM('free', 'full'),

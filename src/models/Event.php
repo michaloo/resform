@@ -54,14 +54,14 @@ class Event extends \Resform\Lib\Model {
         $query = "SELECT
                 re.*,
                 (SELECT count(transport_id) FROM {$this->db->prefix}resform_transports WHERE
-                event_id = event_id GROUP BY event_id) AS transports_count,
-                (SELECT count(room_type_id) FROM {$this->db->prefix}resform_room_types WHERE
-                event_id = event_id GROUP BY event_id) AS room_types_count,
+                event_id = re.event_id GROUP BY event_id) AS transports_count,
+                (SELECT count(room_type_id) FROM {$this->db->prefix}resform_room_types AS rrt WHERE
+                rrt.event_id = re.event_id GROUP BY event_id) AS room_types_count,
                 (SELECT count(room_id) FROM {$this->db->prefix}resform_rooms AS r
                 LEFT JOIN {$this->db->prefix}resform_room_types AS rt USING (room_type_id)
-                WHERE rt.event_id = event_id GROUP BY event_id) AS rooms_count,
+                WHERE rt.event_id = re.event_id GROUP BY event_id) AS rooms_count,
                 (SELECT count(person_id) FROM {$this->db->prefix}resform_persons WHERE
-                event_id = event_id GROUP BY event_id) AS persons_count
+                event_id = re.event_id GROUP BY event_id) AS persons_count
             FROM {$this->db->prefix}resform_events AS re
             GROUP BY event_id
             LIMIT 20";

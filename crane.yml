@@ -59,6 +59,24 @@ containers:
             cmd:
             - -c
             - bash
+    wp_it:
+        image: michaloo/web-dev
+        run:
+            volumes-from: ["resform_data_web"]
+            volume: ["./src:/var/www/html/wp-content/plugins/resform"]
+            workdir: /var/www/html
+            net: host
+            interactive: true
+            user: www-data
+            env-file: [".env"]
+            env:
+            - "MYSQL_USER=root"
+            - "MYSQL_PASS=root"
+            tty: true
+            rm: true
+            cmd:
+            - -c
+            - bash
     mailcatcher:
         image: schickling/mailcatcher
         run:
