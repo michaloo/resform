@@ -17,7 +17,9 @@ class Event extends \Resform\Lib\Model {
         'front_info'     => 'stringtrim',
         'room_type_info' => 'stringtrim',
         'transport_info' => 'stringtrim',
-        'regulations'    => 'stringtrim'
+        'regulations'    => 'stringtrim',
+
+        'success_mail_template' => 'stringtrim'
     );
 
     var $validators = array(
@@ -39,6 +41,14 @@ class Event extends \Resform\Lib\Model {
         'reservation_start_time' => 'nullify | normalizedate({"input_format":"H:i d-m-Y","output_format":"Y-m-d H:i:s"})',
         'reservation_end_time'   => 'nullify | normalizedate({"input_format":"H:i d-m-Y","output_format":"Y-m-d H:i:s"})'
     );
+
+    function __construct($db, $input_filter, $output_filter, $validator, $view_path) {
+        parent::__construct($db, $input_filter, $output_filter, $validator);
+
+        $this->view_path = $view_path;
+
+        return $this;
+    }
 
     function get($limit, $page, $orderby, $sort) {
         $query = "SELECT
@@ -71,7 +81,10 @@ class Event extends \Resform\Lib\Model {
 
         $query = "SELECT * FROM {$this->db->prefix}resform_events WHERE event_id = $id LIMIT 1";
         $results = $this->db->get_results($query, ARRAY_A);
-        return array_pop($results);
+        $event = array_pop($results);
+        $event['success_mail_template'] = $this->_loadTemplate('success_mail_template', $event['event_id']);
+
+        return $event;
     }
 
 
@@ -79,14 +92,29 @@ class Event extends \Resform\Lib\Model {
         $query = "INSERT INTO
         {$this->db->prefix}resform_events ({$this->getKeys($this->validators)})
             VALUES ({$this->getValues($this->validators, $data)})";
-        var_dump($query);
-        return $this->db->query($query);
+        var_dump($query, $data);
+        $result = $this->db->query($query);
+        $event_id = $this->_getLastId();
+        $this->_saveTemplate('success_mail_template', $data['success_mail_template'], $event_id);
+        return $result;
     }
 
     function update($data) {
         $query = "UPDATE {$this->db->prefix}resform_events SET {$this->getPairs($this->validators, $data)} WHERE event_id = {$data['event_id']} LIMIT 1";
-        var_dump($query);
+        var_dump($query, $data);
+        $this->_saveTemplate('success_mail_template', $data['success_mail_template'], $data['event_id']);
         return $this->db->query($query);
+    }
+
+    private function _saveTemplate($name, $content, $event_id) {
+        $path = $this->view_path . '/events/' . $event_id;
+        @mkdir($path, 0777, true);
+        file_put_contents($path . '/' . $name, $content);
+    }
+
+    private function _loadTemplate($name, $event_id) {
+        $path = $this->view_path . '/events/' . $event_id;
+        return file_get_contents($path . '/' . $name);
     }
 
     function delete($id) {

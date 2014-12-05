@@ -4,6 +4,17 @@ use Pimple\Container;
 
 $container = new Container();
 
+$container["log"] = function($c) {
+    $log = new Monolog\Logger('name');
+
+    @mkdir(plugin_dir_path( __FILE__ ) . 'logs');
+    $log->pushHandler(new Monolog\Handler\StreamHandler(__DIR__ . '/logs/debug.log', Monolog\Logger::DEBUG));
+    $log->pushHandler(new Monolog\Handler\StreamHandler(__DIR__ . '/logs/warning.log', Monolog\Logger::WARNING));
+
+    $log->addInfo('Initialize logger');
+    return $log;
+};
+
 $container["view_path"] = plugin_dir_path( __FILE__ ) . 'views';
 
 $container['view'] = function ($c) {
@@ -63,7 +74,8 @@ $container['front_controller'] = function($c) {
         $c['event_model'],
         $c['transport_model'],
         $c['room_type_model'],
-        $c['person_model']);
+        $c['person_model'],
+        $c['mail_model']);
 };
 
 $container['validator'] = $container->factory(function($c) {
@@ -84,6 +96,13 @@ $container['filter'] = $container->factory(function($c) {
     return $filter;
 });
 
+$container['mail'] = $container->factory(function($c) {
+
+    $mail = new PHPMailer;
+
+    return $mail;
+});
+
 
 // Models:
 
@@ -96,7 +115,7 @@ $container['audit_log_model'] = function($c) {
 };
 
 $container['event_model'] = function($c) {
-    return new \Resform\Model\Event($c['db'], $c['filter'], $c['filter'], $c['validator']);
+    return new \Resform\Model\Event($c['db'], $c['filter'], $c['filter'], $c['validator'], $c['view_path']);
 };
 
 $container['room_type_model'] = function($c) {
@@ -120,3 +139,9 @@ $container['person_model'] = function($c) {
 $container['room_model'] = function($c) {
     return new \Resform\Model\Room($c['db'], $c['filter'], $c['filter'], $c['validator']);
 };
+
+$container['mail_model'] = function($c) {
+    return new \Resform\Model\Mail($c['db'], $c['mail']);
+};
+
+$container['log'];

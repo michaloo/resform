@@ -5,13 +5,14 @@ namespace Resform\Controller;
 
 class Front {
 
-    function __construct($view, $event, $transport, $room_type, $person) {
+    function __construct($view, $event, $transport, $room_type, $person, $Mail) {
         $this->view = $view;
 
         $this->event     = $event;
         $this->transport = $transport;
         $this->room_type = $room_type;
         $this->person    = $person;
+        $this->Mail      = $Mail;
 
         $this->assetsUrl = str_replace('controllers/', '', plugin_dir_url(__FILE__) . 'assets/');
 
@@ -61,23 +62,6 @@ class Front {
                 $values["event_id"] = $event["event_id"];
 
                 if ($step > 1) {
-                    // $validators = $this->person->validators[$step - 1];
-                    // $filters    = $this->filters[$step - 1];
-                    //
-                    // $filtered = array();
-                    // $errors  = array();
-                    // foreach ($filters as $key) {
-                    //     $filtered[$key] = call_user_func(array($this->person, 'filter_' . $key), $values[$key]);
-                    // }
-                    //
-                    // foreach ($validators as $key) {
-                    //     $error = call_user_func(array($this->person, 'validate_' . $key), $filtered[$key]);
-                    //
-                    //     if ($error) {
-                    //         $errors[$key] = $error;
-                    //     }
-                    //
-                    // }
 
                     $filtered = $this->person->input_filter_step($step, $values);
                     $errors   = $this->person->validate_step($step, $filtered);
@@ -89,7 +73,7 @@ class Front {
                     $values   = array_merge($values, $filtered);
                     $_SESSION = $values;
                 }
-
+                $this->sendMail($values, $event);
                 switch ($step) {
                     default:
                     case 0:
@@ -121,6 +105,7 @@ class Front {
                             $errors['register'] = "Wystąpił błąd zapisu, spróbuj ponownie";
                         } else {
                             $_SESSION = array();
+
                         }
 
                         $template = 'done.html';
@@ -142,4 +127,13 @@ class Front {
             ));
     }
 
+
+    function sendMail($values, $event) {
+        $message = $this->view->render(
+            'events/' . $event['event_id'] . '/success_mail_template',
+            $values
+        );
+        $name = $values['first_name'] . ' ' . $values['last_name'];
+        $this->Mail->send($values['email'], $name, $message);
+    }
 }

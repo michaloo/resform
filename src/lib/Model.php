@@ -91,6 +91,12 @@ abstract class Model {
         return implode(', ', $pairs);
     }
 
+    protected function _getLastId() {
+        $id = $this->db->insert_id;
+        var_dump($id);
+        return $id;
+    }
+
     protected function _getTotalCount() {
         $total_count = $this->db->get_results("SELECT FOUND_ROWS() AS total_count");
         return (int) array_pop($total_count)->total_count;

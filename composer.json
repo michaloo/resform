@@ -24,6 +24,8 @@
         "siriusphp/filtration": "~1.2",
         "siriusphp/validation": "1.2.*",
         "components/jquery": "~2.1",
-        "components/jqueryui": "~1.11"
+        "components/jqueryui": "~1.11",
+        "phpmailer/phpmailer": "~5.2",
+        "monolog/monolog": "~1.11"
     }
 }

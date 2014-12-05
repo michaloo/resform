@@ -4,3 +4,5 @@ composer.lock
 *.log
 node_modules
 dist
+/src/logs
+/src/views/events

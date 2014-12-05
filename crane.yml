@@ -16,7 +16,7 @@ containers:
             env-file: [".env"]
             net: host
             detach: true
-    webdev:
+    web:
         image: michaloo/web-dev
         run:
             volumes-from: ["resform_data_web"]
@@ -42,7 +42,7 @@ containers:
             tty: true
             rm: true
             cmd: -c /bin/bash # /app/bin/connect
-    webdev_it:
+    web_it:
         image: michaloo/web-dev
         run:
             volumes-from: ["resform_data_web"]
@@ -59,3 +59,8 @@ containers:
             cmd:
             - -c
             - bash
+    mailcatcher:
+        image: schickling/mailcatcher
+        run:
+          publish: ["1080:1080", "1025:1025"]
+          detach: true
