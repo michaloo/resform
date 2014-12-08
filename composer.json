@@ -26,6 +26,63 @@
         "components/jquery": "~2.1",
         "components/jqueryui": "~1.11",
         "phpmailer/phpmailer": "~5.2",
-        "monolog/monolog": "~1.11"
-    }
+        "monolog/monolog": "~1.11",
+        "vanderlee/colorpicker": "1.0.16-a",
+        "vitalets/x-editable": "1.5.1-a"
+    },
+    "repositories": [{
+        "type": "package",
+        "package": {
+            "name": "vanderlee/colorpicker",
+            "type": "component",
+            "version": "1.0.16-a",
+            "dist": {
+                "url": "https://github.com/vanderlee/colorpicker/archive/1.0.16.zip",
+                "type": "zip"
+            },
+            "extra": {
+                "component": {
+                    "scripts": [
+                        "jquery.colorpicker.js"
+                    ],
+                    "styles": [
+                        "jquery.colorpicker.css"
+                    ],
+                    "files": [
+                        "images/*"
+                    ]
+                }
+            },
+            "require": {
+                "robloach/component-installer": "*"
+            }
+        }
+    }, {
+        "type": "package",
+        "package": {
+            "name": "vitalets/x-editable",
+            "type": "component",
+            "version": "1.5.1-a",
+            "dist": {
+                "url": "http://vitalets.github.io/x-editable/assets/zip/jqueryui-editable-1.5.1.zip",
+                "type": "zip"
+            },
+            "extra": {
+                "component": {
+                    "scripts": [
+                        "jqueryui-editable/js/jqueryui-editable.min.js"
+                    ],
+                    "styles": [
+                        "jqueryui-editable/css/jqueryui-editable.css"
+                    ],
+                    "files": [
+                        "jqueryui-editable/img/*"
+                    ]
+                }
+            },
+            "require": {
+                "robloach/component-installer": "*"
+            }
+        }
+    }]
 }

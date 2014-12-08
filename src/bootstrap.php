@@ -25,6 +25,9 @@ $container['view'] = function ($c) {
     $filter = new Twig_SimpleFilter('age', array('\Resform\Lib\Filters', 'age'));
     $twig->addFilter($filter);
 
+    $filter = new Twig_SimpleFilter('ajaxurl', array('\Resform\Lib\Filters', 'ajaxurl'));
+    $twig->addFilter($filter);
+
     return $twig;
 };
 

@@ -2026,6 +2026,14 @@ var components = {
         {
             "name": "jquery-ui",
             "main": "jquery-ui-built.js"
+        },
+        {
+            "name": "colorpicker",
+            "main": "colorpicker-built.js"
+        },
+        {
+            "name": "x-editable",
+            "main": "x-editable-built.js"
         }
     ],
     "shim": {
@@ -27822,4 +27830,2956 @@ var tooltip = $.widget( "ui.tooltip", {
 
 
 }));
+});
+
+define('colorpicker', function (require, exports, module) {
+/*jslint devel: true, bitwise: true, regexp: true, browser: true, confusion: true, unparam: true, eqeq: true, white: true, nomen: true, plusplus: true, maxerr: 50, indent: 4 */
+/*globals jQuery,Color */
+
+/*!
+ * ColorPicker
+ *
+ * Copyright (c) 2011-2014 Martijn W. van der Lee
+ * Licensed under the MIT.
+ */
+/* Full-featured colorpicker for jQueryUI with full theming support.
+ * Most images from jPicker by Christopher T. Tillman.
+ * Sourcecode created from scratch by Martijn W. van der Lee.
+ */
+
+;(function ($) {
+	"use strict";
+
+	var _colorpicker_index = 0,
+
+		_container_popup = '<div class="ui-colorpicker ui-colorpicker-dialog ui-dialog ui-widget ui-widget-content ui-corner-all" style="display: none;"></div>',
+		_container_inlineFrame = '<div class="ui-colorpicker ui-colorpicker-inline ui-dialog ui-widget ui-widget-content ui-corner-all"></div>',
+		_container_inline = '<div class="ui-colorpicker ui-colorpicker-inline"></div>',
+
+		_intToHex = function (dec) {
+			var result = Math.floor(dec).toString(16);
+			if (result.length === 1) {
+				result = ('0' + result);
+			}
+			return result.toLowerCase();
+		},
+
+        _parseHex = function(color) {
+            var c,
+                m;
+
+            // {#}rrggbb
+            m = /^#?([a-fA-F0-9]{1,6})$/.exec(color);
+            if (m) {
+                c = parseInt(m[1], 16);
+                return new $.colorpicker.Color(
+					((c >> 16) & 0xFF) / 255,
+                    ((c >>  8) & 0xFF) / 255,
+                    (c & 0xFF) / 255
+				);
+            }
+
+            return new $.colorpicker.Color();
+        },
+
+		_layoutTable = function(layout, callback) {
+			var bitmap,
+				x, y,
+				width, height,
+				columns, rows,
+				index,
+				cell,
+				html,
+				w, h,
+				colspan,
+				walked;
+
+			layout.sort(function(a, b) {
+				if (a.pos[1] === b.pos[1]) {
+					return a.pos[0] - b.pos[0];
+				}
+				return a.pos[1] - b.pos[1];
+			});
+
+			// Determine dimensions of the table
+			width = 0;
+			height = 0;
+			$.each (layout, function(index, part) {
+				width = Math.max(width, part.pos[0] + part.pos[2]);
+				height = Math.max(height, part.pos[1] + part.pos[3]);
+			});
+
+			// Initialize bitmap
+			bitmap = [];
+			for (x = 0; x < width; ++x) {
+				bitmap.push([]);
+			}
+
+			// Mark rows and columns which have layout assigned
+			rows	= [];
+			columns = [];
+			$.each(layout, function(index, part) {
+				// mark columns
+				for (x = 0; x < part.pos[2]; x += 1) {
+					columns[part.pos[0] + x] = true;
+				}
+				for (y = 0; y < part.pos[3]; y += 1) {
+					rows[part.pos[1] + y] = true;
+				}
+			});
+
+			// Generate the table
+			html = '';
+			cell = layout[index = 0];
+			for (y = 0; y < height; ++y) {
+				html += '<tr>';
+                x = 0;
+                while (x < width) {
+					if (typeof cell !== 'undefined' && x === cell.pos[0] && y === cell.pos[1]) {
+						// Create a "real" cell
+						html += callback(cell, x, y);
+
+						for (h = 0; h < cell.pos[3]; h +=1) {
+							for (w = 0; w < cell.pos[2]; w +=1) {
+								bitmap[x + w][y + h] = true;
+							}
+						}
+
+						x += cell.pos[2];
+						cell = layout[++index];
+					} else {
+						// Fill in the gaps
+						colspan = 0;
+						walked = false;
+
+						while (x < width && bitmap[x][y] === undefined && (cell === undefined || y < cell.pos[1] || (y === cell.pos[1] && x < cell.pos[0]))) {
+							if (columns[x] === true) {
+								colspan += 1;
+							}
+							walked = true;
+							x += 1;
+						}
+
+						if (colspan > 0) {
+							html += '<td colspan="'+colspan+'"></td>';
+						} else if (!walked) {
+							x += 1;
+						}
+					}
+				}
+				html += '</tr>';
+			}
+
+			return '<table cellspacing="0" cellpadding="0" border="0"><tbody>' + html + '</tbody></table>';
+		};
+
+	$.colorpicker = new function() {
+		this.regional = {
+			'':	{
+				ok:				'OK',
+				cancel:			'Cancel',
+				none:			'None',
+				button:			'Color',
+				title:			'Pick a color',
+				transparent:	'Transparent',
+				hsvH:			'H',
+				hsvS:			'S',
+				hsvV:			'V',
+				rgbR:			'R',
+				rgbG:			'G',
+				rgbB:			'B',
+				labL:			'L',
+				labA:			'a',
+				labB:			'b',
+				hslH:			'H',
+				hslS:			'S',
+				hslL:			'L',
+				cmykC:			'C',
+				cmykM:			'M',
+				cmykY:			'Y',
+				cmykK:			'K',
+				alphaA:			'A'
+			}
+		};
+
+		this.swatches = {
+			'html':	[
+				{name: 'black',					r: 0, g: 0, b: 0},
+				{name: 'dimgray',				r: 0.4117647058823529, g: 0.4117647058823529, b: 0.4117647058823529},
+				{name: 'gray',					r: 0.5019607843137255, g: 0.5019607843137255, b: 0.5019607843137255},
+				{name: 'darkgray',				r: 0.6627450980392157, g: 0.6627450980392157, b: 0.6627450980392157},
+				{name: 'silver',				r: 0.7529411764705882, g: 0.7529411764705882, b: 0.7529411764705882},
+				{name: 'lightgrey',				r: 0.8274509803921568, g: 0.8274509803921568, b: 0.8274509803921568},
+				{name: 'gainsboro',				r: 0.8627450980392157, g: 0.8627450980392157, b: 0.8627450980392157},
+				{name: 'whitesmoke',			r: 0.9607843137254902, g: 0.9607843137254902, b: 0.9607843137254902},
+				{name: 'white',					r: 1, g: 1, b: 1},
+				{name: 'rosybrown',				r: 0.7372549019607844, g: 0.5607843137254902, b: 0.5607843137254902},
+				{name: 'indianred',				r: 0.803921568627451, g: 0.3607843137254902, b: 0.3607843137254902},
+				{name: 'brown',					r: 0.6470588235294118, g: 0.16470588235294117, b: 0.16470588235294117},
+				{name: 'firebrick',				r: 0.6980392156862745, g: 0.13333333333333333, b: 0.13333333333333333},
+				{name: 'lightcoral',			r: 0.9411764705882353, g: 0.5019607843137255, b: 0.5019607843137255},
+				{name: 'maroon',				r: 0.5019607843137255, g: 0, b: 0},
+				{name: 'darkred',				r: 0.5450980392156862, g: 0, b: 0},
+				{name: 'red',					r: 1, g: 0, b: 0},
+				{name: 'snow',					r: 1, g: 0.9803921568627451, b: 0.9803921568627451},
+				{name: 'salmon',				r: 0.9803921568627451, g: 0.5019607843137255, b: 0.4470588235294118},
+				{name: 'mistyrose',				r: 1, g: 0.8941176470588236, b: 0.8823529411764706},
+				{name: 'tomato',				r: 1, g: 0.38823529411764707, b: 0.2784313725490196},
+				{name: 'darksalmon',			r: 0.9137254901960784, g: 0.5882352941176471, b: 0.47843137254901963},
+				{name: 'orangered',				r: 1, g: 0.27058823529411763, b: 0},
+				{name: 'coral',					r: 1, g: 0.4980392156862745, b: 0.3137254901960784},
+				{name: 'lightsalmon',			r: 1, g: 0.6274509803921569, b: 0.47843137254901963},
+				{name: 'sienna',				r: 0.6274509803921569, g: 0.3215686274509804, b: 0.17647058823529413},
+				{name: 'seashell',				r: 1, g: 0.9607843137254902, b: 0.9333333333333333},
+				{name: 'chocolate',				r: 0.8235294117647058, g: 0.4117647058823529, b: 0.11764705882352941},
+				{name: 'saddlebrown',			r: 0.5450980392156862, g: 0.27058823529411763, b: 0.07450980392156863},
+				{name: 'sandybrown',			r: 0.9568627450980393, g: 0.6431372549019608, b: 0.3764705882352941},
+				{name: 'peachpuff',				r: 1, g: 0.8549019607843137, b: 0.7254901960784313},
+				{name: 'peru',					r: 0.803921568627451, g: 0.5215686274509804, b: 0.24705882352941178},
+				{name: 'linen',					r: 0.9803921568627451, g: 0.9411764705882353, b: 0.9019607843137255},
+				{name: 'darkorange',			r: 1, g: 0.5490196078431373, b: 0},
+				{name: 'bisque',				r: 1, g: 0.8941176470588236, b: 0.7686274509803922},
+				{name: 'burlywood',				r: 0.8705882352941177, g: 0.7215686274509804, b: 0.5294117647058824},
+				{name: 'tan',					r: 0.8235294117647058, g: 0.7058823529411765, b: 0.5490196078431373},
+				{name: 'antiquewhite',			r: 0.9803921568627451, g: 0.9215686274509803, b: 0.8431372549019608},
+				{name: 'navajowhite',			r: 1, g: 0.8705882352941177, b: 0.6784313725490196},
+				{name: 'blanchedalmond',		r: 1, g: 0.9215686274509803, b: 0.803921568627451},
+				{name: 'papayawhip',			r: 1, g: 0.9372549019607843, b: 0.8352941176470589},
+				{name: 'orange',				r: 1, g: 0.6470588235294118, b: 0},
+				{name: 'moccasin',				r: 1, g: 0.8941176470588236, b: 0.7098039215686275},
+				{name: 'wheat',					r: 0.9607843137254902, g: 0.8705882352941177, b: 0.7019607843137254},
+				{name: 'oldlace',				r: 0.9921568627450981, g: 0.9607843137254902, b: 0.9019607843137255},
+				{name: 'floralwhite',			r: 1, g: 0.9803921568627451, b: 0.9411764705882353},
+				{name: 'goldenrod',				r: 0.8549019607843137, g: 0.6470588235294118, b: 0.12549019607843137},
+				{name: 'darkgoldenrod',			r: 0.7215686274509804, g: 0.5254901960784314, b: 0.043137254901960784},
+				{name: 'cornsilk',				r: 1, g: 0.9725490196078431, b: 0.8627450980392157},
+				{name: 'gold',					r: 1, g: 0.8431372549019608, b: 0},
+				{name: 'palegoldenrod',			r: 0.9333333333333333, g: 0.9098039215686274, b: 0.6666666666666666},
+				{name: 'khaki',					r: 0.9411764705882353, g: 0.9019607843137255, b: 0.5490196078431373},
+				{name: 'lemonchiffon',			r: 1, g: 0.9803921568627451, b: 0.803921568627451},
+				{name: 'darkkhaki',				r: 0.7411764705882353, g: 0.7176470588235294, b: 0.4196078431372549},
+				{name: 'beige',					r: 0.9607843137254902, g: 0.9607843137254902, b: 0.8627450980392157},
+				{name: 'lightgoldenrodyellow',	r: 0.9803921568627451, g: 0.9803921568627451, b: 0.8235294117647058},
+				{name: 'olive',					r: 0.5019607843137255, g: 0.5019607843137255, b: 0},
+				{name: 'yellow',				r: 1, g: 1, b: 0},
+				{name: 'lightyellow',			r: 1, g: 1, b: 0.8784313725490196},
+				{name: 'ivory',					r: 1, g: 1, b: 0.9411764705882353},
+				{name: 'olivedrab',				r: 0.4196078431372549, g: 0.5568627450980392, b: 0.13725490196078433},
+				{name: 'yellowgreen',			r: 0.6039215686274509, g: 0.803921568627451, b: 0.19607843137254902},
+				{name: 'darkolivegreen',		r: 0.3333333333333333, g: 0.4196078431372549, b: 0.1843137254901961},
+				{name: 'greenyellow',			r: 0.6784313725490196, g: 1, b: 0.1843137254901961},
+				{name: 'lawngreen',				r: 0.48627450980392156, g: 0.9882352941176471, b: 0},
+				{name: 'chartreuse',			r: 0.4980392156862745, g: 1, b: 0},
+				{name: 'darkseagreen',			r: 0.5607843137254902, g: 0.7372549019607844, b: 0.5607843137254902},
+				{name: 'forestgreen',			r: 0.13333333333333333, g: 0.5450980392156862, b: 0.13333333333333333},
+				{name: 'limegreen',				r: 0.19607843137254902, g: 0.803921568627451, b: 0.19607843137254902},
+				{name: 'lightgreen',			r: 0.5647058823529412, g: 0.9333333333333333, b: 0.5647058823529412},
+				{name: 'palegreen',				r: 0.596078431372549, g: 0.984313725490196, b: 0.596078431372549},
+				{name: 'darkgreen',				r: 0, g: 0.39215686274509803, b: 0},
+				{name: 'green',					r: 0, g: 0.5019607843137255, b: 0},
+				{name: 'lime',					r: 0, g: 1, b: 0},
+				{name: 'honeydew',				r: 0.9411764705882353, g: 1, b: 0.9411764705882353},
+				{name: 'mediumseagreen',		r: 0.23529411764705882, g: 0.7019607843137254, b: 0.44313725490196076},
+				{name: 'seagreen',				r: 0.1803921568627451, g: 0.5450980392156862, b: 0.3411764705882353},
+				{name: 'springgreen',			r: 0, g: 1, b: 0.4980392156862745},
+				{name: 'mintcream',				r: 0.9607843137254902, g: 1, b: 0.9803921568627451},
+				{name: 'mediumspringgreen',		r: 0, g: 0.9803921568627451, b: 0.6039215686274509},
+				{name: 'mediumaquamarine',		r: 0.4, g: 0.803921568627451, b: 0.6666666666666666},
+				{name: 'aquamarine',			r: 0.4980392156862745, g: 1, b: 0.8313725490196079},
+				{name: 'turquoise',				r: 0.25098039215686274, g: 0.8784313725490196, b: 0.8156862745098039},
+				{name: 'lightseagreen',			r: 0.12549019607843137, g: 0.6980392156862745, b: 0.6666666666666666},
+				{name: 'mediumturquoise',		r: 0.2823529411764706, g: 0.8196078431372549, b: 0.8},
+				{name: 'darkslategray',			r: 0.1843137254901961, g: 0.30980392156862746, b: 0.30980392156862746},
+				{name: 'paleturquoise',			r: 0.6862745098039216, g: 0.9333333333333333, b: 0.9333333333333333},
+				{name: 'teal',					r: 0, g: 0.5019607843137255, b: 0.5019607843137255},
+				{name: 'darkcyan',				r: 0, g: 0.5450980392156862, b: 0.5450980392156862},
+				{name: 'darkturquoise',			r: 0, g: 0.807843137254902, b: 0.8196078431372549},
+				{name: 'aqua',					r: 0, g: 1, b: 1},
+				{name: 'cyan',					r: 0, g: 1, b: 1},
+				{name: 'lightcyan',				r: 0.8784313725490196, g: 1, b: 1},
+				{name: 'azure',					r: 0.9411764705882353, g: 1, b: 1},
+				{name: 'cadetblue',				r: 0.37254901960784315, g: 0.6196078431372549, b: 0.6274509803921569},
+				{name: 'powderblue',			r: 0.6901960784313725, g: 0.8784313725490196, b: 0.9019607843137255},
+				{name: 'lightblue',				r: 0.6784313725490196, g: 0.8470588235294118, b: 0.9019607843137255},
+				{name: 'deepskyblue',			r: 0, g: 0.7490196078431373, b: 1},
+				{name: 'skyblue',				r: 0.5294117647058824, g: 0.807843137254902, b: 0.9215686274509803},
+				{name: 'lightskyblue',			r: 0.5294117647058824, g: 0.807843137254902, b: 0.9803921568627451},
+				{name: 'steelblue',				r: 0.27450980392156865, g: 0.5098039215686274, b: 0.7058823529411765},
+				{name: 'aliceblue',				r: 0.9411764705882353, g: 0.9725490196078431, b: 1},
+				{name: 'dodgerblue',			r: 0.11764705882352941, g: 0.5647058823529412, b: 1},
+				{name: 'slategray',				r: 0.4392156862745098, g: 0.5019607843137255, b: 0.5647058823529412},
+				{name: 'lightslategray',		r: 0.4666666666666667, g: 0.5333333333333333, b: 0.6},
+				{name: 'lightsteelblue',		r: 0.6901960784313725, g: 0.7686274509803922, b: 0.8705882352941177},
+				{name: 'cornflowerblue',		r: 0.39215686274509803, g: 0.5843137254901961, b: 0.9294117647058824},
+				{name: 'royalblue',				r: 0.2549019607843137, g: 0.4117647058823529, b: 0.8823529411764706},
+				{name: 'midnightblue',			r: 0.09803921568627451, g: 0.09803921568627451, b: 0.4392156862745098},
+				{name: 'lavender',				r: 0.9019607843137255, g: 0.9019607843137255, b: 0.9803921568627451},
+				{name: 'navy',					r: 0, g: 0, b: 0.5019607843137255},
+				{name: 'darkblue',				r: 0, g: 0, b: 0.5450980392156862},
+				{name: 'mediumblue',			r: 0, g: 0, b: 0.803921568627451},
+				{name: 'blue',					r: 0, g: 0, b: 1},
+				{name: 'ghostwhite',			r: 0.9725490196078431, g: 0.9725490196078431, b: 1},
+				{name: 'darkslateblue',			r: 0.2823529411764706, g: 0.23921568627450981, b: 0.5450980392156862},
+				{name: 'slateblue',				r: 0.41568627450980394, g: 0.35294117647058826, b: 0.803921568627451},
+				{name: 'mediumslateblue',		r: 0.4823529411764706, g: 0.40784313725490196, b: 0.9333333333333333},
+				{name: 'mediumpurple',			r: 0.5764705882352941, g: 0.4392156862745098, b: 0.8588235294117647},
+				{name: 'blueviolet',			r: 0.5411764705882353, g: 0.16862745098039217, b: 0.8862745098039215},
+				{name: 'indigo',				r: 0.29411764705882354, g: 0, b: 0.5098039215686274},
+				{name: 'darkorchid',			r: 0.6, g: 0.19607843137254902, b: 0.8},
+				{name: 'darkviolet',			r: 0.5803921568627451, g: 0, b: 0.8274509803921568},
+				{name: 'mediumorchid',			r: 0.7294117647058823, g: 0.3333333333333333, b: 0.8274509803921568},
+				{name: 'thistle',				r: 0.8470588235294118, g: 0.7490196078431373, b: 0.8470588235294118},
+				{name: 'plum',					r: 0.8666666666666667, g: 0.6274509803921569, b: 0.8666666666666667},
+				{name: 'violet',				r: 0.9333333333333333, g: 0.5098039215686274, b: 0.9333333333333333},
+				{name: 'purple',				r: 0.5019607843137255, g: 0, b: 0.5019607843137255},
+				{name: 'darkmagenta',			r: 0.5450980392156862, g: 0, b: 0.5450980392156862},
+				{name: 'magenta',				r: 1, g: 0, b: 1},
+				{name: 'fuchsia',				r: 1, g: 0, b: 1},
+				{name: 'orchid',				r: 0.8549019607843137, g: 0.4392156862745098, b: 0.8392156862745098},
+				{name: 'mediumvioletred',		r: 0.7803921568627451, g: 0.08235294117647059, b: 0.5215686274509804},
+				{name: 'deeppink',				r: 1, g: 0.0784313725490196, b: 0.5764705882352941},
+				{name: 'hotpink',				r: 1, g: 0.4117647058823529, b: 0.7058823529411765},
+				{name: 'palevioletred',			r: 0.8588235294117647, g: 0.4392156862745098, b: 0.5764705882352941},
+				{name: 'lavenderblush',			r: 1, g: 0.9411764705882353, b: 0.9607843137254902},
+				{name: 'crimson',				r: 0.8627450980392157, g: 0.0784313725490196, b: 0.23529411764705882},
+				{name: 'pink',					r: 1, g: 0.7529411764705882, b: 0.796078431372549},
+				{name: 'lightpink',				r: 1, g: 0.7137254901960784, b: 0.7568627450980392}
+			]
+		};
+
+		this.writers = {
+			'#HEX':		function(color, that) {
+							return that._formatColor('#rxgxbx', color);
+						}
+		,	'#HEX3':	function(color, that) {
+							var hex3 = $.colorpicker.writers.HEX3(color);
+							return hex3 === false? false : '#'+hex3;
+						}
+		,	'HEX':		function(color, that) {
+							return that._formatColor('rxgxbx', color);
+						}
+		,	'HEX3':		function(color, that) {
+							var rgb = color.getRGB(),
+								r = Math.floor(rgb.r * 255),
+								g = Math.floor(rgb.g * 255),
+								b = Math.floor(rgb.b * 255);
+
+							if (((r >>> 4) === (r &= 0xf))
+							 && ((g >>> 4) === (g &= 0xf))
+							 && ((b >>> 4) === (b &= 0xf))) {
+								return r.toString(16)+g.toString(16)+b.toString(16);
+							}
+							return false;
+						}
+		,	'#HEXA':	function(color, that) {
+							return that._formatColor('#rxgxbxax', color);
+						}						
+		,	'#HEXA4':	function(color, that) {
+							var hexa4 = $.colorpicker.writers.HEXA4(color, that);
+							return hexa4 === false? false : '#'+hexa4;
+						}						
+		,	'HEXA':	function(color, that) {
+							return that._formatColor('rxgxbxax', color);
+						}		
+		,	'HEXA4':		function(color, that) {
+							var a = Math.floor(color.getAlpha() * 255);
+						
+							if ((a >>> 4) === (a &= 0xf)) {
+								return $.colorpicker.writers.HEX3(color, that)+a.toString(16);
+							}
+							return false;
+						}						
+		,	'RGB':		function(color, that) {
+							return color.getAlpha() >= 1
+									? that._formatColor('rgb(rd,gd,bd)', color)
+									: false;
+						}
+		,	'RGBA':		function(color, that) {
+							return that._formatColor('rgba(rd,gd,bd,af)', color);
+						}
+		,	'RGB%':		function(color, that) {
+							return color.getAlpha() >= 1
+									? that._formatColor('rgb(rp%,gp%,bp%)', color)
+									: false;
+						}
+		,	'RGBA%':	function(color, that) {
+							return that._formatColor('rgba(rp%,gp%,bp%,af)', color);
+						}
+		,	'HSL':		function(color, that) {
+							return color.getAlpha() >= 1
+									? that._formatColor('hsl(hd,sd,vd)', color)
+									: false;
+						}
+		,	'HSLA':		function(color, that) {
+							return that._formatColor('hsla(hd,sd,vd,af)', color);
+						}
+		,	'HSL%':		function(color, that) {
+							return color.getAlpha() >= 1
+									? that._formatColor('hsl(hp%,sp%,vp%)', color)
+									: false;
+						}
+		,	'HSLA%':	function(color, that) {
+							return that._formatColor('hsla(hp%,sp%,vp%,af)', color);
+						}
+		,	'NAME':		function(color, that) {
+							return that._closestName(color);
+						}
+		,	'EXACT':	function(color, that) {		// @todo experimental. Implement a good fallback list
+							return that._exactName(color);
+						}
+		};
+
+		this.parsers = {
+			'':			function(color) {
+				            if (color === '') {
+								return new $.colorpicker.Color();
+							}
+						}
+		,	'NAME':		function(color, that) {
+							var c = that._getSwatch($.trim(color));
+							if (c) {
+								return new $.colorpicker.Color(c.r, c.g, c.b);
+							}
+						}
+		,	'RGBA':		function(color) {
+							var m = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+									m[1] / 255,
+									m[2] / 255,
+									m[3] / 255,
+									parseFloat(m[4])
+								);
+							}
+						}
+		,	'RGBA%':	function(color) {
+							var m = /^rgba?\(\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+									m[1] / 100,
+									m[2] / 100,
+									m[3] / 100,
+									m[4] / 100
+								);
+							}
+						}
+		,	'HSLA':		function(color) {
+							var m = /^hsla?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)$/.exec(color);
+							if (m) {
+								return (new $.colorpicker.Color()).setHSL(
+									m[1] / 255,
+									m[2] / 255,
+									m[3] / 255).setAlpha(parseFloat(m[4]));
+							}
+						}
+		,	'HSLA%':	function(color) {
+							var m = /^hsla?\(\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)$/.exec(color);
+							if (m) {
+								return (new $.colorpicker.Color()).setHSL(
+									m[1] / 100,
+									m[2] / 100,
+									m[3] / 100).setAlpha(m[4] / 100);
+							}
+						}
+		,	'#HEX':		function(color) {
+							var m = /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+									parseInt(m[1], 16) / 255,
+									parseInt(m[2], 16) / 255,
+									parseInt(m[3], 16) / 255
+								);
+							}
+						}
+		,	'#HEX3':	function(color) {
+							var m = /^#([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+								   parseInt(String(m[1]) + m[1], 16) / 255,
+								   parseInt(String(m[2]) + m[2], 16) / 255,
+								   parseInt(String(m[3]) + m[3], 16) / 255
+								);
+							}
+						}
+		,	'HEX':		function(color) {
+							var m = /^([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+									parseInt(m[1], 16) / 255,
+									parseInt(m[2], 16) / 255,
+									parseInt(m[3], 16) / 255
+								);
+							}
+						}
+		,	'HEX3':		function(color) {
+							var m = /^([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+								   parseInt(String(m[1]) + m[1], 16) / 255,
+								   parseInt(String(m[2]) + m[2], 16) / 255,
+								   parseInt(String(m[3]) + m[3], 16) / 255
+								);
+							}
+						}
+		,	'#HEXA':	function(color) {
+							var m = /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+									parseInt(m[1], 16) / 255,
+									parseInt(m[2], 16) / 255,
+									parseInt(m[3], 16) / 255,
+									parseInt(m[4], 16) / 255
+								);
+							}
+						}
+		,	'#HEXA4':	function(color) {
+							var m = /^#([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+								   parseInt(String(m[1]) + m[1], 16) / 255,
+								   parseInt(String(m[2]) + m[2], 16) / 255,
+								   parseInt(String(m[3]) + m[3], 16) / 255,
+								   parseInt(String(m[4]) + m[4], 16) / 255
+								);
+							}
+						}
+		,	'HEXA':		function(color) {
+							var m = /^([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+									parseInt(m[1], 16) / 255,
+									parseInt(m[2], 16) / 255,
+									parseInt(m[3], 16) / 255,
+									parseInt(m[4], 16) / 255
+								);
+							}
+						}
+		,	'HEXA4':	function(color) {
+							var m = /^([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])$/.exec(color);
+							if (m) {
+								return new $.colorpicker.Color(
+								   parseInt(String(m[1]) + m[1], 16) / 255,
+								   parseInt(String(m[2]) + m[2], 16) / 255,
+								   parseInt(String(m[3]) + m[3], 16) / 255,
+								   parseInt(String(m[4]) + m[4], 16) / 255
+								);
+							}
+						}
+		};
+
+		this.partslists = {
+			'full':			['header', 'map', 'bar', 'hex', 'hsv', 'rgb', 'alpha', 'lab', 'cmyk', 'preview', 'swatches', 'footer'],
+			'popup':		['map', 'bar', 'hex', 'hsv', 'rgb', 'alpha', 'preview', 'footer'],
+			'draggable':	['header', 'map', 'bar', 'hex', 'hsv', 'rgb', 'alpha', 'preview', 'footer'],
+			'inline':		['map', 'bar', 'hex', 'hsv', 'rgb', 'alpha', 'preview']
+		};
+
+		this.limits = {
+			'websafe':		function(color) {
+								color.limit(6);
+							},
+			'nibble':		function(color) {
+								color.limit(16);
+							},
+			'binary':		function(color) {
+								color.limit(2);
+							},
+			'name':			function(color, that) {
+								var swatch = that._getSwatch(that._closestName(color));
+								color.setRGB(swatch.r, swatch.g, swatch.b);
+							}
+		};
+
+		this.parts = {
+			header: function (inst) {
+				var that	= this,
+					e		= null,
+					_html	=function() {
+						var title = inst.options.title || inst._getRegional('title'),
+							html = '<span class="ui-dialog-title">' + title + '</span>';
+
+						if (!inst.inline && inst.options.showCloseButton) {
+							html += '<a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button">'
+								+ '<span class="ui-icon ui-icon-closethick">close</span></a>';
+						}
+
+						return '<div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix">' + html + '</div>';
+					};
+
+				this.init = function() {
+					e = $(_html()).prependTo(inst.dialog);
+
+					var close = $('.ui-dialog-titlebar-close', e);
+					inst._hoverable(close);
+					inst._focusable(close);
+					close.click(function(event) {
+						event.preventDefault();
+						inst.close(inst.options.revert);
+					});
+
+					if (!inst.inline && inst.options.draggable) {
+						var draggableOptions = {
+							handle: e,
+						}
+						if (inst.options.containment) {
+							draggableOptions.containment = inst.options.containment;
+						}
+						inst.dialog.draggable(draggableOptions);
+					}
+				};
+			},
+
+			map: function (inst) {
+				var that	= this,
+					e		= null,
+					mousemove_timeout = null,
+					_mousedown, _mouseup, _mousemove, _html;
+
+				_mousedown = function (event) {
+					if (!inst.opened) {
+						return;
+					}
+
+					var div		= $('.ui-colorpicker-map-layer-pointer', e),
+						offset	= div.offset(),
+						width	= div.width(),
+						height	= div.height(),
+						x		= event.pageX - offset.left,
+						y		= event.pageY - offset.top;
+
+					if (x >= 0 && x < width && y >= 0 && y < height) {
+						event.stopImmediatePropagation();
+						event.preventDefault();
+						e.unbind('mousedown', _mousedown);
+						$(document).bind('mouseup', _mouseup);
+						$(document).bind('mousemove', _mousemove);
+						_mousemove(event);
+					}
+				};
+
+				_mouseup = function (event) {
+					event.stopImmediatePropagation();
+					event.preventDefault();
+					$(document).unbind('mouseup', _mouseup);
+					$(document).unbind('mousemove', _mousemove);
+					e.bind('mousedown', _mousedown);
+				};
+
+				_mousemove = function (event) {
+					event.stopImmediatePropagation();
+					event.preventDefault();
+
+					if (event.pageX === that.x && event.pageY === that.y) {
+						return;
+					}
+					that.x = event.pageX;
+					that.y = event.pageY;
+
+					var div = $('.ui-colorpicker-map-layer-pointer', e),
+						offset = div.offset(),
+						width = div.width(),
+						height = div.height(),
+						x = event.pageX - offset.left,
+						y = event.pageY - offset.top;
+
+					x = Math.max(0, Math.min(x / width, 1));
+					y = Math.max(0, Math.min(y / height, 1));
+
+					// interpret values
+					switch (inst.mode) {
+					case 'h':
+						inst.color.setHSV(null, x, 1 - y);
+						break;
+
+					case 's':
+					case 'a':
+						inst.color.setHSV(x, null, 1 - y);
+						break;
+
+					case 'v':
+						inst.color.setHSV(x, 1 - y, null);
+						break;
+
+					case 'r':
+						inst.color.setRGB(null, 1 - y, x);
+						break;
+
+					case 'g':
+						inst.color.setRGB(1 - y, null, x);
+						break;
+
+					case 'b':
+						inst.color.setRGB(x, 1 - y, null);
+						break;
+					}
+
+					inst._change();
+				};
+
+				_html = function () {
+					var html = '<div class="ui-colorpicker-map ui-colorpicker-map-'+(inst.options.part.map.size || 256)+' ui-colorpicker-border">'
+							+ '<span class="ui-colorpicker-map-layer-1">&nbsp;</span>'
+							+ '<span class="ui-colorpicker-map-layer-2">&nbsp;</span>'
+							+ (inst.options.alpha ? '<span class="ui-colorpicker-map-layer-alpha">&nbsp;</span>' : '')
+							+ '<span class="ui-colorpicker-map-layer-pointer"><span class="ui-colorpicker-map-pointer"></span></span></div>';
+					return html;
+				};
+
+				this.update = function () {
+					var step = ((inst.options.part.map.size || 256) * 65 / 64);
+
+					switch (inst.mode) {
+					case 'h':
+						$('.ui-colorpicker-map-layer-1', e).css({'background-position': '0 0', 'opacity': ''}).show();
+						$('.ui-colorpicker-map-layer-2', e).hide();
+						break;
+
+					case 's':
+					case 'a':
+						$('.ui-colorpicker-map-layer-1', e).css({'background-position': '0 '+(-step)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-map-layer-2', e).css({'background-position': '0 '+(-step*2)+'px', 'opacity': ''}).show();
+						break;
+
+					case 'v':
+						$(e).css('background-color', 'black');
+						$('.ui-colorpicker-map-layer-1', e).css({'background-position': '0 '+(-step*3)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-map-layer-2', e).hide();
+						break;
+
+					case 'r':
+						$('.ui-colorpicker-map-layer-1', e).css({'background-position': '0 '+(-step*4)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-map-layer-2', e).css({'background-position': '0 '+(-step*5)+'px', 'opacity': ''}).show();
+						break;
+
+					case 'g':
+						$('.ui-colorpicker-map-layer-1', e).css({'background-position': '0 '+(-step*6)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-map-layer-2', e).css({'background-position': '0 '+(-step*7)+'px', 'opacity': ''}).show();
+						break;
+
+					case 'b':
+						$('.ui-colorpicker-map-layer-1', e).css({'background-position': '0 '+(-step*8)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-map-layer-2', e).css({'background-position': '0 '+(-step*9)+'px', 'opacity': ''}).show();
+						break;
+					}
+					that.repaint();
+				};
+
+				this.repaint = function () {
+					var div = $('.ui-colorpicker-map-layer-pointer', e),
+						x = 0,
+						y = 0;
+
+					switch (inst.mode) {
+					case 'h':
+						x = inst.color.getHSV().s * div.width();
+						y = (1 - inst.color.getHSV().v) * div.width();
+						$(e).css('background-color', inst.color.copy().setHSV(null, 1, 1).toCSS());
+						break;
+
+					case 's':
+					case 'a':
+						x = inst.color.getHSV().h * div.width();
+						y = (1 - inst.color.getHSV().v) * div.width();
+						$('.ui-colorpicker-map-layer-2', e).css('opacity', 1 - inst.color.getHSV().s);
+						break;
+
+					case 'v':
+						x = inst.color.getHSV().h * div.width();
+						y = (1 - inst.color.getHSV().s) * div.width();
+						$('.ui-colorpicker-map-layer-1', e).css('opacity', inst.color.getHSV().v);
+						break;
+
+					case 'r':
+						x = inst.color.getRGB().b * div.width();
+						y = (1 - inst.color.getRGB().g) * div.width();
+						$('.ui-colorpicker-map-layer-2', e).css('opacity', inst.color.getRGB().r);
+						break;
+
+					case 'g':
+						x = inst.color.getRGB().b * div.width();
+						y = (1 - inst.color.getRGB().r) * div.width();
+						$('.ui-colorpicker-map-layer-2', e).css('opacity', inst.color.getRGB().g);
+						break;
+
+					case 'b':
+						x = inst.color.getRGB().r * div.width();
+						y = (1 - inst.color.getRGB().g) * div.width();
+						$('.ui-colorpicker-map-layer-2', e).css('opacity', inst.color.getRGB().b);
+						break;
+					}
+
+					if (inst.options.alpha) {
+						$('.ui-colorpicker-map-layer-alpha', e).css('opacity', 1 - inst.color.getAlpha());
+					}
+
+					$('.ui-colorpicker-map-pointer', e).css({
+						'left': x - 7,
+						'top': y - 7
+					});
+				};
+
+				this.init = function () {
+					e = $(_html()).appendTo($('.ui-colorpicker-map-container', inst.dialog));
+
+					e.bind('mousedown', _mousedown);
+				};
+			},
+
+			bar: function (inst) {
+				var that		= this,
+					e			= null,
+					_mousedown, _mouseup, _mousemove, _html;
+
+				_mousedown = function (event) {
+					if (!inst.opened) {
+						return;
+					}
+
+					var div		= $('.ui-colorpicker-bar-layer-pointer', e),
+						offset	= div.offset(),
+						width	= div.width(),
+						height	= div.height(),
+						x		= event.pageX - offset.left,
+						y		= event.pageY - offset.top;
+
+					if (x >= 0 && x < width && y >= 0 && y < height) {
+						event.stopImmediatePropagation();
+						event.preventDefault();
+						e.unbind('mousedown', _mousedown);
+						$(document).bind('mouseup', _mouseup);
+						$(document).bind('mousemove', _mousemove);
+						_mousemove(event);
+					}
+				};
+
+				_mouseup = function (event) {
+					event.stopImmediatePropagation();
+					event.preventDefault();
+					$(document).unbind('mouseup', _mouseup);
+					$(document).unbind('mousemove', _mousemove);
+					e.bind('mousedown', _mousedown);
+				};
+
+				_mousemove = function (event) {
+					event.stopImmediatePropagation();
+					event.preventDefault();
+
+					if (event.pageY === that.y) {
+						return;
+					}
+					that.y = event.pageY;
+
+					var div = $('.ui-colorpicker-bar-layer-pointer', e),
+						offset  = div.offset(),
+						height  = div.height(),
+						y = event.pageY - offset.top;
+
+					y = Math.max(0, Math.min(y / height, 1));
+
+					// interpret values
+					switch (inst.mode) {
+					case 'h':
+						inst.color.setHSV(1 - y, null, null);
+						break;
+
+					case 's':
+						inst.color.setHSV(null, 1 - y, null);
+						break;
+
+					case 'v':
+						inst.color.setHSV(null, null, 1 - y);
+						break;
+
+					case 'r':
+						inst.color.setRGB(1 - y, null, null);
+						break;
+
+					case 'g':
+						inst.color.setRGB(null, 1 - y, null);
+						break;
+
+					case 'b':
+						inst.color.setRGB(null, null, 1 - y);
+						break;
+
+					case 'a':
+						inst.color.setAlpha(1 - y);
+						break;
+					}
+
+					inst._change();
+				};
+
+				_html = function () {
+					var html = '<div class="ui-colorpicker-bar ui-colorpicker-bar-'+(inst.options.part.bar.size || 256)+'  ui-colorpicker-border">'
+							+ '<span class="ui-colorpicker-bar-layer-1">&nbsp;</span>'
+							+ '<span class="ui-colorpicker-bar-layer-2">&nbsp;</span>'
+							+ '<span class="ui-colorpicker-bar-layer-3">&nbsp;</span>'
+							+ '<span class="ui-colorpicker-bar-layer-4">&nbsp;</span>';
+
+					if (inst.options.alpha) {
+						html += '<span class="ui-colorpicker-bar-layer-alpha">&nbsp;</span>'
+							+ '<span class="ui-colorpicker-bar-layer-alphabar">&nbsp;</span>';
+					}
+
+					html += '<span class="ui-colorpicker-bar-layer-pointer"><span class="ui-colorpicker-bar-pointer"></span></span></div>';
+
+					return html;
+				};
+
+				this.update = function () {
+					var step = ((inst.options.part.bar.size || 256) * 65 / 64);
+
+					switch (inst.mode) {
+					case 'h':
+					case 's':
+					case 'v':
+					case 'r':
+					case 'g':
+					case 'b':
+						$('.ui-colorpicker-bar-layer-alpha', e).show();
+						$('.ui-colorpicker-bar-layer-alphabar', e).hide();
+						break;
+
+					case 'a':
+						$('.ui-colorpicker-bar-layer-alpha', e).hide();
+						$('.ui-colorpicker-bar-layer-alphabar', e).show();
+						break;
+					}
+
+					switch (inst.mode) {
+					case 'h':
+						$('.ui-colorpicker-bar-layer-1', e).css({'background-position': '0 0', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-2', e).hide();
+						$('.ui-colorpicker-bar-layer-3', e).hide();
+						$('.ui-colorpicker-bar-layer-4', e).hide();
+						break;
+
+					case 's':
+						$('.ui-colorpicker-bar-layer-1', e).css({'background-position': '0 '+(-step)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-2', e).css({'background-position': '0 '+(-step*2)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-3', e).hide();
+						$('.ui-colorpicker-bar-layer-4', e).hide();
+						break;
+
+					case 'v':
+						$('.ui-colorpicker-bar-layer-1', e).css({'background-position': '0 '+(-step*2)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-2', e).hide();
+						$('.ui-colorpicker-bar-layer-3', e).hide();
+						$('.ui-colorpicker-bar-layer-4', e).hide();
+						break;
+
+					case 'r':
+						$('.ui-colorpicker-bar-layer-1', e).css({'background-position': '0 '+(-step*6)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-2', e).css({'background-position': '0 '+(-step*5)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-3', e).css({'background-position': '0 '+(-step*3)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-4', e).css({'background-position': '0 '+(-step*4)+'px', 'opacity': ''}).show();
+						break;
+
+					case 'g':
+						$('.ui-colorpicker-bar-layer-1', e).css({'background-position': '0 '+(-step*10)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-2', e).css({'background-position': '0 '+(-step*9)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-3', e).css({'background-position': '0 '+(-step*7)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-4', e).css({'background-position': '0 '+(-step*8)+'px', 'opacity': ''}).show();
+						break;
+
+					case 'b':
+						$('.ui-colorpicker-bar-layer-1', e).css({'background-position': '0 '+(-step*14)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-2', e).css({'background-position': '0 '+(-step*13)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-3', e).css({'background-position': '0 '+(-step*11)+'px', 'opacity': ''}).show();
+						$('.ui-colorpicker-bar-layer-4', e).css({'background-position': '0 '+(-step*12)+'px', 'opacity': ''}).show();
+						break;
+
+					case 'a':
+						$('.ui-colorpicker-bar-layer-1', e).hide();
+						$('.ui-colorpicker-bar-layer-2', e).hide();
+						$('.ui-colorpicker-bar-layer-3', e).hide();
+						$('.ui-colorpicker-bar-layer-4', e).hide();
+						break;
+					}
+					that.repaint();
+				};
+
+				this.repaint = function () {
+					var div = $('.ui-colorpicker-bar-layer-pointer', e),
+						y = 0;
+
+					switch (inst.mode) {
+					case 'h':
+						y = (1 - inst.color.getHSV().h) * div.height();
+						break;
+
+					case 's':
+						y = (1 - inst.color.getHSV().s) * div.height();
+						$('.ui-colorpicker-bar-layer-2', e).css('opacity', 1 - inst.color.getHSV().v);
+						$(e).css('background-color', inst.color.copy().setHSV(null, 1, null).toCSS());
+						break;
+
+					case 'v':
+						y = (1 - inst.color.getHSV().v) * div.height();
+						$(e).css('background-color', inst.color.copy().setHSV(null, null, 1).toCSS());
+						break;
+
+					case 'r':
+						y = (1 - inst.color.getRGB().r) * div.height();
+						$('.ui-colorpicker-bar-layer-2', e).css('opacity', Math.max(0, (inst.color.getRGB().b - inst.color.getRGB().g)));
+						$('.ui-colorpicker-bar-layer-3', e).css('opacity', Math.max(0, (inst.color.getRGB().g - inst.color.getRGB().b)));
+						$('.ui-colorpicker-bar-layer-4', e).css('opacity', Math.min(inst.color.getRGB().b, inst.color.getRGB().g));
+						break;
+
+					case 'g':
+						y = (1 - inst.color.getRGB().g) * div.height();
+						$('.ui-colorpicker-bar-layer-2', e).css('opacity', Math.max(0, (inst.color.getRGB().b - inst.color.getRGB().r)));
+						$('.ui-colorpicker-bar-layer-3', e).css('opacity', Math.max(0, (inst.color.getRGB().r - inst.color.getRGB().b)));
+						$('.ui-colorpicker-bar-layer-4', e).css('opacity', Math.min(inst.color.getRGB().r, inst.color.getRGB().b));
+						break;
+
+					case 'b':
+						y = (1 - inst.color.getRGB().b) * div.height();
+						$('.ui-colorpicker-bar-layer-2', e).css('opacity', Math.max(0, (inst.color.getRGB().r - inst.color.getRGB().g)));
+						$('.ui-colorpicker-bar-layer-3', e).css('opacity', Math.max(0, (inst.color.getRGB().g - inst.color.getRGB().r)));
+						$('.ui-colorpicker-bar-layer-4', e).css('opacity', Math.min(inst.color.getRGB().r, inst.color.getRGB().g));
+						break;
+
+					case 'a':
+						y = (1 - inst.color.getAlpha()) * div.height();
+						$(e).css('background-color', inst.color.copy().toCSS());
+						break;
+					}
+
+					if (inst.mode !== 'a') {
+						$('.ui-colorpicker-bar-layer-alpha', e).css('opacity', 1 - inst.color.getAlpha());
+					}
+
+					$('.ui-colorpicker-bar-pointer', e).css('top', y - 3);
+				};
+
+				this.init = function () {
+					e = $(_html()).appendTo($('.ui-colorpicker-bar-container', inst.dialog));
+
+					e.bind('mousedown', _mousedown);
+				};
+			},
+
+			preview: function (inst) {
+				var that = this,
+					e = null,
+					_html;
+
+				_html = function () {
+					return '<div class="ui-colorpicker-preview ui-colorpicker-border">'
+						+ '<div class="ui-colorpicker-preview-initial"><div class="ui-colorpicker-preview-initial-alpha"></div></div>'
+						+ '<div class="ui-colorpicker-preview-current"><div class="ui-colorpicker-preview-current-alpha"></div></div>'
+						+ '</div>';
+				};
+
+				this.init = function () {
+					e = $(_html()).appendTo($('.ui-colorpicker-preview-container', inst.dialog));
+
+					$('.ui-colorpicker-preview-initial', e).click(function () {
+						inst.color = inst.currentColor.copy();
+						inst._change();
+					});
+				};
+
+				this.update = function () {
+					if (inst.options.alpha) {
+						$('.ui-colorpicker-preview-initial-alpha, .ui-colorpicker-preview-current-alpha', e).show();
+					} else {
+						$('.ui-colorpicker-preview-initial-alpha, .ui-colorpicker-preview-current-alpha', e).hide();
+					}
+
+					this.repaint();
+				};
+
+				this.repaint = function () {
+					$('.ui-colorpicker-preview-initial', e).css('background-color', inst.currentColor.set ? inst.currentColor.toCSS() : '').attr('title', inst.currentColor.set ? inst.currentColor.toCSS() : '');
+					$('.ui-colorpicker-preview-initial-alpha', e).css('opacity', 1 - inst.currentColor.getAlpha());
+					$('.ui-colorpicker-preview-current', e).css('background-color', inst.color.set ? inst.color.toCSS() : '').attr('title', inst.color.set ? inst.color.toCSS() : '');
+					$('.ui-colorpicker-preview-current-alpha', e).css('opacity', 1 - inst.color.getAlpha());
+				};
+			},
+
+			hsv: function (inst) {
+				var that = this,
+					e = null,
+					_html;
+
+				_html = function () {
+					var html = '';
+
+					if (inst.options.hsv) {
+						html +=	'<div class="ui-colorpicker-hsv-h"><input class="ui-colorpicker-mode" type="radio" value="h"/><label>' + inst._getRegional('hsvH') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="360" size="10"/><span class="ui-colorpicker-unit">&deg;</span></div>'
+							+ '<div class="ui-colorpicker-hsv-s"><input class="ui-colorpicker-mode" type="radio" value="s"/><label>' + inst._getRegional('hsvS') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="100" size="10"/><span class="ui-colorpicker-unit">%</span></div>'
+							+ '<div class="ui-colorpicker-hsv-v"><input class="ui-colorpicker-mode" type="radio" value="v"/><label>' + inst._getRegional('hsvV') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="100" size="10"/><span class="ui-colorpicker-unit">%</span></div>';
+					}
+
+					return '<div class="ui-colorpicker-hsv">' + html + '</div>';
+				};
+
+				this.init = function () {
+					e = $(_html()).appendTo($('.ui-colorpicker-hsv-container', inst.dialog));
+
+					$('.ui-colorpicker-mode', e).click(function () {
+						inst.mode = $(this).val();
+						inst._updateAllParts();
+					});
+
+					$('.ui-colorpicker-number', e).bind('change keyup', function () {
+						inst.color.setHSV(
+							$('.ui-colorpicker-hsv-h .ui-colorpicker-number', e).val() / 360,
+							$('.ui-colorpicker-hsv-s .ui-colorpicker-number', e).val() / 100,
+							$('.ui-colorpicker-hsv-v .ui-colorpicker-number', e).val() / 100
+						);
+						inst._change();
+					});
+				};
+
+				this.repaint = function () {
+					var hsv = inst.color.getHSV();
+					hsv.h *= 360;
+					hsv.s *= 100;
+					hsv.v *= 100;
+
+					$.each(hsv, function (index, value) {
+						var input = $('.ui-colorpicker-hsv-' + index + ' .ui-colorpicker-number', e);
+						value = Math.round(value);
+						if (parseInt(input.val(), 10) !== value) {
+							input.val(value);
+						}
+					});
+				};
+
+				this.update = function () {
+					$('.ui-colorpicker-mode', e).each(function () {
+						$(this).attr('checked', $(this).val() === inst.mode);
+					});
+					this.repaint();
+				};
+			},
+
+			rgb: function (inst) {
+				var that = this,
+					e = null,
+					_html;
+
+				_html = function () {
+					var html = '';
+
+					if (inst.options.rgb) {
+						html += '<div class="ui-colorpicker-rgb-r"><input class="ui-colorpicker-mode" type="radio" value="r"/><label>' + inst._getRegional('rgbR') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="255"/></div>'
+							+ '<div class="ui-colorpicker-rgb-g"><input class="ui-colorpicker-mode" type="radio" value="g"/><label>' + inst._getRegional('rgbG') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="255"/></div>'
+							+ '<div class="ui-colorpicker-rgb-b"><input class="ui-colorpicker-mode" type="radio" value="b"/><label>' + inst._getRegional('rgbB') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="255"/></div>';
+					}
+
+					return '<div class="ui-colorpicker-rgb">' + html + '</div>';
+				};
+
+				this.init = function () {
+					e = $(_html()).appendTo($('.ui-colorpicker-rgb-container', inst.dialog));
+
+					$('.ui-colorpicker-mode', e).click(function () {
+						inst.mode = $(this).val();
+						inst._updateAllParts();
+					});
+
+					$('.ui-colorpicker-number', e).bind('change keyup', function () {
+						var r = $('.ui-colorpicker-rgb-r .ui-colorpicker-number', e).val();
+						inst.color.setRGB(
+							$('.ui-colorpicker-rgb-r .ui-colorpicker-number', e).val() / 255,
+							$('.ui-colorpicker-rgb-g .ui-colorpicker-number', e).val() / 255,
+							$('.ui-colorpicker-rgb-b .ui-colorpicker-number', e).val() / 255
+						);
+
+						inst._change();
+					});
+				};
+
+				this.repaint = function () {
+					$.each(inst.color.getRGB(), function (index, value) {
+						var input = $('.ui-colorpicker-rgb-' + index + ' .ui-colorpicker-number', e);
+						value = Math.floor(value * 255);
+						if (parseInt(input.val(), 10) !== value) {
+							input.val(value);
+						}
+					});
+				};
+
+				this.update = function () {
+					$('.ui-colorpicker-mode', e).each(function () {
+						$(this).attr('checked', $(this).val() === inst.mode);
+					});
+					this.repaint();
+				};
+			},
+
+			lab: function (inst) {
+				var that = this,
+					part = null,
+					html = function () {
+						var html = '';
+
+						if (inst.options.hsv) {
+							html +=	'<div class="ui-colorpicker-lab-l"><label>' + inst._getRegional('labL') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="100"/></div>'
+								+ '<div class="ui-colorpicker-lab-a"><label>' + inst._getRegional('labA') + '</label><input class="ui-colorpicker-number" type="number" min="-128" max="127"/></div>'
+								+ '<div class="ui-colorpicker-lab-b"><label>' + inst._getRegional('labB') + '</label><input class="ui-colorpicker-number" type="number" min="-128" max="127"/></div>';
+						}
+
+						return '<div class="ui-colorpicker-lab">' + html + '</div>';
+					};
+
+				this.init = function () {
+					var data = 0;
+
+					part = $(html()).appendTo($('.ui-colorpicker-lab-container', inst.dialog));
+
+					$('.ui-colorpicker-number', part).bind('change keyup', function (event) {
+						inst.color.setLAB(
+							parseInt($('.ui-colorpicker-lab-l .ui-colorpicker-number', part).val(), 10) / 100,
+							(parseInt($('.ui-colorpicker-lab-a .ui-colorpicker-number', part).val(), 10) + 128) / 255,
+							(parseInt($('.ui-colorpicker-lab-b .ui-colorpicker-number', part).val(), 10) + 128) / 255
+						);
+						inst._change();
+					});
+				};
+
+				this.repaint = function () {
+					var lab = inst.color.getLAB();
+					lab.l *= 100;
+					lab.a = (lab.a * 255) - 128;
+					lab.b = (lab.b * 255) - 128;
+
+					$.each(lab, function (index, value) {
+						var input = $('.ui-colorpicker-lab-' + index + ' .ui-colorpicker-number', part);
+						value = Math.round(value);
+						if (parseInt(input.val(), 10) !== value) {
+							input.val(value);
+						}
+					});
+				};
+
+				this.update = function () {
+					this.repaint();
+				};
+			},
+
+			cmyk: function (inst) {
+				var that = this,
+					part = null,
+					html = function () {
+						var html = '';
+
+						if (inst.options.hsv) {
+							html +=	'<div class="ui-colorpicker-cmyk-c"><label>' + inst._getRegional('cmykC') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="100"/><span class="ui-colorpicker-unit">%</span></div>'
+								+ '<div class="ui-colorpicker-cmyk-m"><label>' + inst._getRegional('cmykM') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="100"/><span class="ui-colorpicker-unit">%</span></div>'
+								+ '<div class="ui-colorpicker-cmyk-y"><label>' + inst._getRegional('cmykY') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="100"/><span class="ui-colorpicker-unit">%</span></div>'
+								+ '<div class="ui-colorpicker-cmyk-k"><label>' + inst._getRegional('cmykK') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="100"/><span class="ui-colorpicker-unit">%</span></div>';
+						}
+
+						return '<div class="ui-colorpicker-cmyk">' + html + '</div>';
+					};
+
+				this.init = function () {
+					part = $(html()).appendTo($('.ui-colorpicker-cmyk-container', inst.dialog));
+
+					$('.ui-colorpicker-number', part).bind('change keyup', function (event) {
+						inst.color.setCMYK(
+							parseInt($('.ui-colorpicker-cmyk-c .ui-colorpicker-number', part).val(), 10) / 100,
+							parseInt($('.ui-colorpicker-cmyk-m .ui-colorpicker-number', part).val(), 10) / 100,
+							parseInt($('.ui-colorpicker-cmyk-y .ui-colorpicker-number', part).val(), 10) / 100,
+							parseInt($('.ui-colorpicker-cmyk-k .ui-colorpicker-number', part).val(), 10) / 100
+						);
+						inst._change();
+					});
+				};
+
+				this.repaint = function () {
+					$.each(inst.color.getCMYK(), function (index, value) {
+						var input = $('.ui-colorpicker-cmyk-' + index + ' .ui-colorpicker-number', part);
+						value = Math.round(value * 100);
+						if (parseInt(input.val(), 10, 10) !== value) {
+							input.val(value);
+						}
+					});
+				};
+
+				this.update = function () {
+					this.repaint();
+				};
+			},
+
+			alpha: function (inst) {
+				var that = this,
+					e = null,
+					_html;
+
+				_html = function () {
+					var html = '';
+
+					if (inst.options.alpha) {
+						html += '<div class="ui-colorpicker-a"><input class="ui-colorpicker-mode" name="mode" type="radio" value="a"/><label>' + inst._getRegional('alphaA') + '</label><input class="ui-colorpicker-number" type="number" min="0" max="100"/><span class="ui-colorpicker-unit">%</span></div>';
+					}
+
+					return '<div class="ui-colorpicker-alpha">' + html + '</div>';
+				};
+
+				this.init = function () {
+					e = $(_html()).appendTo($('.ui-colorpicker-alpha-container', inst.dialog));
+
+					$('.ui-colorpicker-mode', e).click(function () {
+						inst.mode = $(this).val();
+						inst._updateAllParts();
+					});
+
+					$('.ui-colorpicker-number', e).bind('change keyup', function () {
+						inst.color.setAlpha($('.ui-colorpicker-a .ui-colorpicker-number', e).val() / 100);
+						inst._change();
+					});
+				};
+
+				this.update = function () {
+					$('.ui-colorpicker-mode', e).each(function () {
+						$(this).attr('checked', $(this).val() === inst.mode);
+					});
+					this.repaint();
+				};
+
+				this.repaint = function () {
+					var input = $('.ui-colorpicker-a .ui-colorpicker-number', e),
+						value = Math.round(inst.color.getAlpha() * 100);
+					if (parseInt(input.val(), 10) !== value) {
+						input.val(value);
+					}
+				};
+			},
+
+			hex: function (inst) {
+				var that = this,
+					e = null,
+					_html;
+
+				_html = function () {
+					var html = '';
+
+					if (inst.options.alpha) {
+						html += '<input class="ui-colorpicker-hex-alpha" type="text" maxlength="2" size="2"/>';
+					}
+
+					html += '<input class="ui-colorpicker-hex-input" type="text" maxlength="6" size="6"/>';
+
+					return '<div class="ui-colorpicker-hex"><label>#</label>' + html + '</div>';
+				};
+
+				this.init = function () {
+					e = $(_html()).appendTo($('.ui-colorpicker-hex-container', inst.dialog));
+
+					// repeat here makes the invalid input disappear faster
+					$('.ui-colorpicker-hex-input', e).bind('change keydown keyup', function (a, b, c) {
+						if (/[^a-fA-F0-9]/.test($(this).val())) {
+							$(this).val($(this).val().replace(/[^a-fA-F0-9]/, ''));
+						}
+					});
+
+					$('.ui-colorpicker-hex-input', e).bind('change keyup', function () {
+						// repeat here makes sure that the invalid input doesn't get parsed
+						inst.color = _parseHex($(this).val()).setAlpha(inst.color.getAlpha());
+						inst._change();
+					});
+
+					$('.ui-colorpicker-hex-alpha', e).bind('change keydown keyup', function () {
+						if (/[^a-fA-F0-9]/.test($(this).val())) {
+							$(this).val($(this).val().replace(/[^a-fA-F0-9]/, ''));
+						}
+					});
+
+					$('.ui-colorpicker-hex-alpha', e).bind('change keyup', function () {
+						inst.color.setAlpha(parseInt($('.ui-colorpicker-hex-alpha', e).val(), 16) / 255);
+						inst._change();
+					});
+				};
+
+				this.update = function () {
+					this.repaint();
+				};
+
+				this.repaint = function () {
+					if (!$('.ui-colorpicker-hex-input', e).is(':focus')) {
+						$('.ui-colorpicker-hex-input', e).val(inst.color.toHex(true));
+					}
+
+					if (!$('.ui-colorpicker-hex-alpha', e).is(':focus')) {
+						$('.ui-colorpicker-hex-alpha', e).val(_intToHex(inst.color.getAlpha() * 255));
+					}
+				};
+			},
+
+			swatches: function (inst) {
+				var that = this,
+					part = null,
+					html = function () {
+						var html = '';
+
+						inst._eachSwatch(function (name, color) {
+							var c = new $.colorpicker.Color(color.r, color.g, color.b),
+								css = c.toCSS();
+							html += '<div class="ui-colorpicker-swatch" style="background-color:' + css + '" title="' + name + '"></div>';
+						});
+
+						return '<div class="ui-colorpicker-swatches ui-colorpicker-border" style="width:' + inst.options.swatchesWidth + 'px">' + html + '</div>';
+					};
+
+				this.init = function () {
+					part = $(html()).appendTo($('.ui-colorpicker-swatches-container', inst.dialog));
+
+					$('.ui-colorpicker-swatch', part).click(function () {
+						inst.color	= inst._parseColor($(this).css('background-color')) || new $.colorpicker.Color();
+						inst._change();
+					});
+				};
+			},
+
+			footer: function (inst) {
+				var that = this,
+					part = null,
+					id_transparent = 'ui-colorpicker-special-transparent-'+_colorpicker_index,
+					id_none = 'ui-colorpicker-special-none-'+_colorpicker_index,
+					html = function () {
+						var html = '';
+
+						if (inst.options.alpha || (!inst.inline && inst.options.showNoneButton)) {
+							html += '<div class="ui-colorpicker-buttonset">';
+
+							if (inst.options.alpha) {
+								html += '<input type="radio" name="ui-colorpicker-special" id="'+id_transparent+'" class="ui-colorpicker-special-transparent"/><label for="'+id_transparent+'">' + inst._getRegional('transparent') + '</label>';
+							}
+							if (!inst.inline && inst.options.showNoneButton) {
+								html += '<input type="radio" name="ui-colorpicker-special" id="'+id_none+'" class="ui-colorpicker-special-none"><label for="'+id_none+'">' + inst._getRegional('none') + '</label>';
+							}
+							html += '</div>';
+						}
+
+						if (!inst.inline) {
+							html += '<div class="ui-dialog-buttonset">';
+							if (inst.options.showCancelButton) {
+								html += '<button class="ui-colorpicker-cancel">' + inst._getRegional('cancel') + '</button>';
+							}
+							html += '<button class="ui-colorpicker-ok">' + inst._getRegional('ok') + '</button>';
+							html += '</div>';
+						}
+
+						return '<div class="ui-dialog-buttonpane ui-widget-content">' + html + '</div>';
+					};
+
+				this.init = function () {
+					part = $(html()).appendTo(inst.dialog);
+
+					$('.ui-colorpicker-ok', part).button().click(function () {
+						inst.close();
+					});
+
+					$('.ui-colorpicker-cancel', part).button().click(function () {
+						inst.close(true);   //cancel
+					});
+
+					//inst._getRegional('transparent')
+					$('.ui-colorpicker-buttonset', part).buttonset();
+
+					$('.ui-colorpicker-special-color', part).click(function () {
+						inst._change();
+					});
+
+					$('#'+id_none, part).click(function () {
+						inst.color.set = false;
+						inst._change();
+					});
+
+					$('#'+id_transparent, part).click(function () {
+						inst.color.setAlpha(0);
+						inst._change();
+					});
+				};
+
+				this.repaint = function () {
+					if (!inst.color.set) {
+						$('.ui-colorpicker-special-none', part).attr('checked', true).button( "refresh" );
+					} else if (inst.color.getAlpha() === 0) {
+						$('.ui-colorpicker-special-transparent', part).attr('checked', true).button( "refresh" );
+					} else {
+						$('input', part).attr('checked', false).button( "refresh" );
+					}
+
+					$('.ui-colorpicker-cancel', part).button(inst.changed ? 'enable' : 'disable');
+				};
+
+				this.update = function () {};
+			}
+		};
+
+		this.Color = function () {
+			var spaces = {	rgb:	{r: 0, g: 0, b: 0},
+							hsv:	{h: 0, s: 0, v: 0},
+							hsl:	{h: 0, s: 0, l: 0},
+							lab:	{l: 0, a: 0, b: 0},
+							cmyk:	{c: 0, m: 0, y: 0, k: 1}
+						},
+				a = 1,
+				illuminant = [0.9504285, 1, 1.0889],	// CIE-L*ab D65/2' 1931
+				args = arguments,
+				_clip = function(v) {
+					if (isNaN(v) || v === null) {
+						return 0;
+					}
+					if (typeof v == 'string') {
+						v = parseInt(v, 10);
+					}
+					return Math.max(0, Math.min(v, 1));
+				},
+				_hexify = function (number) {
+					var number = Math.round(number),
+						digits = '0123456789abcdef',
+						lsd = number % 16,
+						msd = (number - lsd) / 16,
+						hexified = digits.charAt(msd) + digits.charAt(lsd);
+					return hexified;
+				},
+				_rgb_to_xyz = function(rgb) {
+					var r = (rgb.r > 0.04045) ? Math.pow((rgb.r + 0.055) / 1.055, 2.4) : rgb.r / 12.92,
+						g = (rgb.g > 0.04045) ? Math.pow((rgb.g + 0.055) / 1.055, 2.4) : rgb.g / 12.92,
+						b = (rgb.b > 0.04045) ? Math.pow((rgb.b + 0.055) / 1.055, 2.4) : rgb.b / 12.92;
+
+					return {
+						x: r * 0.4124 + g * 0.3576 + b * 0.1805,
+						y: r * 0.2126 + g * 0.7152 + b * 0.0722,
+						z: r * 0.0193 + g * 0.1192 + b * 0.9505
+					};
+				},
+				_xyz_to_rgb = function(xyz) {
+					var rgb = {
+						r: xyz.x *  3.2406 + xyz.y * -1.5372 + xyz.z * -0.4986,
+						g: xyz.x * -0.9689 + xyz.y *  1.8758 + xyz.z *  0.0415,
+						b: xyz.x *  0.0557 + xyz.y * -0.2040 + xyz.z *  1.0570
+					};
+
+					rgb.r = (rgb.r > 0.0031308) ? 1.055 * Math.pow(rgb.r, (1 / 2.4)) - 0.055 : 12.92 * rgb.r;
+					rgb.g = (rgb.g > 0.0031308) ? 1.055 * Math.pow(rgb.g, (1 / 2.4)) - 0.055 : 12.92 * rgb.g;
+					rgb.b = (rgb.b > 0.0031308) ? 1.055 * Math.pow(rgb.b, (1 / 2.4)) - 0.055 : 12.92 * rgb.b;
+
+					return rgb;
+				},
+				_rgb_to_hsv = function(rgb) {
+					var minVal = Math.min(rgb.r, rgb.g, rgb.b),
+						maxVal = Math.max(rgb.r, rgb.g, rgb.b),
+						delta = maxVal - minVal,
+						del_R, del_G, del_B,
+						hsv = {
+							h: 0,
+							s: 0,
+							v: maxVal
+						};
+
+					if (delta === 0) {
+						hsv.h = 0;
+						hsv.s = 0;
+					} else {
+						hsv.s = delta / maxVal;
+
+						del_R = (((maxVal - rgb.r) / 6) + (delta / 2)) / delta;
+						del_G = (((maxVal - rgb.g) / 6) + (delta / 2)) / delta;
+						del_B = (((maxVal - rgb.b) / 6) + (delta / 2)) / delta;
+
+						if (rgb.r === maxVal) {
+							hsv.h = del_B - del_G;
+						} else if (rgb.g === maxVal) {
+							hsv.h = (1 / 3) + del_R - del_B;
+						} else if (rgb.b === maxVal) {
+							hsv.h = (2 / 3) + del_G - del_R;
+						}
+
+						if (hsv.h < 0) {
+							hsv.h += 1;
+						} else if (hsv.h > 1) {
+							hsv.h -= 1;
+						}
+					}
+
+					return hsv;
+				},
+				_hsv_to_rgb = function(hsv) {
+					var rgb = {
+							r: 0,
+							g: 0,
+							b: 0
+						},
+						var_h,
+						var_i,
+						var_1,
+						var_2,
+						var_3;
+
+					if (hsv.s === 0) {
+						rgb.r = rgb.g = rgb.b = hsv.v;
+					} else {
+						var_h = hsv.h === 1 ? 0 : hsv.h * 6;
+						var_i = Math.floor(var_h);
+						var_1 = hsv.v * (1 - hsv.s);
+						var_2 = hsv.v * (1 - hsv.s * (var_h - var_i));
+						var_3 = hsv.v * (1 - hsv.s * (1 - (var_h - var_i)));
+
+						if (var_i === 0) {
+							rgb.r = hsv.v;
+							rgb.g = var_3;
+							rgb.b = var_1;
+						} else if (var_i === 1) {
+							rgb.r = var_2;
+							rgb.g = hsv.v;
+							rgb.b = var_1;
+						} else if (var_i === 2) {
+							rgb.r = var_1;
+							rgb.g = hsv.v;
+							rgb.b = var_3;
+						} else if (var_i === 3) {
+							rgb.r = var_1;
+							rgb.g = var_2;
+							rgb.b = hsv.v;
+						} else if (var_i === 4) {
+							rgb.r = var_3;
+							rgb.g = var_1;
+							rgb.b = hsv.v;
+						} else {
+							rgb.r = hsv.v;
+							rgb.g = var_1;
+							rgb.b = var_2;
+						}
+					}
+
+					return rgb;
+				},
+				_rgb_to_hsl = function(rgb) {
+					var minVal = Math.min(rgb.r, rgb.g, rgb.b),
+						maxVal = Math.max(rgb.r, rgb.g, rgb.b),
+						delta = maxVal - minVal,
+						del_R, del_G, del_B,
+						hsl = {
+							h: 0,
+							s: 0,
+							l: (maxVal + minVal) / 2
+						};
+
+					if (delta === 0) {
+						hsl.h = 0;
+						hsl.s = 0;
+					} else {
+						hsl.s = hsl.l < 0.5 ? delta / (maxVal + minVal) : delta / (2 - maxVal - minVal);
+
+						del_R = (((maxVal - rgb.r) / 6) + (delta / 2)) / delta;
+						del_G = (((maxVal - rgb.g) / 6) + (delta / 2)) / delta;
+						del_B = (((maxVal - rgb.b) / 6) + (delta / 2)) / delta;
+
+						if (rgb.r === maxVal) {
+							hsl.h = del_B - del_G;
+						} else if (rgb.g === maxVal) {
+							hsl.h = (1 / 3) + del_R - del_B;
+						} else if (rgb.b === maxVal) {
+							hsl.h = (2 / 3) + del_G - del_R;
+						}
+
+						if (hsl.h < 0) {
+							hsl.h += 1;
+						} else if (hsl.h > 1) {
+							hsl.h -= 1;
+						}
+					}
+
+					return hsl;
+				},
+				_hsl_to_rgb = function(hsl) {
+					var var_1,
+						var_2,
+						hue_to_rgb	= function(v1, v2, vH) {
+										if (vH < 0) {
+											vH += 1;
+										}
+										if (vH > 1) {
+											vH -= 1;
+										}
+										if ((6 * vH) < 1) {
+											return v1 + (v2 - v1) * 6 * vH;
+										}
+										if ((2 * vH) < 1) {
+											return v2;
+										}
+										if ((3 * vH) < 2) {
+											return v1 + (v2 - v1) * ((2 / 3) - vH) * 6;
+										}
+										return v1;
+									};
+
+					if (hsl.s === 0) {
+						return {
+							r: hsl.l,
+							g: hsl.l,
+							b: hsl.l
+						};
+					}
+
+					var_2 = (hsl.l < 0.5) ? hsl.l * (1 + hsl.s) : (hsl.l + hsl.s) - (hsl.s * hsl.l);
+					var_1 = 2 * hsl.l - var_2;
+
+					return {
+						r: hue_to_rgb(var_1, var_2, hsl.h + (1 / 3)),
+						g: hue_to_rgb(var_1, var_2, hsl.h),
+						b: hue_to_rgb(var_1, var_2, hsl.h - (1 / 3))
+					};
+				},
+				_xyz_to_lab = function(xyz) {
+					var x = xyz.x / illuminant[0],
+						y = xyz.y / illuminant[1],
+						z = xyz.z / illuminant[2];
+
+					x = (x > 0.008856) ? Math.pow(x, (1/3)) : (7.787 * x) + (16/116);
+					y = (y > 0.008856) ? Math.pow(y, (1/3)) : (7.787 * y) + (16/116);
+					z = (z > 0.008856) ? Math.pow(z, (1/3)) : (7.787 * z) + (16/116);
+
+					return {
+						l: ((116 * y) - 16) / 100,	// [0,100]
+						a: ((500 * (x - y)) + 128) / 255,	// [-128,127]
+						b: ((200 * (y - z))	+ 128) / 255	// [-128,127]
+					};
+				},
+				_lab_to_xyz = function(lab) {
+					var lab2 = {
+							l: lab.l * 100,
+							a: (lab.a * 255) - 128,
+							b: (lab.b * 255) - 128
+						},
+						xyz = {
+							x: 0,
+							y: (lab2.l + 16) / 116,
+							z: 0
+						};
+
+					xyz.x = lab2.a / 500 + xyz.y;
+					xyz.z = xyz.y - lab2.b / 200;
+
+					xyz.x = (Math.pow(xyz.x, 3) > 0.008856) ? Math.pow(xyz.x, 3) : (xyz.x - 16 / 116) / 7.787;
+					xyz.y = (Math.pow(xyz.y, 3) > 0.008856) ? Math.pow(xyz.y, 3) : (xyz.y - 16 / 116) / 7.787;
+					xyz.z = (Math.pow(xyz.z, 3) > 0.008856) ? Math.pow(xyz.z, 3) : (xyz.z - 16 / 116) / 7.787;
+
+					xyz.x *= illuminant[0];
+					xyz.y *= illuminant[1];
+					xyz.z *= illuminant[2];
+
+					return xyz;
+				},
+				_rgb_to_cmy = function(rgb) {
+					return {
+						c: 1 - (rgb.r),
+						m: 1 - (rgb.g),
+						y: 1 - (rgb.b)
+					};
+				},
+				_cmy_to_rgb = function(cmy) {
+					return {
+						r: 1 - (cmy.c),
+						g: 1 - (cmy.m),
+						b: 1 - (cmy.y)
+					};
+				},
+				_cmy_to_cmyk = function(cmy) {
+					var K = 1;
+
+					if (cmy.c < K) {
+						K = cmy.c;
+					}
+					if (cmy.m < K) {
+						K = cmy.m;
+					}
+					if (cmy.y < K) {
+						K = cmy.y;
+					}
+
+					if (K === 1) {
+						return {
+							c: 0,
+							m: 0,
+							y: 0,
+							k: 1
+						};
+					}
+
+					return {
+						c: (cmy.c - K) / (1 - K),
+						m: (cmy.m - K) / (1 - K),
+						y: (cmy.y - K) / (1 - K),
+						k: K
+					};
+				},
+				_cmyk_to_cmy = function(cmyk) {
+					return {
+						c: cmyk.c * (1 - cmyk.k) + cmyk.k,
+						m: cmyk.m * (1 - cmyk.k) + cmyk.k,
+						y: cmyk.y * (1 - cmyk.k) + cmyk.k
+					};
+				};
+
+			this.set = false;
+
+			this.setAlpha = function(_a) {
+				if (_a !== null) {
+					a = _clip(_a);
+				}
+				this.set = true;
+
+				return this;
+			};
+
+			this.getAlpha = function() {
+				return a;
+			};
+
+			this.setRGB = function(r, g, b) {
+				spaces = { rgb: this.getRGB() };
+				if (r !== null) {
+					spaces.rgb.r = _clip(r);
+				}
+				if (g !== null) {
+					spaces.rgb.g = _clip(g);
+				}
+				if (b !== null) {
+					spaces.rgb.b = _clip(b);
+				}
+				this.set = true;
+
+				return this;
+			};
+
+			this.setHSV = function(h, s, v) {
+				spaces = {hsv: this.getHSV()};
+				if (h !== null) {
+					spaces.hsv.h = _clip(h);
+				}
+				if (s !== null)	{
+					spaces.hsv.s = _clip(s);
+				}
+				if (v !== null)	{
+					spaces.hsv.v = _clip(v);
+				}
+				this.set = true;
+
+				return this;
+			};
+
+			this.setHSL = function(h, s, l) {
+				spaces = {hsl: this.getHSL()};
+				if (h !== null)	{
+					spaces.hsl.h = _clip(h);
+				}
+				if (s !== null) {
+					spaces.hsl.s = _clip(s);
+				}
+				if (l !== null) {
+					spaces.hsl.l = _clip(l);
+				}
+				this.set = true;
+
+				return this;
+			};
+
+			this.setLAB = function(l, a, b) {
+				spaces = {lab: this.getLAB()};
+				if (l !== null) {
+					spaces.lab.l = _clip(l);
+				}
+				if (a !== null) {
+					spaces.lab.a = _clip(a);
+				}
+				if (b !== null) {
+					spaces.lab.b = _clip(b);
+				}
+				this.set = true;
+
+				return this;
+			};
+
+			this.setCMYK = function(c, m, y, k) {
+				spaces = {cmyk: this.getCMYK()};
+				if (c !== null) {
+					spaces.cmyk.c = _clip(c);
+				}
+				if (m !== null) {
+					spaces.cmyk.m = _clip(m);
+				}
+				if (y !== null) {
+					spaces.cmyk.y = _clip(y);
+				}
+				if (k !== null) {
+					spaces.cmyk.k = _clip(k);
+				}
+				this.set = true;
+
+				return this;
+			};
+
+			this.getRGB = function() {
+				if (!spaces.rgb) {
+					spaces.rgb	= spaces.lab ?	_xyz_to_rgb(_lab_to_xyz(spaces.lab))
+								: spaces.hsv ?	_hsv_to_rgb(spaces.hsv)
+								: spaces.hsl ?	_hsl_to_rgb(spaces.hsl)
+								: spaces.cmyk ?	_cmy_to_rgb(_cmyk_to_cmy(spaces.cmyk))
+								: {r: 0, g: 0, b: 0};
+					spaces.rgb.r = _clip(spaces.rgb.r);
+					spaces.rgb.g = _clip(spaces.rgb.g);
+					spaces.rgb.b = _clip(spaces.rgb.b);
+				}
+				return $.extend({}, spaces.rgb);
+			};
+
+			this.getHSV = function() {
+				if (!spaces.hsv) {
+					spaces.hsv	= spaces.lab ? _rgb_to_hsv(this.getRGB())
+								: spaces.rgb ?	_rgb_to_hsv(spaces.rgb)
+								: spaces.hsl ?	_rgb_to_hsv(this.getRGB())
+								: spaces.cmyk ?	_rgb_to_hsv(this.getRGB())
+								: {h: 0, s: 0, v: 0};
+					spaces.hsv.h = _clip(spaces.hsv.h);
+					spaces.hsv.s = _clip(spaces.hsv.s);
+					spaces.hsv.v = _clip(spaces.hsv.v);
+				}
+				return $.extend({}, spaces.hsv);
+			};
+
+			this.getHSL = function() {
+				if (!spaces.hsl) {
+					spaces.hsl	= spaces.rgb ?	_rgb_to_hsl(spaces.rgb)
+								: spaces.hsv ?	_rgb_to_hsl(this.getRGB())
+								: spaces.cmyk ?	_rgb_to_hsl(this.getRGB())
+								: spaces.hsv ?	_rgb_to_hsl(this.getRGB())
+								: {h: 0, s: 0, l: 0};
+					spaces.hsl.h = _clip(spaces.hsl.h);
+					spaces.hsl.s = _clip(spaces.hsl.s);
+					spaces.hsl.l = _clip(spaces.hsl.l);
+				}
+				return $.extend({}, spaces.hsl);
+			};
+
+			this.getCMYK = function() {
+				if (!spaces.cmyk) {
+					spaces.cmyk	= spaces.rgb ?	_cmy_to_cmyk(_rgb_to_cmy(spaces.rgb))
+								: spaces.hsv ?	_cmy_to_cmyk(_rgb_to_cmy(this.getRGB()))
+								: spaces.hsl ?	_cmy_to_cmyk(_rgb_to_cmy(this.getRGB()))
+								: spaces.lab ?	_cmy_to_cmyk(_rgb_to_cmy(this.getRGB()))
+								: {c: 0, m: 0, y: 0, k: 1};
+					spaces.cmyk.c = _clip(spaces.cmyk.c);
+					spaces.cmyk.m = _clip(spaces.cmyk.m);
+					spaces.cmyk.y = _clip(spaces.cmyk.y);
+					spaces.cmyk.k = _clip(spaces.cmyk.k);
+				}
+				return $.extend({}, spaces.cmyk);
+			};
+
+			this.getLAB = function() {
+				if (!spaces.lab) {
+					spaces.lab	= spaces.rgb ?	_xyz_to_lab(_rgb_to_xyz(spaces.rgb))
+								: spaces.hsv ?	_xyz_to_lab(_rgb_to_xyz(this.getRGB()))
+								: spaces.hsl ?	_xyz_to_lab(_rgb_to_xyz(this.getRGB()))
+								: spaces.cmyk ?	_xyz_to_lab(_rgb_to_xyz(this.getRGB()))
+								: {l: 0, a: 0, b: 0};
+					spaces.lab.l = _clip(spaces.lab.l);
+					spaces.lab.a = _clip(spaces.lab.a);
+					spaces.lab.b = _clip(spaces.lab.b);
+				}
+				return $.extend({}, spaces.lab);
+			};
+
+			this.getChannels = function() {
+				return {
+					r:	this.getRGB().r,
+					g:	this.getRGB().g,
+					b:	this.getRGB().b,
+					a:	this.getAlpha(),
+					h:	this.getHSV().h,
+					s:	this.getHSV().s,
+					v:	this.getHSV().v,
+					c:	this.getCMYK().c,
+					m:	this.getCMYK().m,
+					y:	this.getCMYK().y,
+					k:	this.getCMYK().k,
+					L:	this.getLAB().l,
+					A:	this.getLAB().a,
+					B:	this.getLAB().b
+				};
+			};
+
+			this.getSpaces = function() {
+				return $.extend(true, {}, spaces);
+			};
+
+			this.distance = function(color) {
+				var space	= 'lab',
+					getter	= 'get'+space.toUpperCase(),
+					a = this[getter](),
+					b = color[getter](),
+					distance = 0,
+					channel;
+
+				for (channel in a) {
+					distance += Math.pow(a[channel] - b[channel], 2);
+				}
+
+				return distance;
+			};
+
+			this.equals = function(color) {
+				if (color) {
+					var a = this.getRGB(),
+						b = color.getRGB();
+
+					return this.getAlpha() === color.getAlpha()
+						&& a.r === b.r
+						&& a.g === b.g
+						&& a.b === b.b;
+				}
+				return false;
+			};
+
+			this.limit = function(steps) {
+				steps -= 1;
+				var rgb = this.getRGB();
+				this.setRGB(
+					Math.round(rgb.r * steps) / steps,
+					Math.round(rgb.g * steps) / steps,
+					Math.round(rgb.b * steps) / steps
+				);
+			};
+
+			this.toHex = function() {
+				var rgb = this.getRGB();
+				return _hexify(rgb.r * 255) + _hexify(rgb.g * 255) + _hexify(rgb.b * 255);
+			};
+
+			this.toCSS = function() {
+				return '#' + this.toHex();
+			};
+
+			this.copy = function() {
+				var color = new $.colorpicker.Color(this.getSpaces(), this.getAlpha());
+				color.set = this.set;
+				return color;
+			};
+
+			// Construct
+			if (args.length === 2) {
+				spaces = args[0];
+				this.setAlpha(args[1] === 0 ? 0 : args[1] || 1);
+				this.set = true;
+			}
+			if (args.length > 2) {
+				this.setRGB(args[0], args[1], args[2]);
+				this.setAlpha(args[3] === 0 ? 0 : args[3] || 1);
+				this.set = true;
+			}
+		};
+	}();
+
+	$.widget("vanderlee.colorpicker", {
+		options: {
+			alpha:				false,		// Show alpha controls and mode
+			altAlpha:			true,		// change opacity of altField as well?
+			altField:			'',			// selector for DOM elements which change background color on change.
+			altOnChange:		true,		// true to update on each change, false to update only on close.
+			altProperties:		'background-color',	// comma separated list of any of 'background-color', 'color', 'border-color', 'outline-color'
+			autoOpen:			false,		// Open dialog automatically upon creation
+			buttonClass:		null,		// If set, the button will get this/these classname(s).
+			buttonColorize:		false,
+			buttonImage:		'images/ui-colorpicker.png',
+			buttonImageOnly:	false,
+			buttonText:			null,		// Text on the button and/or title of button image.
+			closeOnEscape:		true,		// Close the dialog when the escape key is pressed.
+			closeOnOutside:		true,		// Close the dialog when clicking outside the dialog (not for inline)
+			color:				'#00FF00',	// Initial color (for inline only)
+			colorFormat:		'HEX',		// Format string for output color format
+			draggable:			true,		// Make popup dialog draggable if header is visible.
+			containment:		null,		// Constrains dragging to within the bounds of the specified element or region.
+			duration:			'fast',
+			hsv:				true,		// Show HSV controls and modes
+			inline:				true,		// Show any divs as inline by default
+			inlineFrame:		true,		// Show a border and background when inline.
+			layout: {
+				map:		[0, 0, 1, 5],	// Left, Top, Width, Height (in table cells).
+				bar:		[1, 0, 1, 5],
+				preview:	[2, 0, 1, 1],
+				hsv:		[2, 1, 1, 1],
+				rgb:		[2, 2, 1, 1],
+				alpha:		[2, 3, 1, 1],
+				hex:		[2, 4, 1, 1],
+				lab:		[3, 1, 1, 1],
+				cmyk:		[3, 2, 1, 2],
+				swatches:	[4, 0, 1, 5]
+			},
+			limit:				'',			// Limit color "resolution": '', 'websafe', 'nibble', 'binary', 'name'
+			modal:				false,		// Modal dialog?
+			mode:				'h',		// Initial editing mode, h, s, v, r, g, b or a
+			okOnEnter:			false,		// Close (with OK) when pressing the enter key
+			parts:				'',			// leave empty for automatic selection
+			part: {
+				map:		{ size: 256 },
+				bar:		{ size: 256 }
+			},			// options per part
+			position:			null,
+			regional:			'',
+			revert:				false,		// Revert color upon non
+			rgb:				true,		// Show RGB controls and modes
+			showAnim:			'fadeIn',
+			showCancelButton:	true,
+			showNoneButton:		false,
+			showCloseButton:	true,
+			showOn:				'focus click alt',		// 'focus', 'click', 'button', 'alt', 'both'
+			showOptions:		{},
+			swatches:			null,		// null for default or kv-object or names swatches set
+			swatchesWidth:		84,			// width (in number of pixels) of swatches box.
+			title:				null,
+
+			cancel:             null,
+            close:              null,
+			init:				null,
+            ok:                 null,
+			open:               null,
+			select:             null
+		},
+		
+		_create: function () {
+			var that = this,
+				text;
+
+			++_colorpicker_index;
+
+			that.widgetEventPrefix = 'colorpicker';
+
+			that.opened		= false;
+			that.generated	= false;
+			that.inline		= false;
+			that.changed	= false;
+
+			that.dialog		= null;
+			that.button		= null;
+			that.image		= null;
+			that.overlay	= null;
+			
+			that.events = {
+				window_resize:			null,
+				document_keydown:		null,
+				document_click_html:	null
+			};
+
+			that.mode		= that.options.mode;
+
+			if (that.element.is('input') || that.options.inline === false) {
+				// Initial color
+				that._setColor(that.element.is('input') ? that.element.val() : that.options.color);
+				that._callback('init');
+
+				// showOn focus
+				if (/\bfocus|both\b/.test(that.options.showOn)) {
+					that.element.bind('focus', function () {
+						that.open();
+					});
+				}
+
+				// showOn click
+				if (/\bclick|both\b/.test(that.options.showOn)) {
+					that.element.bind('click', function () {
+						that.open();
+					});
+				}
+
+				// showOn button
+				if (/\bbutton|both\b/.test(that.options.showOn)) {
+					if (that.options.buttonImage !== '') {
+						text = that.options.buttonText || that._getRegional('button');
+
+						that.image = $('<img/>').attr({
+							'src':		that.options.buttonImage,
+							'alt':		text,
+							'title':	text
+						});
+						if (that.options.buttonClass) {
+							that.image.attr('class', that.options.buttonClass);
+						}
+
+						that._setImageBackground();
+					}
+
+					if (that.options.buttonImageOnly && that.image) {
+						that.button = that.image;
+					} else {
+						that.button = $('<button type="button"></button>').html(that.image || that.options.buttonText).button();
+						that.image = that.image ? $('img', that.button).first() : null;
+					}
+					that.button.insertAfter(that.element).click(function () {
+						that[that.opened ? 'close' : 'open']();
+					});
+				}
+
+				// showOn alt
+				if (/\balt|both\b/.test(that.options.showOn)) {
+					$(that.options.altField).bind('click', function () {
+						that.open();
+					});
+				}
+
+				if (that.options.autoOpen) {
+					that.open();
+				}
+			} else {
+				that.inline = true;
+
+				that._generate();
+				that.opened = true;
+			}
+
+			return this;
+		},
+
+		_setOption: function(key, value){
+			var that = this;
+
+			switch (key) {
+			case "disabled":
+				if (value) {
+					that.dialog.addClass('ui-colorpicker-disabled');
+				} else {
+					that.dialog.removeClass('ui-colorpicker-disabled');
+				}
+				break;
+			}
+
+			$.Widget.prototype._setOption.apply(that, arguments);
+		},
+
+		_setImageBackground: function() {
+			if (this.image && this.options.buttonColorize) {
+				this.image.css('background-color', this.color.set? this._formatColor('RGBA', this.color) : '');
+			}
+		},
+
+		/**
+		 * If an alternate field is specified, set it according to the current color.
+		 */
+		_setAltField: function () {
+			if (this.options.altOnChange && this.options.altField && this.options.altProperties) {
+				var index,
+					property,
+					properties = this.options.altProperties.split(',');
+
+				for (index = 0; index <= properties.length; ++index) {
+					property = $.trim(properties[index]);
+					switch (property) {
+						case 'color':
+						case 'fill':
+						case 'stroke':
+						case 'background-color':
+						case 'backgroundColor':
+						case 'outline-color':
+						case 'border-color':
+							$(this.options.altField).css(property, this.color.set? this.color.toCSS() : '');
+							break;
+					}
+				}
+
+				if (this.options.altAlpha) {
+					$(this.options.altField).css('opacity', this.color.set? this.color.getAlpha() : '');
+				}
+			}
+		},
+
+		_setColor: function(text) {
+			this.color			= this._parseColor(text) || new $.colorpicker.Color();
+			this.currentColor	= this.color.copy();
+
+			this._setImageBackground();
+			this._setAltField();
+		},
+
+		setColor: function(text) {
+			this._setColor(text);
+			this._change();
+		},
+
+		getColor: function(format) {
+			return this._formatColor(format || this.options.colorFormat, this.color);
+		},
+
+		_generateInline: function() {
+			var that = this;
+
+			$(that.element).html(that.options.inlineFrame ? _container_inlineFrame : _container_inline);
+
+			that.dialog = $('.ui-colorpicker', that.element);
+		},
+
+		_generatePopup: function() {
+			var that = this;
+
+			that.dialog = $(_container_popup).appendTo('body');
+
+			// Close on clicking outside window and controls
+			if (that.events.document_click_html === null) {
+				$(document).delegate('html', 'touchstart click', that.events.document_click_html = function (event) {
+				if (!that.opened || event.target === that.element[0] || that.overlay) {
+					return;
+				}
+
+				// Check if clicked on any part of dialog
+				if (that.dialog.is(event.target) || that.dialog.has(event.target).length > 0) {
+					that.element.blur();	// inside window!
+					return;
+				}
+
+				// Check if clicked on known external elements
+				var p,
+					parents = $(event.target).parents();
+				// add the event.target in case of buttonImageOnly and closeOnOutside both are set to true
+				parents.push(event.target);
+				for (p = 0; p <= parents.length; ++p) {
+					// button
+					if (that.button !== null && parents[p] === that.button[0]) {
+						return;
+					}
+					// showOn alt
+					if (/\balt|both\b/.test(that.options.showOn) && $(that.options.altField).is(parents[p])) {
+						return;
+					}
+				}
+
+				// no closeOnOutside
+				if (!that.options.closeOnOutside) {
+					return;
+				}
+
+				that.close(that.options.revert);
+			});
+			}
+
+			if (that.events.document_keydown === null) {
+				$(document).bind('keydown', that.events.document_keydown = function (event) {
+				// close on ESC key
+				if (that.opened && event.keyCode === 27 && that.options.closeOnEscape) {
+					that.close(that.options.revert);
+				}
+
+				// OK on Enter key
+				if (that.opened && event.keyCode === 13 && that.options.okOnEnter) {
+					that.close();
+				}
+			});
+			}
+
+			// Close (with OK) on tab key in element
+			that.element.keydown(function (event) {
+				if (event.keyCode === 9) {
+					that.close();
+				}
+			}).keyup(function (event) {
+				var color = that._parseColor(that.element.val());
+				if (color && !that.color.equals(color)) {
+					that.color = color;
+					that._change();
+				}
+			});
+		},
+
+		_generate: function () {
+			var that = this,
+				index,
+				part,
+				parts_list,
+				layout_parts,
+				table,
+				classes;
+
+			that._setColor(that.inline || !that.element.is('input') ? that.options.color : that.element.val());
+
+			that[that.inline ? '_generateInline' : '_generatePopup']();
+
+			// Determine the parts to include in this colorpicker
+			if (typeof that.options.parts === 'string') {
+				if ($.colorpicker.partslists[that.options.parts]) {
+					parts_list = $.colorpicker.partslists[that.options.parts];
+				} else {
+					// automatic
+					parts_list = $.colorpicker.partslists[that.inline ? 'inline' : 'popup'];
+				}
+			} else {
+				parts_list = that.options.parts;
+			}
+
+			// Add any parts to the internal parts list
+			that.parts = {};
+			$.each(parts_list, function(index, part) {
+				if ($.colorpicker.parts[part]) {
+					that.parts[part] = new $.colorpicker.parts[part](that);
+				}
+			});
+
+			if (!that.generated) {
+				layout_parts = [];
+
+				$.each(that.options.layout, function(part, pos) {
+					if (that.parts[part]) {
+						layout_parts.push({
+							'part': part,
+							'pos':  pos
+						});
+					}
+				});
+
+				table = $(_layoutTable(layout_parts, function(cell, x, y) {
+					classes = ['ui-colorpicker-' + cell.part + '-container'];
+
+					if (x > 0) {
+						classes.push('ui-colorpicker-padding-left');
+					}
+
+					if (y > 0) {
+						classes.push('ui-colorpicker-padding-top');
+					}
+
+					return '<td  class="' + classes.join(' ') + '"'
+						+ (cell.pos[2] > 1 ? ' colspan="' + cell.pos[2] + '"' : '')
+						+ (cell.pos[3] > 1 ? ' rowspan="' + cell.pos[3] + '"' : '')
+						+ ' valign="top"></td>';
+				})).appendTo(that.dialog);
+				if (that.options.inlineFrame) {
+					table.addClass('ui-dialog-content ui-widget-content');
+				}
+
+				that._initAllParts();
+				that._updateAllParts();
+				that.generated = true;
+			}
+		},
+
+		_effectGeneric: function (element, show, slide, fade, callback) {
+			var that = this;
+
+			if ($.effects && $.effects[that.options.showAnim]) {
+				element[show](that.options.showAnim, that.options.showOptions, that.options.duration, callback);
+			} else {
+				element[(that.options.showAnim === 'slideDown' ?
+								slide
+							:	(that.options.showAnim === 'fadeIn' ?
+									fade
+								:	show))]((that.options.showAnim ? that.options.duration : null), callback);
+				if (!that.options.showAnim || !that.options.duration) {
+					callback();
+				}
+			}
+		},
+
+		_effectShow: function(element, callback) {
+			this._effectGeneric(element, 'show', 'slideDown', 'fadeIn', callback);
+		},
+
+		_effectHide: function(element, callback) {
+			this._effectGeneric(element, 'hide', 'slideUp', 'fadeOut', callback);
+		},
+				
+		open: function() {
+			var that = this,
+				offset,
+				bottom, right,
+				height, width,
+				x, y,
+				zIndex,
+				element,
+				position;
+
+			if (!that.opened) {
+				that._generate();
+				
+				if (that.element.is(':hidden')) {
+					element = $('<div/>').insertBefore(that.element);
+				} else {
+					element = that.element;
+				}
+				
+				if (that.options.position) {
+					position = $.extend({}, that.options.position);
+					if (position.of === 'element') {
+						position.of = element;
+					}
+				} else {					
+					position = {
+						my:			'left top',
+						at:			'left bottom',
+						of:			element,
+						collision:	'flip'
+					};
+				}
+				
+				that.dialog.position(position);				
+				
+				if (that.element.is(':hidden')) {
+					element.remove();
+				}
+				
+				// Automatically find highest z-index.
+				zIndex = 0;
+				$(that.element[0]).parents().each(function() {
+					var z = $(this).css('z-index');
+					if ((typeof(z) === 'number' || typeof(z) === 'string') && z !== '' && !isNaN(z)) {
+						if (z > zIndex) {
+							zIndex = parseInt(z, 10);
+							return false;
+						}
+					}
+					else {
+						$(this).siblings().each(function() {
+							var z = $(this).css('z-index');
+							if ((typeof(z) === 'number' || typeof(z) === 'string') && z !== '' && !isNaN(z)) {
+								if (z > zIndex) {
+									zIndex = parseInt(z, 10);
+								}
+							}
+						});
+					}
+				});
+
+				// @todo zIndexOffset option, to raise above other elements?
+				zIndex += 2;
+				that.dialog.css('z-index', zIndex);
+								
+				if (that.options.modal) {
+					that.overlay = $('<div class="ui-widget-overlay"></div>').appendTo('body').css('z-index', zIndex - 1);										
+
+					if (that.events.window_resize !== null) {
+						$(window).unbind('resize', that.events.window_resize);					
+					}
+					
+					that.events.window_resize = function() {
+						if (that.overlay) {
+							that.overlay.width($(document).width());
+							that.overlay.height($(document).height());					
+						}
+					},
+															
+					$(window).bind('resize', that.events.window_resize);
+					that.events.window_resize();			
+				}
+
+				that._effectShow(this.dialog);
+				that.opened = true;
+				that._callback('open', true);
+
+				// Without waiting for domready the width of the map is 0 and we
+				// wind up with the cursor stuck in the upper left corner
+				$(function() {
+					that._repaintAllParts();
+				});
+			}
+		},
+
+		close: function (cancel) {
+			var that = this;
+
+            if (cancel) {
+				that.color = that.currentColor.copy();
+                that._change();
+                that._callback('cancel', true);
+            } else {
+				that.currentColor	= that.color.copy();
+                that._callback('ok', true);
+            }
+			that.changed		= false;
+
+			if (that.overlay) {
+				$(window).unbind('resize', that.events.window_resize);					
+				that.overlay.remove();
+			}
+			
+			// tear down the interface
+			that._effectHide(that.dialog, function () {
+				that.dialog.remove();
+				that.dialog	= null;
+				that.generated	= false;
+
+				that.opened		= false;
+				that._callback('close', true);
+			});
+		},
+
+		destroy: function() {
+			if (that.events.document_click_html !== null) {
+				$(document).undelegate('html', 'touchstart click', that.events.document_click_html);
+			}
+			
+			if (that.events.document_keydown !== null) {
+				$(document).unbind('keydown', that.events.document_keydown);
+			}
+			
+			if (that.events.resizeOverlay !== null) {
+				$(window).unbind('resize', that.events.resizeOverlay);					
+			}			
+			
+			this.element.unbind();
+
+			if (this.overlay) {
+				this.overlay.remove();
+			}
+			
+			if (this.dialog !== null) {
+				this.dialog.remove();
+			}
+			
+			if (this.image !== null) {
+				this.image.remove();
+			}
+
+			if (this.button !== null) {
+				this.button.remove();
+			}
+		},
+
+		_callback: function (callback, spaces) {
+			var that = this,
+				data,
+				lab;
+
+			if (that.color.set) {
+				data = {
+					formatted: that._formatColor(that.options.colorFormat, that.color),
+					colorPicker: that
+				};
+
+				lab = that.color.getLAB();
+				lab.a = (lab.a * 2) - 1;
+				lab.b = (lab.b * 2) - 1;
+
+				if (spaces === true) {
+					data.a		= that.color.getAlpha();
+					data.rgb	= that.color.getRGB();
+					data.hsv	= that.color.getHSV();
+					data.cmyk	= that.color.getCMYK();
+					data.hsl	= that.color.getHSL();
+					data.lab	= lab;
+				}
+
+				return that._trigger(callback, null, data);
+			} else {
+				return that._trigger(callback, null, {
+					formatted: '',
+					colorPicker: that
+				});
+			}
+		},
+
+		_initAllParts: function () {
+			$.each(this.parts, function (index, part) {
+				if (part.init) {
+					part.init();
+				}
+			});
+		},
+
+		_updateAllParts: function () {
+			$.each(this.parts, function (index, part) {
+				if (part.update) {
+					part.update();
+				}
+			});
+		},
+
+		_repaintAllParts: function () {
+			$.each(this.parts, function (index, part) {
+				if (part.repaint) {
+					part.repaint();
+				}
+			});
+		},
+
+		_change: function () {
+			this.changed = true;
+
+			// Limit color palette
+			if (this.options.limit && $.colorpicker.limits[this.options.limit]) {
+				$.colorpicker.limits[this.options.limit](this.color, this);
+			}
+
+			// update input element content
+			if (!this.inline) {
+				if (!this.color.set) {
+					this.element.val('');
+				} else if (!this.color.equals(this._parseColor(this.element.val()))) {
+					this.element.val(this._formatColor(this.options.colorFormat, this.color));
+				}
+
+				this._setImageBackground();
+				this._setAltField();
+			}
+
+			// update color option
+			this.options.color = this.color.set ? this.color.toCSS() : '';
+
+			if (this.opened) {
+				this._repaintAllParts();
+			}
+
+			// callback
+			this._callback('select');
+		},
+
+		// This will be deprecated by jQueryUI 1.9 widget
+		_hoverable: function (e) {
+			e.hover(function () {
+				e.addClass("ui-state-hover");
+			}, function () {
+				e.removeClass("ui-state-hover");
+			});
+		},
+
+		// This will be deprecated by jQueryUI 1.9 widget
+		_focusable: function (e) {
+			e.focus(function () {
+				e.addClass("ui-state-focus");
+			}).blur(function () {
+				e.removeClass("ui-state-focus");
+			});
+		},
+
+		_getRegional: function(name) {
+			return $.colorpicker.regional[this.options.regional][name] !== undefined ?
+				$.colorpicker.regional[this.options.regional][name] : $.colorpicker.regional[''][name];
+        },
+
+		_getSwatches: function() {
+			if (typeof(this.options.swatches) === 'string') {
+				return $.colorpicker.swatches[this.options.swatches];
+			}
+
+			if ($.isPlainObject(this.options.swatches)) {
+				return this.colorpicker.swatches;
+			}
+
+			return $.colorpicker.swatches.html;
+		},
+
+		_eachSwatch: function (callback) {
+			var currentSwatches = this._getSwatches(),
+				name;
+			$.each(currentSwatches, function (nameOrIndex, swatch) {
+				name = $.isArray(currentSwatches) ? swatch.name : nameOrIndex;
+				return callback(name, swatch);
+			});
+		},
+
+		_getSwatch: function(name) {
+			var swatch = false;
+
+			this._eachSwatch(function(swatchName, current) {
+				if (swatchName.toLowerCase() == name.toLowerCase()) {
+					swatch = current;
+					return false;
+				}
+			});
+
+			return swatch;
+        },
+		
+		_parseFormat: function(format, text) {
+			var that = this,
+				typeRegexps = {
+					x:	function() {return '([0-9a-fA-F]{2})';}
+				,	d:	function() {return '([12]?[0-9]{1,2})';}
+				,	f:	function() {return '([0-9]*\\.?[0-9]*)';}	//@todo proper FP-regex: 0, 0., 0.123, .123
+				,	p:	function() {return '([0-9]*\\.?[0-9]*)';}	//@todo as above
+				},
+				typeConverters = {
+					x:	function(v)	{return parseToInt(v, 16);}
+				,	d:	function(v)	{return v / 255.;}
+				,	f:	function(v)	{return v;}
+				,	p:	function(v)	{return v * 0.01;}
+				},
+				setters = {
+					r:	'setRGB'
+				,	g:	'setRGB'
+				,	b:	'setRGB'
+				,	h:	'setHSV'
+				,	s:	'setHSV'
+				,	v:	'setHSV'
+				,	c:	'setCMYK'
+				,	m:	'setCMYK'
+				,	y:	'setCMYK'
+				,	k:	'setCMYK'
+				,	L:	'setLAB'
+				,	A:	'setLAB'
+				,	B:	'setLAB'
+				},
+				setterChannels = {
+					setRGB:		[ 'r', 'g', 'b']
+				,	setHSV:		[ 'h', 's', 'v' ]
+				,	setCMYK:	[ 'c', 'm', 'y', 'k' ]
+				,	setLAB:		[ 'L', 'A', 'B' ]
+				},
+				channels = [],
+				converters = [],						
+				setter = null,
+				color,
+				pattern;
+
+			// Construct pattern
+			pattern = format.replace(/[()\\^$.|?*+[\]]/g, function(m) {
+				return '\\'+m;
+			});
+
+			pattern = pattern.replace(/\\?[argbhsvcmykLAB][xdfp]/g, function(variable) {
+				if (variable.match(/^\\/)) {
+					return variable.slice(1);
+				}
+
+				var channel = variable.charAt(0),
+					type = variable.charAt(1);
+
+				channels.push(channel);
+				converters.push(typeConverters[type]);
+				if (setters[channel]) {
+					setter = setters[channel];
+				}
+
+				return typeRegexps[type]();
+			});
+
+			if (setter) {
+				var values = text.match(new RegExp(pattern));
+				if (values) {
+					var args = [],
+						channelIndex;
+					
+					values.shift();
+									
+					$.each(setterChannels[setter], function(index, channel) {
+						channelIndex = $.inArray(channel, channels);
+						args[index] = converters[channelIndex](values[channelIndex]);
+					});
+
+					color = new $.colorpicker.Color();
+					color[setter].apply(color, args);
+				}
+			}
+			
+			return color;
+		},
+
+        _parseColor: function(text) {
+            var that = this,
+				color;
+		
+			var formats = $.isArray(that.options.colorFormat)
+					? that.options.colorFormat
+					: [ that.options.colorFormat ];
+			
+			$.each(formats, function(index, format) {
+				if ($.colorpicker.parsers[format]) {
+					color = $.colorpicker.parsers[format](text, that);
+				} else {
+					color = that._parseFormat(format, text);
+				}
+			
+				if (color) {
+					return false;
+				}
+			});
+			
+			if (!color) {
+				// fallback; check all registered parsers
+				$.each($.colorpicker.parsers, function(name, parser) {
+					color = parser(text, that);
+					if (color) {
+						return false;
+					}
+				});
+			}
+
+			if (color) {
+				return color;
+			}
+
+			return false;
+        },
+
+		_exactName: function(color) {
+			var name	= false;
+
+			this._eachSwatch(function(n, swatch) {
+				if (color.equals(new $.colorpicker.Color(swatch.r, swatch.g, swatch.b))) {
+					name = n;
+					return false;
+				}
+			});
+
+			return name;
+		},
+
+		_closestName: function(color) {
+			var rgb			= color.getRGB(),
+				distance	= null,
+				name		= false,
+				d;
+
+			this._eachSwatch(function(n, swatch) {
+				d = color.distance(new $.colorpicker.Color(swatch.r, swatch.g, swatch.b));
+				if (d < distance || distance === null) {
+					name = n;
+					if (d <= 1e-20) {	// effectively 0 by maximum rounding error
+						return false;	// can't get much closer than 0
+					}
+					distance = d;	// safety net
+				}
+			});
+
+			return name;
+		},
+
+		_formatColor: function (formats, color) {			
+			var that		= this,
+				text		= null,
+				types		= {	'x':	function(v) {return _intToHex(v * 255);}
+							,	'd':	function(v) {return Math.floor(v * 255);}
+							,	'f':	function(v) {return v;}
+							,	'p':	function(v) {return v * 100.;}
+							},
+				channels	= color.getChannels();
+
+			if (!$.isArray(formats)) {
+				formats = [formats];
+			}
+
+			$.each(formats, function(index, format) {
+				if ($.colorpicker.writers[format]) {
+					text = $.colorpicker.writers[format](color, that);		
+					return (text === false);
+				} else {
+					text = format.replace(/\\?[argbhsvcmykLAB][xdfp]/g, function(m) {
+						if (m.match(/^\\/)) {
+							return m.slice(1);
+						}
+						return types[m.charAt(1)](channels[m.charAt(0)]);
+					});
+					return false;
+				}
+			});
+			
+			return text;
+		}
+	});
+}(jQuery));
+
+});
+
+define('x-editable', function (require, exports, module) {
+/*! X-editable - v1.5.1 
+* In-place editing with Twitter Bootstrap, jQuery UI or pure jQuery
+* http://github.com/vitalets/x-editable
+* Copyright (c) 2013 Vitaliy Potapov; Licensed MIT */
+!function(a){"use strict";var b=function(b,c){this.options=a.extend({},a.fn.editableform.defaults,c),this.$div=a(b),this.options.scope||(this.options.scope=this)};b.prototype={constructor:b,initInput:function(){this.input=this.options.input,this.value=this.input.str2value(this.options.value),this.input.prerender()},initTemplate:function(){this.$form=a(a.fn.editableform.template)},initButtons:function(){var b=this.$form.find(".editable-buttons");b.append(a.fn.editableform.buttons),"bottom"===this.options.showbuttons&&b.addClass("editable-buttons-bottom")},render:function(){this.$loading=a(a.fn.editableform.loading),this.$div.empty().append(this.$loading),this.initTemplate(),this.options.showbuttons?this.initButtons():this.$form.find(".editable-buttons").remove(),this.showLoading(),this.isSaving=!1,this.$div.triggerHandler("rendering"),this.initInput(),this.$form.find("div.editable-input").append(this.input.$tpl),this.$div.append(this.$form),a.when(this.input.render()).then(a.proxy(function(){if(this.options.showbuttons||this.input.autosubmit(),this.$form.find(".editable-cancel").click(a.proxy(this.cancel,this)),this.input.error)this.error(this.input.error),this.$form.find(".editable-submit").attr("disabled",!0),this.input.$input.attr("disabled",!0),this.$form.submit(function(a){a.preventDefault()});else{this.error(!1),this.input.$input.removeAttr("disabled"),this.$form.find(".editable-submit").removeAttr("disabled");var b=null===this.value||void 0===this.value||""===this.value?this.options.defaultValue:this.value;this.input.value2input(b),this.$form.submit(a.proxy(this.submit,this))}this.$div.triggerHandler("rendered"),this.showForm(),this.input.postrender&&this.input.postrender()},this))},cancel:function(){this.$div.triggerHandler("cancel")},showLoading:function(){var a,b;this.$form?(a=this.$form.outerWidth(),b=this.$form.outerHeight(),a&&this.$loading.width(a),b&&this.$loading.height(b),this.$form.hide()):(a=this.$loading.parent().width(),a&&this.$loading.width(a)),this.$loading.show()},showForm:function(a){this.$loading.hide(),this.$form.show(),a!==!1&&this.input.activate(),this.$div.triggerHandler("show")},error:function(b){var c,d=this.$form.find(".control-group"),e=this.$form.find(".editable-error-block");if(b===!1)d.removeClass(a.fn.editableform.errorGroupClass),e.removeClass(a.fn.editableform.errorBlockClass).empty().hide();else{if(b){c=(""+b).split("\n");for(var f=0;f<c.length;f++)c[f]=a("<div>").text(c[f]).html();b=c.join("<br>")}d.addClass(a.fn.editableform.errorGroupClass),e.addClass(a.fn.editableform.errorBlockClass).html(b).show()}},submit:function(b){b.stopPropagation(),b.preventDefault();var c=this.input.input2value(),d=this.validate(c);if("object"===a.type(d)&&void 0!==d.newValue){if(c=d.newValue,this.input.value2input(c),"string"==typeof d.msg)return this.error(d.msg),this.showForm(),void 0}else if(d)return this.error(d),this.showForm(),void 0;if(!this.options.savenochange&&this.input.value2str(c)==this.input.value2str(this.value))return this.$div.triggerHandler("nochange"),void 0;var e=this.input.value2submit(c);this.isSaving=!0,a.when(this.save(e)).done(a.proxy(function(a){this.isSaving=!1;var b="function"==typeof this.options.success?this.options.success.call(this.options.scope,a,c):null;return b===!1?(this.error(!1),this.showForm(!1),void 0):"string"==typeof b?(this.error(b),this.showForm(),void 0):(b&&"object"==typeof b&&b.hasOwnProperty("newValue")&&(c=b.newValue),this.error(!1),this.value=c,this.$div.triggerHandler("save",{newValue:c,submitValue:e,response:a}),void 0)},this)).fail(a.proxy(function(a){this.isSaving=!1;var b;b="function"==typeof this.options.error?this.options.error.call(this.options.scope,a,c):"string"==typeof a?a:a.responseText||a.statusText||"Unknown error!",this.error(b),this.showForm()},this))},save:function(b){this.options.pk=a.fn.editableutils.tryParseJson(this.options.pk,!0);var c,d="function"==typeof this.options.pk?this.options.pk.call(this.options.scope):this.options.pk,e=!!("function"==typeof this.options.url||this.options.url&&("always"===this.options.send||"auto"===this.options.send&&null!==d&&void 0!==d));return e?(this.showLoading(),c={name:this.options.name||"",value:b,pk:d},"function"==typeof this.options.params?c=this.options.params.call(this.options.scope,c):(this.options.params=a.fn.editableutils.tryParseJson(this.options.params,!0),a.extend(c,this.options.params)),"function"==typeof this.options.url?this.options.url.call(this.options.scope,c):a.ajax(a.extend({url:this.options.url,data:c,type:"POST"},this.options.ajaxOptions))):void 0},validate:function(a){return void 0===a&&(a=this.value),"function"==typeof this.options.validate?this.options.validate.call(this.options.scope,a):void 0},option:function(a,b){a in this.options&&(this.options[a]=b),"value"===a&&this.setValue(b)},setValue:function(a,b){this.value=b?this.input.str2value(a):a,this.$form&&this.$form.is(":visible")&&this.input.value2input(this.value)}},a.fn.editableform=function(c){var d=arguments;return this.each(function(){var e=a(this),f=e.data("editableform"),g="object"==typeof c&&c;f||e.data("editableform",f=new b(this,g)),"string"==typeof c&&f[c].apply(f,Array.prototype.slice.call(d,1))})},a.fn.editableform.Constructor=b,a.fn.editableform.defaults={type:"text",url:null,params:null,name:null,pk:null,value:null,defaultValue:null,send:"auto",validate:null,success:null,error:null,ajaxOptions:null,showbuttons:!0,scope:null,savenochange:!1},a.fn.editableform.template='<form class="form-inline editableform"><div class="control-group"><div><div class="editable-input"></div><div class="editable-buttons"></div></div><div class="editable-error-block"></div></div></form>',a.fn.editableform.loading='<div class="editableform-loading"></div>',a.fn.editableform.buttons='<button type="submit" class="editable-submit">ok</button><button type="button" class="editable-cancel">cancel</button>',a.fn.editableform.errorGroupClass=null,a.fn.editableform.errorBlockClass="editable-error",a.fn.editableform.engine="jquery"}(window.jQuery),function(a){"use strict";a.fn.editableutils={inherit:function(a,b){var c=function(){};c.prototype=b.prototype,a.prototype=new c,a.prototype.constructor=a,a.superclass=b.prototype},setCursorPosition:function(a,b){if(a.setSelectionRange)a.setSelectionRange(b,b);else if(a.createTextRange){var c=a.createTextRange();c.collapse(!0),c.moveEnd("character",b),c.moveStart("character",b),c.select()}},tryParseJson:function(a,b){if("string"==typeof a&&a.length&&a.match(/^[\{\[].*[\}\]]$/))if(b)try{a=new Function("return "+a)()}catch(c){}finally{return a}else a=new Function("return "+a)();return a},sliceObj:function(b,c,d){var e,f,g={};if(!a.isArray(c)||!c.length)return g;for(var h=0;h<c.length;h++)e=c[h],b.hasOwnProperty(e)&&(g[e]=b[e]),d!==!0&&(f=e.toLowerCase(),b.hasOwnProperty(f)&&(g[e]=b[f]));return g},getConfigData:function(b){var c={};return a.each(b.data(),function(a,b){("object"!=typeof b||b&&"object"==typeof b&&(b.constructor===Object||b.constructor===Array))&&(c[a]=b)}),c},objectKeys:function(a){if(Object.keys)return Object.keys(a);if(a!==Object(a))throw new TypeError("Object.keys called on a non-object");var b,c=[];for(b in a)Object.prototype.hasOwnProperty.call(a,b)&&c.push(b);return c},escape:function(b){return a("<div>").text(b).html()},itemsByValue:function(b,c,d){if(!c||null===b)return[];if("function"!=typeof d){var e=d||"value";d=function(a){return a[e]}}var f=a.isArray(b),g=[],h=this;return a.each(c,function(c,e){if(e.children)g=g.concat(h.itemsByValue(b,e.children,d));else if(f)a.grep(b,function(a){return a==(e&&"object"==typeof e?d(e):e)}).length&&g.push(e);else{var i=e&&"object"==typeof e?d(e):e;b==i&&g.push(e)}}),g},createInput:function(b){var c,d,e,f=b.type;return"date"===f&&("inline"===b.mode?a.fn.editabletypes.datefield?f="datefield":a.fn.editabletypes.dateuifield&&(f="dateuifield"):a.fn.editabletypes.date?f="date":a.fn.editabletypes.dateui&&(f="dateui"),"date"!==f||a.fn.editabletypes.date||(f="combodate")),"datetime"===f&&"inline"===b.mode&&(f="datetimefield"),"wysihtml5"!==f||a.fn.editabletypes[f]||(f="textarea"),"function"==typeof a.fn.editabletypes[f]?(c=a.fn.editabletypes[f],d=this.sliceObj(b,this.objectKeys(c.defaults)),e=new c(d)):(a.error("Unknown type: "+f),!1)},supportsTransitions:function(){var a=document.body||document.documentElement,b=a.style,c="transition",d=["Moz","Webkit","Khtml","O","ms"];if("string"==typeof b[c])return!0;c=c.charAt(0).toUpperCase()+c.substr(1);for(var e=0;e<d.length;e++)if("string"==typeof b[d[e]+c])return!0;return!1}}}(window.jQuery),function(a){"use strict";var b=function(a,b){this.init(a,b)},c=function(a,b){this.init(a,b)};b.prototype={containerName:null,containerDataName:null,innerCss:null,containerClass:"editable-container editable-popup",defaults:{},init:function(c,d){this.$element=a(c),this.options=a.extend({},a.fn.editableContainer.defaults,d),this.splitOptions(),this.formOptions.scope=this.$element[0],this.initContainer(),this.delayedHide=!1,this.$element.on("destroyed",a.proxy(function(){this.destroy()},this)),a(document).data("editable-handlers-attached")||(a(document).on("keyup.editable",function(b){27===b.which&&a(".editable-open").editableContainer("hide")}),a(document).on("click.editable",function(c){var d,e=a(c.target),f=[".editable-container",".ui-datepicker-header",".datepicker",".modal-backdrop",".bootstrap-wysihtml5-insert-image-modal",".bootstrap-wysihtml5-insert-link-modal"];if(a.contains(document.documentElement,c.target)&&!e.is(document)){for(d=0;d<f.length;d++)if(e.is(f[d])||e.parents(f[d]).length)return;b.prototype.closeOthers(c.target)}}),a(document).data("editable-handlers-attached",!0))},splitOptions:function(){if(this.containerOptions={},this.formOptions={},!a.fn[this.containerName])throw new Error(this.containerName+" not found. Have you included corresponding js file?");for(var b in this.options)b in this.defaults?this.containerOptions[b]=this.options[b]:this.formOptions[b]=this.options[b]},tip:function(){return this.container()?this.container().$tip:null},container:function(){var a;return this.containerDataName&&(a=this.$element.data(this.containerDataName))?a:a=this.$element.data(this.containerName)},call:function(){this.$element[this.containerName].apply(this.$element,arguments)},initContainer:function(){this.call(this.containerOptions)},renderForm:function(){this.$form.editableform(this.formOptions).on({save:a.proxy(this.save,this),nochange:a.proxy(function(){this.hide("nochange")},this),cancel:a.proxy(function(){this.hide("cancel")},this),show:a.proxy(function(){this.delayedHide?(this.hide(this.delayedHide.reason),this.delayedHide=!1):this.setPosition()},this),rendering:a.proxy(this.setPosition,this),resize:a.proxy(this.setPosition,this),rendered:a.proxy(function(){this.$element.triggerHandler("shown",a(this.options.scope).data("editable"))},this)}).editableform("render")},show:function(b){this.$element.addClass("editable-open"),b!==!1&&this.closeOthers(this.$element[0]),this.innerShow(),this.tip().addClass(this.containerClass),this.$form,this.$form=a("<div>"),this.tip().is(this.innerCss)?this.tip().append(this.$form):this.tip().find(this.innerCss).append(this.$form),this.renderForm()},hide:function(a){if(this.tip()&&this.tip().is(":visible")&&this.$element.hasClass("editable-open")){if(this.$form.data("editableform").isSaving)return this.delayedHide={reason:a},void 0;this.delayedHide=!1,this.$element.removeClass("editable-open"),this.innerHide(),this.$element.triggerHandler("hidden",a||"manual")}},innerShow:function(){},innerHide:function(){},toggle:function(a){this.container()&&this.tip()&&this.tip().is(":visible")?this.hide():this.show(a)},setPosition:function(){},save:function(a,b){this.$element.triggerHandler("save",b),this.hide("save")},option:function(a,b){this.options[a]=b,a in this.containerOptions?(this.containerOptions[a]=b,this.setContainerOption(a,b)):(this.formOptions[a]=b,this.$form&&this.$form.editableform("option",a,b))},setContainerOption:function(a,b){this.call("option",a,b)},destroy:function(){this.hide(),this.innerDestroy(),this.$element.off("destroyed"),this.$element.removeData("editableContainer")},innerDestroy:function(){},closeOthers:function(b){a(".editable-open").each(function(c,d){if(d!==b&&!a(d).find(b).length){var e=a(d),f=e.data("editableContainer");f&&("cancel"===f.options.onblur?e.data("editableContainer").hide("onblur"):"submit"===f.options.onblur&&e.data("editableContainer").tip().find("form").submit())}})},activate:function(){this.tip&&this.tip().is(":visible")&&this.$form&&this.$form.data("editableform").input.activate()}},a.fn.editableContainer=function(d){var e=arguments;return this.each(function(){var f=a(this),g="editableContainer",h=f.data(g),i="object"==typeof d&&d,j="inline"===i.mode?c:b;h||f.data(g,h=new j(this,i)),"string"==typeof d&&h[d].apply(h,Array.prototype.slice.call(e,1))})},a.fn.editableContainer.Popup=b,a.fn.editableContainer.Inline=c,a.fn.editableContainer.defaults={value:null,placement:"top",autohide:!0,onblur:"cancel",anim:!1,mode:"popup"},jQuery.event.special.destroyed={remove:function(a){a.handler&&a.handler()}}}(window.jQuery),function(a){"use strict";a.extend(a.fn.editableContainer.Inline.prototype,a.fn.editableContainer.Popup.prototype,{containerName:"editableform",innerCss:".editable-inline",containerClass:"editable-container editable-inline",initContainer:function(){this.$tip=a("<span></span>"),this.options.anim||(this.options.anim=0)},splitOptions:function(){this.containerOptions={},this.formOptions=this.options},tip:function(){return this.$tip},innerShow:function(){this.$element.hide(),this.tip().insertAfter(this.$element).show()},innerHide:function(){this.$tip.hide(this.options.anim,a.proxy(function(){this.$element.show(),this.innerDestroy()},this))},innerDestroy:function(){this.tip()&&this.tip().empty().remove()}})}(window.jQuery),function(a){"use strict";var b=function(b,c){this.$element=a(b),this.options=a.extend({},a.fn.editable.defaults,c,a.fn.editableutils.getConfigData(this.$element)),this.options.selector?this.initLive():this.init(),this.options.highlight&&!a.fn.editableutils.supportsTransitions()&&(this.options.highlight=!1)};b.prototype={constructor:b,init:function(){var b,c=!1;if(this.options.name=this.options.name||this.$element.attr("id"),this.options.scope=this.$element[0],this.input=a.fn.editableutils.createInput(this.options),this.input){switch(void 0===this.options.value||null===this.options.value?(this.value=this.input.html2value(a.trim(this.$element.html())),c=!0):(this.options.value=a.fn.editableutils.tryParseJson(this.options.value,!0),this.value="string"==typeof this.options.value?this.input.str2value(this.options.value):this.options.value),this.$element.addClass("editable"),"textarea"===this.input.type&&this.$element.addClass("editable-pre-wrapped"),"manual"!==this.options.toggle?(this.$element.addClass("editable-click"),this.$element.on(this.options.toggle+".editable",a.proxy(function(a){if(this.options.disabled||a.preventDefault(),"mouseenter"===this.options.toggle)this.show();else{var b="click"!==this.options.toggle;this.toggle(b)}},this))):this.$element.attr("tabindex",-1),"function"==typeof this.options.display&&(this.options.autotext="always"),this.options.autotext){case"always":b=!0;break;case"auto":b=!a.trim(this.$element.text()).length&&null!==this.value&&void 0!==this.value&&!c;break;default:b=!1}a.when(b?this.render():!0).then(a.proxy(function(){this.options.disabled?this.disable():this.enable(),this.$element.triggerHandler("init",this)},this))}},initLive:function(){var b=this.options.selector;this.options.selector=!1,this.options.autotext="never",this.$element.on(this.options.toggle+".editable",b,a.proxy(function(b){var c=a(b.target);c.data("editable")||(c.hasClass(this.options.emptyclass)&&c.empty(),c.editable(this.options).trigger(b))},this))},render:function(a){return this.options.display!==!1?this.input.value2htmlFinal?this.input.value2html(this.value,this.$element[0],this.options.display,a):"function"==typeof this.options.display?this.options.display.call(this.$element[0],this.value,a):this.input.value2html(this.value,this.$element[0]):void 0},enable:function(){this.options.disabled=!1,this.$element.removeClass("editable-disabled"),this.handleEmpty(this.isEmpty),"manual"!==this.options.toggle&&"-1"===this.$element.attr("tabindex")&&this.$element.removeAttr("tabindex")},disable:function(){this.options.disabled=!0,this.hide(),this.$element.addClass("editable-disabled"),this.handleEmpty(this.isEmpty),this.$element.attr("tabindex",-1)},toggleDisabled:function(){this.options.disabled?this.enable():this.disable()},option:function(b,c){return b&&"object"==typeof b?(a.each(b,a.proxy(function(b,c){this.option(a.trim(b),c)},this)),void 0):(this.options[b]=c,"disabled"===b?c?this.disable():this.enable():("value"===b&&this.setValue(c),this.container&&this.container.option(b,c),this.input.option&&this.input.option(b,c),void 0))},handleEmpty:function(b){this.options.display!==!1&&(this.isEmpty=void 0!==b?b:"function"==typeof this.input.isEmpty?this.input.isEmpty(this.$element):""===a.trim(this.$element.html()),this.options.disabled?this.isEmpty&&(this.$element.empty(),this.options.emptyclass&&this.$element.removeClass(this.options.emptyclass)):this.isEmpty?(this.$element.html(this.options.emptytext),this.options.emptyclass&&this.$element.addClass(this.options.emptyclass)):this.options.emptyclass&&this.$element.removeClass(this.options.emptyclass))},show:function(b){if(!this.options.disabled){if(this.container){if(this.container.tip().is(":visible"))return}else{var c=a.extend({},this.options,{value:this.value,input:this.input});this.$element.editableContainer(c),this.$element.on("save.internal",a.proxy(this.save,this)),this.container=this.$element.data("editableContainer")}this.container.show(b)}},hide:function(){this.container&&this.container.hide()},toggle:function(a){this.container&&this.container.tip().is(":visible")?this.hide():this.show(a)},save:function(a,b){if(this.options.unsavedclass){var c=!1;c=c||"function"==typeof this.options.url,c=c||this.options.display===!1,c=c||void 0!==b.response,c=c||this.options.savenochange&&this.input.value2str(this.value)!==this.input.value2str(b.newValue),c?this.$element.removeClass(this.options.unsavedclass):this.$element.addClass(this.options.unsavedclass)}if(this.options.highlight){var d=this.$element,e=d.css("background-color");d.css("background-color",this.options.highlight),setTimeout(function(){"transparent"===e&&(e=""),d.css("background-color",e),d.addClass("editable-bg-transition"),setTimeout(function(){d.removeClass("editable-bg-transition")},1700)},10)}this.setValue(b.newValue,!1,b.response)},validate:function(){return"function"==typeof this.options.validate?this.options.validate.call(this,this.value):void 0},setValue:function(b,c,d){this.value=c?this.input.str2value(b):b,this.container&&this.container.option("value",this.value),a.when(this.render(d)).then(a.proxy(function(){this.handleEmpty()},this))},activate:function(){this.container&&this.container.activate()},destroy:function(){this.disable(),this.container&&this.container.destroy(),this.input.destroy(),"manual"!==this.options.toggle&&(this.$element.removeClass("editable-click"),this.$element.off(this.options.toggle+".editable")),this.$element.off("save.internal"),this.$element.removeClass("editable editable-open editable-disabled"),this.$element.removeData("editable")}},a.fn.editable=function(c){var d={},e=arguments,f="editable";switch(c){case"validate":return this.each(function(){var b,c=a(this),e=c.data(f);e&&(b=e.validate())&&(d[e.options.name]=b)}),d;case"getValue":return 2===arguments.length&&arguments[1]===!0?d=this.eq(0).data(f).value:this.each(function(){var b=a(this),c=b.data(f);c&&void 0!==c.value&&null!==c.value&&(d[c.options.name]=c.input.value2submit(c.value))}),d;case"submit":var g=arguments[1]||{},h=this,i=this.editable("validate");if(a.isEmptyObject(i)){var j={};if(1===h.length){var k=h.data("editable"),l={name:k.options.name||"",value:k.input.value2submit(k.value),pk:"function"==typeof k.options.pk?k.options.pk.call(k.options.scope):k.options.pk};"function"==typeof k.options.params?l=k.options.params.call(k.options.scope,l):(k.options.params=a.fn.editableutils.tryParseJson(k.options.params,!0),a.extend(l,k.options.params)),j={url:k.options.url,data:l,type:"POST"},g.success=g.success||k.options.success,g.error=g.error||k.options.error}else{var m=this.editable("getValue");j={url:g.url,data:m,type:"POST"}}j.success="function"==typeof g.success?function(a){g.success.call(h,a,g)}:a.noop,j.error="function"==typeof g.error?function(){g.error.apply(h,arguments)}:a.noop,g.ajaxOptions&&a.extend(j,g.ajaxOptions),g.data&&a.extend(j.data,g.data),a.ajax(j)}else"function"==typeof g.error&&g.error.call(h,i);return this}return this.each(function(){var d=a(this),g=d.data(f),h="object"==typeof c&&c;return h&&h.selector?(g=new b(this,h),void 0):(g||d.data(f,g=new b(this,h)),"string"==typeof c&&g[c].apply(g,Array.prototype.slice.call(e,1)),void 0)})},a.fn.editable.defaults={type:"text",disabled:!1,toggle:"click",emptytext:"Empty",autotext:"auto",value:null,display:null,emptyclass:"editable-empty",unsavedclass:"editable-unsaved",selector:null,highlight:"#FFFF80"}}(window.jQuery),function(a){"use strict";a.fn.editabletypes={};var b=function(){};b.prototype={init:function(b,c,d){this.type=b,this.options=a.extend({},d,c)},prerender:function(){this.$tpl=a(this.options.tpl),this.$input=this.$tpl,this.$clear=null,this.error=null},render:function(){},value2html:function(b,c){a(c)[this.options.escape?"text":"html"](a.trim(b))},html2value:function(b){return a("<div>").html(b).text()},value2str:function(a){return a},str2value:function(a){return a},value2submit:function(a){return a},value2input:function(a){this.$input.val(a)},input2value:function(){return this.$input.val()},activate:function(){this.$input.is(":visible")&&this.$input.focus()},clear:function(){this.$input.val(null)},escape:function(b){return a("<div>").text(b).html()},autosubmit:function(){},destroy:function(){},setClass:function(){this.options.inputclass&&this.$input.addClass(this.options.inputclass)},setAttr:function(a){void 0!==this.options[a]&&null!==this.options[a]&&this.$input.attr(a,this.options[a])},option:function(a,b){this.options[a]=b}},b.defaults={tpl:"",inputclass:null,escape:!0,scope:null,showbuttons:!0},a.extend(a.fn.editabletypes,{abstractinput:b})}(window.jQuery),function(a){"use strict";var b=function(){};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){var b=a.Deferred();return this.error=null,this.onSourceReady(function(){this.renderList(),b.resolve()},function(){this.error=this.options.sourceError,b.resolve()}),b.promise()},html2value:function(){return null},value2html:function(b,c,d,e){var f=a.Deferred(),g=function(){"function"==typeof d?d.call(c,b,this.sourceData,e):this.value2htmlFinal(b,c),f.resolve()};return null===b?g.call(this):this.onSourceReady(g,function(){f.resolve()}),f.promise()},onSourceReady:function(b,c){var d;if(a.isFunction(this.options.source)?(d=this.options.source.call(this.options.scope),this.sourceData=null):d=this.options.source,this.options.sourceCache&&a.isArray(this.sourceData))return b.call(this),void 0;try{d=a.fn.editableutils.tryParseJson(d,!1)}catch(e){return c.call(this),void 0}if("string"==typeof d){if(this.options.sourceCache){var f,g=d;if(a(document).data(g)||a(document).data(g,{}),f=a(document).data(g),f.loading===!1&&f.sourceData)return this.sourceData=f.sourceData,this.doPrepend(),b.call(this),void 0;if(f.loading===!0)return f.callbacks.push(a.proxy(function(){this.sourceData=f.sourceData,this.doPrepend(),b.call(this)},this)),f.err_callbacks.push(a.proxy(c,this)),void 0;f.loading=!0,f.callbacks=[],f.err_callbacks=[]}var h=a.extend({url:d,type:"get",cache:!1,dataType:"json",success:a.proxy(function(d){f&&(f.loading=!1),this.sourceData=this.makeArray(d),a.isArray(this.sourceData)?(f&&(f.sourceData=this.sourceData,a.each(f.callbacks,function(){this.call()})),this.doPrepend(),b.call(this)):(c.call(this),f&&a.each(f.err_callbacks,function(){this.call()}))},this),error:a.proxy(function(){c.call(this),f&&(f.loading=!1,a.each(f.err_callbacks,function(){this.call()}))},this)},this.options.sourceOptions);a.ajax(h)}else this.sourceData=this.makeArray(d),a.isArray(this.sourceData)?(this.doPrepend(),b.call(this)):c.call(this)},doPrepend:function(){null!==this.options.prepend&&void 0!==this.options.prepend&&(a.isArray(this.prependData)||(a.isFunction(this.options.prepend)&&(this.options.prepend=this.options.prepend.call(this.options.scope)),this.options.prepend=a.fn.editableutils.tryParseJson(this.options.prepend,!0),"string"==typeof this.options.prepend&&(this.options.prepend={"":this.options.prepend}),this.prependData=this.makeArray(this.options.prepend)),a.isArray(this.prependData)&&a.isArray(this.sourceData)&&(this.sourceData=this.prependData.concat(this.sourceData)))},renderList:function(){},value2htmlFinal:function(){},makeArray:function(b){var c,d,e,f,g=[];if(!b||"string"==typeof b)return null;if(a.isArray(b)){f=function(a,b){return d={value:a,text:b},c++>=2?!1:void 0};for(var h=0;h<b.length;h++)e=b[h],"object"==typeof e?(c=0,a.each(e,f),1===c?g.push(d):c>1&&(e.children&&(e.children=this.makeArray(e.children)),g.push(e))):g.push({value:e,text:e})}else a.each(b,function(a,b){g.push({value:a,text:b})});return g},option:function(a,b){this.options[a]=b,"source"===a&&(this.sourceData=null),"prepend"===a&&(this.prependData=null)}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{source:null,prepend:!1,sourceError:"Error when loading list",sourceCache:!0,sourceOptions:null}),a.fn.editabletypes.list=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("text",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.renderClear(),this.setClass(),this.setAttr("placeholder")},activate:function(){this.$input.is(":visible")&&(this.$input.focus(),a.fn.editableutils.setCursorPosition(this.$input.get(0),this.$input.val().length),this.toggleClear&&this.toggleClear())},renderClear:function(){this.options.clear&&(this.$clear=a('<span class="editable-clear-x"></span>'),this.$input.after(this.$clear).css("padding-right",24).keyup(a.proxy(function(b){if(!~a.inArray(b.keyCode,[40,38,9,13,27])){clearTimeout(this.t);var c=this;this.t=setTimeout(function(){c.toggleClear(b)},100)}},this)).parent().css("position","relative"),this.$clear.click(a.proxy(this.clear,this)))},postrender:function(){},toggleClear:function(){if(this.$clear){var a=this.$input.val().length,b=this.$clear.is(":visible");a&&!b&&this.$clear.show(),!a&&b&&this.$clear.hide()}},clear:function(){this.$clear.hide(),this.$input.val("").focus()}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<input type="text">',placeholder:null,clear:!0}),a.fn.editabletypes.text=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("textarea",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.setClass(),this.setAttr("placeholder"),this.setAttr("rows"),this.$input.keydown(function(b){b.ctrlKey&&13===b.which&&a(this).closest("form").submit()})},activate:function(){a.fn.editabletypes.text.prototype.activate.call(this)}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:"<textarea></textarea>",inputclass:"input-large",placeholder:null,rows:7}),a.fn.editabletypes.textarea=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("select",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.list),a.extend(b.prototype,{renderList:function(){this.$input.empty();var b=function(c,d){var e;if(a.isArray(d))for(var f=0;f<d.length;f++)e={},d[f].children?(e.label=d[f].text,c.append(b(a("<optgroup>",e),d[f].children))):(e.value=d[f].value,d[f].disabled&&(e.disabled=!0),c.append(a("<option>",e).text(d[f].text)));return c};b(this.$input,this.sourceData),this.setClass(),this.$input.on("keydown.editable",function(b){13===b.which&&a(this).closest("form").submit()})},value2htmlFinal:function(b,c){var d="",e=a.fn.editableutils.itemsByValue(b,this.sourceData);e.length&&(d=e[0].text),a.fn.editabletypes.abstractinput.prototype.value2html.call(this,d,c)},autosubmit:function(){this.$input.off("keydown.editable").on("change.editable",function(){a(this).closest("form").submit()})}}),b.defaults=a.extend({},a.fn.editabletypes.list.defaults,{tpl:"<select></select>"}),a.fn.editabletypes.select=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("checklist",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.list),a.extend(b.prototype,{renderList:function(){var b;if(this.$tpl.empty(),a.isArray(this.sourceData)){for(var c=0;c<this.sourceData.length;c++)b=a("<label>").append(a("<input>",{type:"checkbox",value:this.sourceData[c].value})).append(a("<span>").text(" "+this.sourceData[c].text)),a("<div>").append(b).appendTo(this.$tpl);this.$input=this.$tpl.find('input[type="checkbox"]'),this.setClass()}},value2str:function(b){return a.isArray(b)?b.sort().join(a.trim(this.options.separator)):""},str2value:function(b){var c,d=null;return"string"==typeof b&&b.length?(c=new RegExp("\\s*"+a.trim(this.options.separator)+"\\s*"),d=b.split(c)):d=a.isArray(b)?b:[b],d},value2input:function(b){this.$input.prop("checked",!1),a.isArray(b)&&b.length&&this.$input.each(function(c,d){var e=a(d);a.each(b,function(a,b){e.val()==b&&e.prop("checked",!0)})})},input2value:function(){var b=[];return this.$input.filter(":checked").each(function(c,d){b.push(a(d).val())}),b},value2htmlFinal:function(b,c){var d=[],e=a.fn.editableutils.itemsByValue(b,this.sourceData),f=this.options.escape;e.length?(a.each(e,function(b,c){var e=f?a.fn.editableutils.escape(c.text):c.text;d.push(e)}),a(c).html(d.join("<br>"))):a(c).empty()},activate:function(){this.$input.first().focus()},autosubmit:function(){this.$input.on("keydown",function(b){13===b.which&&a(this).closest("form").submit()})}}),b.defaults=a.extend({},a.fn.editabletypes.list.defaults,{tpl:'<div class="editable-checklist"></div>',inputclass:null,separator:","}),a.fn.editabletypes.checklist=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("password",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),a.extend(b.prototype,{value2html:function(b,c){b?a(c).text("[hidden]"):a(c).empty()},html2value:function(){return null}}),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="password">'}),a.fn.editabletypes.password=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("email",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="email">'}),a.fn.editabletypes.email=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("url",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="url">'}),a.fn.editabletypes.url=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("tel",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="tel">'}),a.fn.editabletypes.tel=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("number",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),a.extend(b.prototype,{render:function(){b.superclass.render.call(this),this.setAttr("min"),this.setAttr("max"),this.setAttr("step")},postrender:function(){this.$clear&&this.$clear.css({right:24})}}),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="number">',inputclass:"input-mini",min:null,max:null,step:null}),a.fn.editabletypes.number=b}(window.jQuery),function(a){"use strict";
+var b=function(a){this.init("range",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.number),a.extend(b.prototype,{render:function(){this.$input=this.$tpl.filter("input"),this.setClass(),this.setAttr("min"),this.setAttr("max"),this.setAttr("step"),this.$input.on("input",function(){a(this).siblings("output").text(a(this).val())})},activate:function(){this.$input.focus()}}),b.defaults=a.extend({},a.fn.editabletypes.number.defaults,{tpl:'<input type="range"><output style="width: 30px; display: inline-block"></output>',inputclass:"input-medium"}),a.fn.editabletypes.range=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("time",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.setClass()}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<input type="time">'}),a.fn.editabletypes.time=b}(window.jQuery),function(a){"use strict";var b=function(c){if(this.init("select2",c,b.defaults),c.select2=c.select2||{},this.sourceData=null,c.placeholder&&(c.select2.placeholder=c.placeholder),!c.select2.tags&&c.source){var d=c.source;a.isFunction(c.source)&&(d=c.source.call(c.scope)),"string"==typeof d?(c.select2.ajax=c.select2.ajax||{},c.select2.ajax.data||(c.select2.ajax.data=function(a){return{query:a}}),c.select2.ajax.results||(c.select2.ajax.results=function(a){return{results:a}}),c.select2.ajax.url=d):(this.sourceData=this.convertSource(d),c.select2.data=this.sourceData)}if(this.options.select2=a.extend({},b.defaults.select2,c.select2),this.isMultiple=this.options.select2.tags||this.options.select2.multiple,this.isRemote="ajax"in this.options.select2,this.idFunc=this.options.select2.id,"function"!=typeof this.idFunc){var e=this.idFunc||"id";this.idFunc=function(a){return a[e]}}this.formatSelection=this.options.select2.formatSelection,"function"!=typeof this.formatSelection&&(this.formatSelection=function(a){return a.text})};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.setClass(),this.isRemote&&this.$input.on("select2-loaded",a.proxy(function(a){this.sourceData=a.items.results},this)),this.isMultiple&&this.$input.on("change",function(){a(this).closest("form").parent().triggerHandler("resize")})},value2html:function(c,d){var e,f="",g=this;this.options.select2.tags?e=c:this.sourceData&&(e=a.fn.editableutils.itemsByValue(c,this.sourceData,this.idFunc)),a.isArray(e)?(f=[],a.each(e,function(a,b){f.push(b&&"object"==typeof b?g.formatSelection(b):b)})):e&&(f=g.formatSelection(e)),f=a.isArray(f)?f.join(this.options.viewseparator):f,b.superclass.value2html.call(this,f,d)},html2value:function(a){return this.options.select2.tags?this.str2value(a,this.options.viewseparator):null},value2input:function(b){if(a.isArray(b)&&(b=b.join(this.getSeparator())),this.$input.data("select2")?this.$input.val(b).trigger("change",!0):(this.$input.val(b),this.$input.select2(this.options.select2)),this.isRemote&&!this.isMultiple&&!this.options.select2.initSelection){var c=this.options.select2.id,d=this.options.select2.formatSelection;if(!c&&!d){var e=a(this.options.scope);if(!e.data("editable").isEmpty){var f={id:b,text:e.text()};this.$input.select2("data",f)}}}},input2value:function(){return this.$input.select2("val")},str2value:function(b,c){if("string"!=typeof b||!this.isMultiple)return b;c=c||this.getSeparator();var d,e,f;if(null===b||b.length<1)return null;for(d=b.split(c),e=0,f=d.length;f>e;e+=1)d[e]=a.trim(d[e]);return d},autosubmit:function(){this.$input.on("change",function(b,c){c||a(this).closest("form").submit()})},getSeparator:function(){return this.options.select2.separator||a.fn.select2.defaults.separator},convertSource:function(b){if(a.isArray(b)&&b.length&&void 0!==b[0].value)for(var c=0;c<b.length;c++)void 0!==b[c].value&&(b[c].id=b[c].value,delete b[c].value);return b},destroy:function(){this.$input.data("select2")&&this.$input.select2("destroy")}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<input type="hidden">',select2:null,placeholder:null,source:null,viewseparator:", "}),a.fn.editabletypes.select2=b}(window.jQuery),function(a){var b=function(b,c){return this.$element=a(b),this.$element.is("input")?(this.options=a.extend({},a.fn.combodate.defaults,c,this.$element.data()),this.init(),void 0):(a.error("Combodate should be applied to INPUT element"),void 0)};b.prototype={constructor:b,init:function(){this.map={day:["D","date"],month:["M","month"],year:["Y","year"],hour:["[Hh]","hours"],minute:["m","minutes"],second:["s","seconds"],ampm:["[Aa]",""]},this.$widget=a('<span class="combodate"></span>').html(this.getTemplate()),this.initCombos(),this.$widget.on("change","select",a.proxy(function(b){this.$element.val(this.getValue()).change(),this.options.smartDays&&(a(b.target).is(".month")||a(b.target).is(".year"))&&this.fillCombo("day")},this)),this.$widget.find("select").css("width","auto"),this.$element.hide().after(this.$widget),this.setValue(this.$element.val()||this.options.value)},getTemplate:function(){var b=this.options.template;return a.each(this.map,function(a,c){c=c[0];var d=new RegExp(c+"+"),e=c.length>1?c.substring(1,2):c;b=b.replace(d,"{"+e+"}")}),b=b.replace(/ /g,"&nbsp;"),a.each(this.map,function(a,c){c=c[0];var d=c.length>1?c.substring(1,2):c;b=b.replace("{"+d+"}",'<select class="'+a+'"></select>')}),b},initCombos:function(){for(var a in this.map){var b=this.$widget.find("."+a);this["$"+a]=b.length?b:null,this.fillCombo(a)}},fillCombo:function(a){var b=this["$"+a];if(b){var c="fill"+a.charAt(0).toUpperCase()+a.slice(1),d=this[c](),e=b.val();b.empty();for(var f=0;f<d.length;f++)b.append('<option value="'+d[f][0]+'">'+d[f][1]+"</option>");b.val(e)}},fillCommon:function(a){var b,c=[];if("name"===this.options.firstItem){b=moment.relativeTime||moment.langData()._relativeTime;var d="function"==typeof b[a]?b[a](1,!0,a,!1):b[a];d=d.split(" ").reverse()[0],c.push(["",d])}else"empty"===this.options.firstItem&&c.push(["",""]);return c},fillDay:function(){var a,b,c=this.fillCommon("d"),d=-1!==this.options.template.indexOf("DD"),e=31;if(this.options.smartDays&&this.$month&&this.$year){var f=parseInt(this.$month.val(),10),g=parseInt(this.$year.val(),10);isNaN(f)||isNaN(g)||(e=moment([g,f]).daysInMonth())}for(b=1;e>=b;b++)a=d?this.leadZero(b):b,c.push([b,a]);return c},fillMonth:function(){var a,b,c=this.fillCommon("M"),d=-1!==this.options.template.indexOf("MMMM"),e=-1!==this.options.template.indexOf("MMM"),f=-1!==this.options.template.indexOf("MM");for(b=0;11>=b;b++)a=d?moment().date(1).month(b).format("MMMM"):e?moment().date(1).month(b).format("MMM"):f?this.leadZero(b+1):b+1,c.push([b,a]);return c},fillYear:function(){var a,b,c=[],d=-1!==this.options.template.indexOf("YYYY");for(b=this.options.maxYear;b>=this.options.minYear;b--)a=d?b:(b+"").substring(2),c[this.options.yearDescending?"push":"unshift"]([b,a]);return c=this.fillCommon("y").concat(c)},fillHour:function(){var a,b,c=this.fillCommon("h"),d=-1!==this.options.template.indexOf("h"),e=(-1!==this.options.template.indexOf("H"),-1!==this.options.template.toLowerCase().indexOf("hh")),f=d?1:0,g=d?12:23;for(b=f;g>=b;b++)a=e?this.leadZero(b):b,c.push([b,a]);return c},fillMinute:function(){var a,b,c=this.fillCommon("m"),d=-1!==this.options.template.indexOf("mm");for(b=0;59>=b;b+=this.options.minuteStep)a=d?this.leadZero(b):b,c.push([b,a]);return c},fillSecond:function(){var a,b,c=this.fillCommon("s"),d=-1!==this.options.template.indexOf("ss");for(b=0;59>=b;b+=this.options.secondStep)a=d?this.leadZero(b):b,c.push([b,a]);return c},fillAmpm:function(){var a=-1!==this.options.template.indexOf("a"),b=(-1!==this.options.template.indexOf("A"),[["am",a?"am":"AM"],["pm",a?"pm":"PM"]]);return b},getValue:function(b){var c,d={},e=this,f=!1;return a.each(this.map,function(a){if("ampm"!==a){var b="day"===a?1:0;return d[a]=e["$"+a]?parseInt(e["$"+a].val(),10):b,isNaN(d[a])?(f=!0,!1):void 0}}),f?"":(this.$ampm&&(d.hour=12===d.hour?"am"===this.$ampm.val()?0:12:"am"===this.$ampm.val()?d.hour:d.hour+12),c=moment([d.year,d.month,d.day,d.hour,d.minute,d.second]),this.highlight(c),b=void 0===b?this.options.format:b,null===b?c.isValid()?c:null:c.isValid()?c.format(b):"")},setValue:function(b){function c(b,c){var d={};return b.children("option").each(function(b,e){var f,g=a(e).attr("value");""!==g&&(f=Math.abs(g-c),("undefined"==typeof d.distance||f<d.distance)&&(d={value:g,distance:f}))}),d.value}if(b){var d="string"==typeof b?moment(b,this.options.format):moment(b),e=this,f={};d.isValid()&&(a.each(this.map,function(a,b){"ampm"!==a&&(f[a]=d[b[1]]())}),this.$ampm&&(f.hour>=12?(f.ampm="pm",f.hour>12&&(f.hour-=12)):(f.ampm="am",0===f.hour&&(f.hour=12))),a.each(f,function(a,b){e["$"+a]&&("minute"===a&&e.options.minuteStep>1&&e.options.roundTime&&(b=c(e["$"+a],b)),"second"===a&&e.options.secondStep>1&&e.options.roundTime&&(b=c(e["$"+a],b)),e["$"+a].val(b))}),this.options.smartDays&&this.fillCombo("day"),this.$element.val(d.format(this.options.format)).change())}},highlight:function(a){a.isValid()?this.options.errorClass?this.$widget.removeClass(this.options.errorClass):this.$widget.find("select").css("border-color",this.borderColor):this.options.errorClass?this.$widget.addClass(this.options.errorClass):(this.borderColor||(this.borderColor=this.$widget.find("select").css("border-color")),this.$widget.find("select").css("border-color","red"))},leadZero:function(a){return 9>=a?"0"+a:a},destroy:function(){this.$widget.remove(),this.$element.removeData("combodate").show()}},a.fn.combodate=function(c){var d,e=Array.apply(null,arguments);return e.shift(),"getValue"===c&&this.length&&(d=this.eq(0).data("combodate"))?d.getValue.apply(d,e):this.each(function(){var d=a(this),f=d.data("combodate"),g="object"==typeof c&&c;f||d.data("combodate",f=new b(this,g)),"string"==typeof c&&"function"==typeof f[c]&&f[c].apply(f,e)})},a.fn.combodate.defaults={format:"DD-MM-YYYY HH:mm",template:"D / MMM / YYYY   H : mm",value:null,minYear:1970,maxYear:2015,yearDescending:!0,minuteStep:5,secondStep:1,firstItem:"empty",errorClass:null,roundTime:!0,smartDays:!1}}(window.jQuery),function(a){"use strict";var b=function(c){this.init("combodate",c,b.defaults),this.options.viewformat||(this.options.viewformat=this.options.format),c.combodate=a.fn.editableutils.tryParseJson(c.combodate,!0),this.options.combodate=a.extend({},b.defaults.combodate,c.combodate,{format:this.options.format,template:this.options.template})};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.$input.combodate(this.options.combodate),"bs3"===a.fn.editableform.engine&&this.$input.siblings().find("select").addClass("form-control"),this.options.inputclass&&this.$input.siblings().find("select").addClass(this.options.inputclass)},value2html:function(a,c){var d=a?a.format(this.options.viewformat):"";b.superclass.value2html.call(this,d,c)},html2value:function(a){return a?moment(a,this.options.viewformat):null},value2str:function(a){return a?a.format(this.options.format):""},str2value:function(a){return a?moment(a,this.options.format):null},value2submit:function(a){return this.value2str(a)},value2input:function(a){this.$input.combodate("setValue",a)},input2value:function(){return this.$input.combodate("getValue",null)},activate:function(){this.$input.siblings(".combodate").find("select").eq(0).focus()},autosubmit:function(){}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<input type="text">',inputclass:null,format:"YYYY-MM-DD",viewformat:null,template:"D / MMM / YYYY",combodate:null}),a.fn.editabletypes.combodate=b}(window.jQuery),function(a){"use strict";a.extend(a.fn.editableform.Constructor.prototype,{initButtons:function(){var b=this.$form.find(".editable-buttons");b.append(a.fn.editableform.buttons),"bottom"===this.options.showbuttons&&b.addClass("editable-buttons-bottom"),this.$form.find(".editable-submit").button({icons:{primary:"ui-icon-check"},text:!1}).removeAttr("title"),this.$form.find(".editable-cancel").button({icons:{primary:"ui-icon-closethick"},text:!1}).removeAttr("title")}}),a.fn.editableform.errorGroupClass=null,a.fn.editableform.errorBlockClass="ui-state-error",a.fn.editableform.engine="jquery-ui"}(window.jQuery),function(a){"use strict";a.extend(a.fn.editableContainer.Popup.prototype,{containerName:"tooltip",containerDataName:"ui-tooltip",innerCss:".ui-tooltip-content",defaults:a.ui.tooltip.prototype.options,splitOptions:function(){if(this.containerOptions={},this.formOptions={},!a.ui[this.containerName])return a.error('Please use jQueryUI with "tooltip" widget! http://jqueryui.com/download'),void 0;for(var b in this.options)b in this.defaults?this.containerOptions[b]=this.options[b]:this.formOptions[b]=this.options[b]},initContainer:function(){this.handlePlacement(),a.extend(this.containerOptions,{items:"*",content:" ",track:!1,open:a.proxy(function(){this.container()._on(this.container().element,{mouseleave:function(a){a.stopImmediatePropagation()},focusout:function(a){a.stopImmediatePropagation()}})},this)}),this.call(this.containerOptions),this.container()._off(this.container().element,"mouseover focusin")},tip:function(){return this.container()?this.container()._find(this.container().element):null},innerShow:function(){this.call("open");var b=this.options.title||this.$element.data("ui-tooltip-title")||this.$element.data("originalTitle");this.tip().find(this.innerCss).empty().append(a("<label>").text(b))},innerHide:function(){this.call("close")},innerDestroy:function(){},setPosition:function(){this.tip().position(a.extend({of:this.$element},this.containerOptions.position))},handlePlacement:function(){var a;switch(this.options.placement){case"top":a={my:"center bottom-5",at:"center top",collision:"flipfit"};break;case"right":a={my:"left+5 center",at:"right center",collision:"flipfit"};break;case"bottom":a={my:"center top+5",at:"center bottom",collision:"flipfit"};break;case"left":a={my:"right-5 center",at:"left center",collision:"flipfit"}}this.containerOptions.position=a}})}(window.jQuery),function(a){"use strict";var b=function(a){this.init("dateui",a,b.defaults),this.initPicker(a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{initPicker:function(b,c){this.options.viewformat||(this.options.viewformat=this.options.format),this.options.viewformat=this.options.viewformat.replace("yyyy","yy"),this.options.format=this.options.format.replace("yyyy","yy"),this.options.datepicker=a.extend({},c.datepicker,b.datepicker,{dateFormat:this.options.viewformat})},render:function(){this.$input.datepicker(this.options.datepicker),this.options.clear&&(this.$clear=a('<a href="#"></a>').html(this.options.clear).click(a.proxy(function(a){a.preventDefault(),a.stopPropagation(),this.clear()},this)),this.$tpl.parent().append(a('<div class="editable-clear">').append(this.$clear)))},value2html:function(c,d){var e=a.datepicker.formatDate(this.options.viewformat,c);b.superclass.value2html.call(this,e,d)},html2value:function(b){if("string"!=typeof b)return b;var c;try{c=a.datepicker.parseDate(this.options.viewformat,b)}catch(d){}return c},value2str:function(b){return a.datepicker.formatDate(this.options.format,b)},str2value:function(b){if("string"!=typeof b)return b;var c;try{c=a.datepicker.parseDate(this.options.format,b)}catch(d){}return c},value2submit:function(a){return this.value2str(a)},value2input:function(a){this.$input.datepicker("setDate",a)},input2value:function(){return this.$input.datepicker("getDate")},activate:function(){},clear:function(){this.$input.datepicker("setDate",null),this.isAutosubmit&&this.submit()},autosubmit:function(){this.isAutosubmit=!0,this.$input.on("mouseup","table.ui-datepicker-calendar a.ui-state-default",a.proxy(this.submit,this))},submit:function(){var a=this.$input.closest("form");setTimeout(function(){a.submit()},200)}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<div class="editable-date"></div>',inputclass:null,format:"yyyy-mm-dd",viewformat:null,datepicker:{firstDay:0,changeYear:!0,changeMonth:!0,showOtherMonths:!0},clear:"&times; clear"}),a.fn.editabletypes.dateui=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("dateuifield",a,b.defaults),this.initPicker(a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.dateui),a.extend(b.prototype,{render:function(){this.$input.datepicker(this.options.datepicker),a.fn.editabletypes.text.prototype.renderClear.call(this)},value2input:function(b){this.$input.val(a.datepicker.formatDate(this.options.viewformat,b))},input2value:function(){return this.html2value(this.$input.val())},activate:function(){a.fn.editabletypes.text.prototype.activate.call(this)},toggleClear:function(){a.fn.editabletypes.text.prototype.toggleClear.call(this)},autosubmit:function(){}}),b.defaults=a.extend({},a.fn.editabletypes.dateui.defaults,{tpl:'<input type="text"/>',inputclass:null,datepicker:{showOn:"button",buttonImage:"http://jqueryui.com/resources/demos/datepicker/images/calendar.gif",buttonImageOnly:!0,firstDay:0,changeYear:!0,changeMonth:!0,showOtherMonths:!0},clear:!1}),a.fn.editabletypes.dateuifield=b}(window.jQuery);
 });

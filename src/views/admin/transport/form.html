@@ -7,14 +7,18 @@
 
 {% if transport %}
     {% set action = 'edit&transport_id=' ~ transport.transport_id %}
+    {% set event_id = transport.event_id %}
 {% endif %}
 
+
+<h2>
 {% if transport %}
-<h2>Edytuj Opcję dojazdu</h2>
+Edytuj Opcję dojazdu
 {% else %}
-<h2>Dodaj Opcję dojazdu</h2>
+Dodaj Opcję dojazdu
 {% endif %}
-
+<a href="/wp-admin/admin.php?page=resform_transport_list&event_id={{event_id}}" class="add-new-h2">Wróc</a>
+</h2>
 
 {% if errors %}
 <div class="error">

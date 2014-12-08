@@ -6,14 +6,17 @@
 
 {% if room_type %}
     {% set action = 'edit&room_type_id=' ~ room_type.room_type_id %}
+    {% set event_id = room_type.event_id %}
 {% endif %}
 
+<h2>
 {% if room_type %}
-<h2>Edytuj Typ pokoju</h2>
+Edytuj Typ pokoju
 {% else %}
-<h2>Dodaj Typ pokoju</h2>
+Dodaj Typ pokoju
 {% endif %}
-
+<a href="/wp-admin/admin.php?page=resform_room_type_list&event_id={{event_id}}" class="add-new-h2">Wróc</a>
+</h2>
 
 {% if errors %}
 <div class="error">

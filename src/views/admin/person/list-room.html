@@ -2,7 +2,7 @@
 {% import "admin/person/_macros.html" as macros %}
 
 {% block content %}
-<h2>Osoby<a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a></h2>
+<h2>Osoby<a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a> <a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróc</a></h2>
 
 {{ macros.form(event, view) }}
 
@@ -15,7 +15,12 @@
             {{ room.occupied_space_count }} / {{ room.space_count }}
             <div class="droppable">
                 {% for person in room.persons %}
-                <div class="draggable">
+                {% if person.family_person_id %}
+                    {% set class = 'notdraggable' %}
+                {% else %}
+                    {% set class = 'draggable' %}
+                {% endif %}
+                <div class="{{ class }}">
                     <input type="hidden" name="person_id[{{ person.person_id }}]" value="{{ room.room_id }}" />
                     {{ person.first_name }} {{ person.last_name }}
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}">Edytuj</a>

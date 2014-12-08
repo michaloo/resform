@@ -1,6 +1,14 @@
 (function($) {
 
     function init() {
+        $.fn.editable.defaults.params = { action: "resform_person_inline_update"};
+        $.fn.editable.defaults.mode = 'inline';
+        $('[data-editable]').editable();
+
+        $('[data-colorpicker]').colorpicker({
+            inline: false,
+            modal: true
+        });
 
         $("#select_view [name=view]").change(function() {
             $("#select_view").submit();

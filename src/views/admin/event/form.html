@@ -9,11 +9,14 @@
     {% set action = 'edit&event_id=' ~ event.event_id %}
 {% endif %}
 
+<h2>
 {% if event %}
-<h2>Edytuj Wydarzenie</h2>
+Edytuj Wydarzenie
 {% else %}
-<h2>Dodaj nowe wydarzenie</h2>
+Dodaj nowe wydarzenie
 {% endif %}
+<a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróc</a>
+</h2>
 
 
 {% if errors %}

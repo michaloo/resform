@@ -3,7 +3,7 @@
 {% import "admin/person/_macros.html" as macros %}
 
 {% block content %}
-<h2>Osoby<a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a></h2>
+<h2>Osoby<a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a> <a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróc</a></h2>
 
 {{ macros.form(event, view) }}
 
@@ -59,7 +59,10 @@
                 <td>{{ person.city }}</td>
                 <td>{{ person.add_time|date("H:i d-m-Y") }}</td>
                 <td>{{ person.price }}</td>
-                <td>{{ person.status }}</td>
+                <td>
+                    <a href="#" data-editable data-name="notes_1" data-type="text" data-pk="{{ person.person_id }}" data-url="{{ ''|ajaxurl }}" data-title="Notatki">{{ person.status }}</a>
+                    <a href="#" data-colorpicker>K</a>
+                </td>
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>
                 </td>

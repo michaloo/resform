@@ -15,4 +15,8 @@ class Filters {
 
         return $diff->y;
     }
+
+    static function ajaxurl() {
+        return admin_url( 'admin-ajax.php' );
+    }
 }

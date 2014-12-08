@@ -7,6 +7,14 @@ var components = {
         {
             "name": "jquery-ui",
             "main": "jquery-ui-built.js"
+        },
+        {
+            "name": "colorpicker",
+            "main": "colorpicker-built.js"
+        },
+        {
+            "name": "x-editable",
+            "main": "x-editable-built.js"
         }
     ],
     "shim": {

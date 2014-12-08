@@ -23,6 +23,13 @@ class Admin {
         add_action( 'init', array($this, 'set_user'));
 
         add_action('admin_enqueue_scripts', array($this, "enqueue_script"));
+
+        add_action( 'wp_ajax_resform_person_inline_update', array($this, "person_inline_update") );
+    }
+
+    function person_inline_update() {
+        var_dump($_POST);
+        die();
     }
 
     function set_user() {
@@ -159,10 +166,19 @@ class Admin {
 
         wp_enqueue_style('resform-admin', $this->assetsUrl . 'css/admin.css');
 
-        wp_enqueue_script('jquery-fallback', includes_url() . '/js/jquery/jquery.js');
+        wp_enqueue_script('jquery-fallback', $this->assetsUrl . 'vendor/jquery/jquery.min.js');
         wp_enqueue_script('resform-jqueryui', $this->assetsUrl . 'vendor/jquery-ui/jquery-ui.min.js', array('jquery-fallback'), true);
 
+        wp_enqueue_script('resform-x-editable', $this->assetsUrl . 'vendor/x-editable/jqueryui-editable/js/jqueryui-editable.min.js', array('resform-jqueryui'), true);
+        wp_enqueue_script('resform-colorpicker', $this->assetsUrl . 'vendor/colorpicker/jquery.colorpicker.js', array('jquery-fallback'), true);
+
         wp_enqueue_script('resform-admin', $this->assetsUrl . 'js/admin.js', array('jquery-fallback'), true);
+
+        wp_register_style( 'resform-x-editable', $this->assetsUrl . 'vendor/x-editable/jqueryui-editable/css/jqueryui-editable.css');
+        wp_enqueue_style( 'resform-x-editable' );
+
+        wp_register_style( 'resform-colorpicker', $this->assetsUrl . 'vendor/colorpicker/jquery.colorpicker.css');
+        wp_enqueue_style( 'resform-colorpicker' );
     }
 
     function event_list() {
