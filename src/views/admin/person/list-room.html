@@ -9,14 +9,17 @@
 <form name="room_list" action="/wp-admin/admin.php?page=resform_person_list&event_id={{ event.event_id }}&view=room" method="post">
 
     <div id="test">
-        {% for room in rooms.data %}
+        {% for room in rooms %}
         <div class="room" data-room_id="{{ room.room_id }}">
             <span clas="name">{{ room.room_type_name }}</span>
+            {{ room.occupied_space_count }} / {{ room.space_count }}
             <div class="droppable">
                 {% for person in room.persons %}
                 <div class="draggable">
                     <input type="hidden" name="person_id[{{ person.person_id }}]" value="{{ room.room_id }}" />
-                    {{ person.first_name }} {{ person.last_name }}</div>
+                    {{ person.first_name }} {{ person.last_name }}
+                    <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}">Edytuj</a>
+                </div>
                 {% endfor %}
             </div>
         </div>

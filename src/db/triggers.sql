@@ -125,6 +125,11 @@ CREATE TRIGGER `_prefix_persons_before_insert`
             LEAVE proc;
         END IF;
 
+        -- person below third year of life doesn't take a space in a room
+        IF TIMESTAMPDIFF( YEAR, NEW.birth_date, CURDATE() ) <= 3 THEN
+            LEAVE proc;
+        END IF;
+
         SELECT _prefix_rooms_available(NEW.room_type_id, NEW.sex, NEW.family_person_id, NEW.is_family_guardian, NEW.room_id) INTO @room_id;
 
         IF @room_id IS NULL THEN
@@ -159,15 +164,24 @@ CREATE TRIGGER `_prefix_persons_before_update`
     BEFORE UPDATE ON `_prefix_persons`
     FOR EACH ROW proc:BEGIN
 
-        IF (OLD.room_id = NEW.room_id
-            AND OLD.room_type_id = NEW.room_type_id)
-            AND NEW.family_person_id IS NULL THEN
+        IF OLD.room_id = NEW.room_id AND OLD.room_type_id = NEW.room_type_id THEN
             LEAVE proc;
         END IF;
 
         IF NEW.room_id IS NULL
             AND NEW.room_type_id IS NULL
             AND NEW.family_person_id IS NULL THEN
+            LEAVE proc;
+        END IF;
+
+        -- we cannot move person who is a member of a family
+        -- IF NEW.family_person_id IS NOT NULL THEN
+        --     SET NEW.room_id = OLD.room_id;
+        --     LEAVE proc;
+        -- END IF;
+
+        -- person below third year of life doesn't take a space in a room
+        IF TIMESTAMPDIFF( YEAR, NEW.birth_date, CURDATE() ) <= 3 THEN
             LEAVE proc;
         END IF;
 
@@ -184,23 +198,15 @@ CREATE TRIGGER `_prefix_persons_before_update`
 
     END$$
 
--- trigger updates room data only for family_guardian persons
+-- trigger updates room data only for is_family_guardian persons
 CREATE TRIGGER `_prefix_persons_after_update`
     AFTER UPDATE ON `_prefix_persons`
     FOR EACH ROW proc:BEGIN
 
-        -- IF OLD.room_id = NEW.room_id THEN
-        --     LEAVE proc;
-        -- END IF;
-        --
-        -- IF NEW.family_person_id IS NULL THEN
-        --     UPDATE _prefix_rooms SET sex = NEW.sex WHERE room_id = @room_id;
-        -- END IF;
-        --
-        -- IF NEW.family_guardian = true THEN
-        --     UPDATE _prefix_rooms SET family_person_id = NEW.person_id WHERE room_id = NEW.room_id;
-        --
-        -- END IF;
+        IF OLD.room_id = NEW.room_id
+            OR NEW.is_family_guardian IS NULL THEN
+            LEAVE proc;
+        END IF;
 
         INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.person_id, "UPDATE person", @user);
 

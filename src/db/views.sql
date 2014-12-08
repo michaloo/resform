@@ -34,7 +34,7 @@ CREATE VIEW _prefix_persons_family AS
 CREATE VIEW _prefix_persons_with_age AS
     SELECT
         p.*,
-        TIMESTAMPDIFF( YEAR, p.birth_date, CURDATE( ) ) AS age
+        TIMESTAMPDIFF( YEAR, p.birth_date, CURDATE() ) AS age
     FROM _prefix_persons;
 
 

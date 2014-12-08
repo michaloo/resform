@@ -8,12 +8,15 @@
 
 .room {
     display: inline-block;
+    min-width: 20%;
+    vertical-align: top;
 }
 
 .droppable {
     /* position: absolute; */
     border: 1px solid black;
     padding: 10px;
+    min-height: 100px;
 }
 
 .droppable.over {

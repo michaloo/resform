@@ -12,7 +12,7 @@
             });
 
         $(".droppable").sortable({
-            receive: function( event, ui ) {
+            stop: function( event, ui ) {
             //     ui.helper.css('top','');
             //     ui.helper.css('left','');
             //     $(this).append(ui.helper);
