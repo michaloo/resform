@@ -411,7 +411,18 @@ class Admin {
 
         $event = $this->event->find($event_id);
 
-        $rooms = $this->room->get($event['event_id']);
+
+        $persons = $this->person->get(1000, 1, 'person_id', 'asc', $event['event_id']);
+
+        if (count($_POST) > 0) {
+            $persons_to_edit = $this->person->getPersonsToEdit($_POST["person_id"], $persons);
+
+            $this->person->updateRoomId($persons_to_edit);
+            $persons = $this->person->get(1000, 1, 'person_id', 'asc', $event['event_id']);
+        }
+
+        $rooms_list = $this->room->get($event['event_id']);
+        $rooms = $this->person->getGroupedByRooms($persons, $rooms_list);
 
         echo $this->view->render('admin/room/list.html', array(
             'rooms' => $rooms,
@@ -433,24 +444,8 @@ class Admin {
 
         $persons = $this->person->get($limit, $page, $orderby, $sort, $event['event_id']);
 
-        if (count($_POST) > 0) {
-            var_dump("EDITING");
-
-            $persons_to_edit = $this->person->getPersonsToEdit($_POST["person_id"], $persons);
-
-            $this->person->updateRoomId($persons_to_edit);
-            $persons = $this->person->get($limit, $page, $orderby, $sort, $event['event_id']);
-        }
-
-        $rooms = array();
-        if ($view === "room") {
-            $rooms_list = $this->room->get($event['event_id']);
-            $rooms = $this->person->getGroupedByRooms($persons, $rooms_list);
-        }
-
         echo $this->view->render("admin/person/list-{$view}.html", array(
             'persons' => $persons,
-            'rooms'   => $rooms,
             'event'   => $event,
             'view'    => $view
         ));
@@ -500,7 +495,7 @@ class Admin {
         $id = $_GET['person_id'];
 
         $person = $this->person->find($id);
-var_dump($person);
+
         $room_types = $this->room_type->get($person['event_id']);
         $transports = $this->transport->get($person['event_id']);
 

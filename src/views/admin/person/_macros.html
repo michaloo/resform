@@ -5,9 +5,8 @@
     <input type="hidden" name="event_id" value="{{ event.event_id }}" />
     <select name="view">
         <option value="general"{% if view == "general" %} selected{% endif %}>Lista ogólna</option>
-        <option value="room"{% if view == "room" %} selected{% endif %}>Lista "pokojowa"</option>
-        <option value="transport">Lista transportowa</option>
-        <option value="payment">Lista płatności</option>
+        <option value="transport"{% if view == "transport" %} selected{% endif %}>Lista transportowa</option>
+        <option value="payment"{% if view == "payment" %} selected{% endif %}>Lista płatności</option>
     </select>
 </form>
 
@@ -16,19 +15,34 @@
 
 {% macro details(person) %}
 
-{% if person.sex == "male" %}
-Mężczyzna
-{% else %}
-Kobieta
-{% endif %}
+    {% if person.sex == "male" %}
+    Mężczyzna,
+    {% else %}
+    Kobieta,
+    {% endif %}
+
+    {% if person.is_family_guardian %}
+    Opiekun rodziny (Członkowie: {{ person.family_members_name }}),
+    {% endif %}
+
+    {% if person.family_person_id %}
+    Członek rodziny (Opiekun: {{ person.family_guardian_name }}),
+    {% endif %}
+
+    {{ person.age }} lat
+
+{% endmacro %}
 
 
-{% if person.is_family_guardian %}
-Opiekun rodziny
-{% endif %}
-
-{% if person.family_person_id %}
-Członek rodziny
-{% endif %}
-
+{% macro pager(url, pager) %}
+<div class="tablenav-pages">
+    <span class="displaying-num">{{ pager.total_count }} items</span>
+    <span class="pagination-links">
+        <a class="first-page{% if not pager.first %} disabled{% endif %}" title="Go to the first page" href="{{ url }}">«</a>
+        <a class="prev-page{% if not pager.prev %} disabled{% endif %}" title="Go to the previous page" href="{{ url }}&page_no={{ pager.prev }}">‹</a>
+        <span class="paging-input">{{ pager.current }} of <span class="total-pages">{{ pager.count }}</span></span>
+        <a class="next-page{% if not pager.next %} disabled{% endif %}" title="Go to the next page" href="{{ url }}&page_no={{ pager.next }}">›</a>
+        <a class="last-page{% if not pager.last %} disabled{% endif %}" title="Go to the last page" href="{{ url }}&page_no={{ pager.last }}">»</a>
+    </span>
+</div>
 {% endmacro %}

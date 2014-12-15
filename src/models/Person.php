@@ -279,16 +279,34 @@ SQL;
         }
     }
 
-    function get($limit, $page, $orderby, $sort) {
+    function get($limit, $page, $orderby, $sort, $event_id) {
+
+        $offset = $limit * max((int) $page - 1, 0);
+
         $query   = <<<SQL
-            SELECT rp.*, rrt.name AS room_type_name, rrt.room_type_id FROM {$this->db->prefix}resform_persons_with_price AS rp
+            SELECT SQL_CALC_FOUND_ROWS rp.*, rrt.name AS room_type_name, rrt.room_type_id,
+            (
+                SELECT CONCAT(p.first_name, " ", p.last_name) FROM {$this->db->prefix}resform_persons AS p
+                WHERE p.person_id = rp.family_person_id
+                GROUP BY p.person_id
+            ) AS family_guardian_name,
+            (
+                SELECT GROUP_CONCAT(CONCAT(p2.first_name, " ", p2.last_name)) FROM {$this->db->prefix}resform_persons AS p2
+                WHERE p2.family_person_id = rp.person_id
+                GROUP BY p2.family_person_id
+            ) AS family_members_name
+            FROM {$this->db->prefix}resform_persons_with_price AS rp
             LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (room_type_id)
-            LIMIT 20
+            WHERE rp.event_id = {$event_id}
+            ORDER BY $orderby $sort
+            LIMIT $offset, $limit
 SQL;
 
         $results = $this->db->get_results($query, ARRAY_A);
         $total_count = $this->_getTotalCount();
+
         $pager = $this->_getPager($total_count, $limit, $page, $orderby, $sort);
+
         return array(
             'data' => $results,
             'pager' => $pager
@@ -350,8 +368,8 @@ SQL;
 SQL;
             $count = $this->db->query($query);
             array_push($errors, $this->db->last_error);
-var_dump($query, $count);
-            return $count > 0;
+            return true;
+            //return $count > 0;
         });
 
         foreach ($updated_persons as $person) {
@@ -366,7 +384,7 @@ SQL;
 
 
             $count = $this->db->query($query);
-
+            var_dump($query, $count);
             array_push($errors, $this->db->last_error);
 
             if ($person['is_family_guardian'] == 1) {
@@ -378,12 +396,12 @@ SQL;
 SQL;
 
                 $count = $this->db->query($query);
-                //var_dump($query, $count);
+                var_dump($query, $count);
                 array_push($errors, $this->db->last_error);
             }
         }
 
-        //var_dump($errors);
+        var_dump($errors);
         if (count(array_filter($errors)) === 0) {
             $this->db->query("COMMIT");
             return array();

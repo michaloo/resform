@@ -7,7 +7,7 @@
 
 {{ macros.form(event, view) }}
 
-<!-- <form name="external_author" action="/wp-admin/admin.php?page=handimania_external_authors" method="post"> -->
+<form name="external_author" action="/wp-admin/admin.php?page=handimania_external_authors" method="post">
 
     <table class="wp-list-table widefat">
         <thead>
@@ -96,6 +96,7 @@
         </div> -->
 
         {{ macros.pager('/wp-admin/admin.php?page=resform_person_list&view=' ~ view ~ '&event_id=' ~ event.event_id, persons.pager) }}
+
         <br class="clear">
 
     </div>

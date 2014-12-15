@@ -1,34 +1,58 @@
 {% extends "admin/_layout.html" %}
+{% import "admin/person/_macros.html" as macros %}
+
 
 {% block content %}
 
 <h2>Lista pokoi <a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróc</a></h2>
 
-<table class="wp-list-table widefat">
-    <tbody>
-        <thead>
-            <tr>
-                <th>Typ pokoju</th>
-                <th>Zajęte miejsca</th>
-                <th>Wolne miejsca</th>
-                <th>Płeć / rodzina</th>
-            </tr>
-        </thead>
-        {% for room in rooms %}
-        <tr>
-            <td>{{ room.room_type_name }}</td>
-            <td>{{ room.occupied_space_count }}</td>
-            <td>{{ room.space_count - room.occupied_space_count }}</td>
-            <td>
-                {% if room.family_person_id %}Pokój rodzinny{% else %}{{ room.sex }}{% endif %}
-            </td>
-            <!-- <td><a href="/wp-admin/admin.php?page=resform_room_type_edit&room_type_id={{room_type.room_type_id}}">Edytuj</a></td>
-            <td><a href="/wp-admin/admin.php?page=resform_room_type_list&delete={{room_type.room_type_id}}">Usuń</a></td> -->
-        </tr>
-        {% endfor %}
+<form name="room_list" action="/wp-admin/admin.php?page=resform_room_list&event_id={{ event.event_id }}" method="post">
 
-    </tbody>
-</table>
+    <div id="rooms">
+        {% for room in rooms %}
+        <div class="room" data-room_id="{{ room.room_id }}">
+            <div class="description">
+                <span class="name">Typ: {{ room.room_type_name }}</span>
+                <a
+                href="#"
+                data-editable
+                data-name="room_manual_number"
+                data-type="text"
+                data-pk="{{ room.room_id }}"
+                data-url="{{ ''|ajaxurl }}"
+                data-emptytext="Ustaw ręczny numer pokoju"
+                data-params='{"action": "resform_room_inline_update"}'
+                data-title="Numer nadany ręcznie">{{ room.room_manual_number }}</a>
+
+                <span class="sex">Płeć: {{ room.sex|translate }}</span>
+                <span class="space_counts">{{ room.occupied_space_count }} / {{ room.space_count }}</span>
+            </div>
+            <div class="persons_list" data-droppable>
+                {% for person in room.persons %}
+                {% if person.family_person_id %}
+                {% set class = 'family_member' %}
+                {% endif %}
+                <div class="person {{ class }}"{% if not person.family_person_id %} data-draggable{% endif %}>
+                    {% if not person.family_person_id %}
+                    <i class="fa fa-arrows" data-handle></i>
+                    {% endif%}
+
+                    <input type="hidden" name="person_id[{{ person.person_id }}]" value="{{ room.room_id }}" />
+                    <span data-tooltip title="{{ macros.details(person) }}">{{ person.first_name }} {{ person.last_name }}</span>
+                    <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}">
+                        <i class="fa fa-external-link"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <p class="submit">
+        <button class="button button-primary">Aktualizuj</button>
+    </p>
+</form>
 
 <!-- <a href="/wp-admin/admin.php?page=resform_room_type_add&event_id={{event.event_id}}">Dodaj Typ Pokoju</a> -->
 {% endblock %}
