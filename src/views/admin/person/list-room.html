@@ -8,22 +8,40 @@
 
 <form name="room_list" action="/wp-admin/admin.php?page=resform_person_list&event_id={{ event.event_id }}&view=room" method="post">
 
-    <div id="test">
+    <div id="rooms">
         {% for room in rooms %}
         <div class="room" data-room_id="{{ room.room_id }}">
-            <span clas="name">{{ room.room_type_name }}</span>
-            {{ room.occupied_space_count }} / {{ room.space_count }}
-            <div class="droppable">
+            <div class="description">
+                <span class="name">Typ: {{ room.room_type_name }}</span>
+                <a
+                    href="#"
+                    data-editable
+                    data-name="room_manual_number"
+                    data-type="text"
+                    data-pk="{{ room.room_id }}"
+                    data-url="{{ ''|ajaxurl }}"
+                    data-emptytext="Ustaw ręczny numer pokoju"
+                    data-params='{"action": "resform_room_inline_update"}'
+                    data-title="Numer nadany ręcznie">{{ room.room_manual_number }}</a>
+
+                <span class="sex">Płeć: {{ room.sex|translate }}</span>
+                <span class="space_counts">{{ room.occupied_space_count }} / {{ room.space_count }}</span>
+            </div>
+            <div class="persons_list" data-droppable>
                 {% for person in room.persons %}
                 {% if person.family_person_id %}
-                    {% set class = 'notdraggable' %}
-                {% else %}
-                    {% set class = 'draggable' %}
+                    {% set class = 'family_member' %}
                 {% endif %}
-                <div class="{{ class }}">
+                <div class="person {{ class }}"{% if not person.family_person_id %} data-draggable{% endif %}>
+                    {% if not person.family_person_id %}
+                    <i class="fa fa-arrows" data-handle></i>
+                    {% endif%}
+
                     <input type="hidden" name="person_id[{{ person.person_id }}]" value="{{ room.room_id }}" />
-                    {{ person.first_name }} {{ person.last_name }}
-                    <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}">Edytuj</a>
+                    <span data-tooltip title="{{ macros.details(person) }}">{{ person.first_name }} {{ person.last_name }}</span>
+                    <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}">
+                        <i class="fa fa-external-link"></i>
+                    </a>
                 </div>
                 {% endfor %}
             </div>
@@ -31,7 +49,9 @@
         {% endfor %}
     </div>
 
-    <button>Dodaj</button>
+    <p class="submit">
+        <button class="button button-primary">Aktualizuj</button>
+    </p>
 </form>
 
 

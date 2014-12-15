@@ -12,7 +12,7 @@ CREATE VIEW _prefix_rooms_space_count AS
     FROM _prefix_rooms AS r
     LEFT JOIN _prefix_persons_with_age AS p ON p.room_id = r.room_id AND p.age > 3
     LEFT JOIN _prefix_room_types AS rt ON r.room_type_id = rt.room_type_id
-    GROUP BY r.room_id;
+    GROUP BY r.room_id, p.sex;
 
 CREATE VIEW _prefix_room_types_space_count AS
     SELECT
@@ -35,7 +35,7 @@ CREATE VIEW _prefix_persons_with_age AS
     SELECT
         p.*,
         TIMESTAMPDIFF( YEAR, p.birth_date, CURDATE() ) AS age
-    FROM _prefix_persons;
+    FROM _prefix_persons AS p;
 
 
 CREATE VIEW _prefix_persons_with_price AS
@@ -47,7 +47,8 @@ CREATE VIEW _prefix_persons_with_price AS
             ELSE rt.price + rrt.price
         END AS price
     FROM _prefix_persons_with_age AS p
-    LEFT JOIN _prefix_room_types AS rrt USING (room_type_id)
+    LEFT JOIN _prefix_rooms AS rr USING (room_id)
+    LEFT JOIN _prefix_room_types AS rrt ON rr.room_type_id = rrt.room_type_id
     LEFT JOIN _prefix_transports AS rt USING (transport_id);
 
 CREATE VIEW _prefix_persons_with_total_price AS

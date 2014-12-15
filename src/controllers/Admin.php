@@ -25,10 +25,31 @@ class Admin {
         add_action('admin_enqueue_scripts', array($this, "enqueue_script"));
 
         add_action( 'wp_ajax_resform_person_inline_update', array($this, "person_inline_update") );
+        add_action( 'wp_ajax_resform_room_inline_update', array($this, "room_inline_update") );
     }
 
     function person_inline_update() {
-        var_dump($_POST);
+        $data = array();
+        $data[$_POST["name"]] = $_POST["value"];
+        $data["person_id"]    = $_POST["pk"];
+var_dump($data);
+        var_dump($this->person->update($data, array($_POST["name"] => 1)));
+        die();
+    }
+
+    function room_inline_update() {
+        $data = array();
+        $data[$_POST["name"]] = $_POST["value"];
+        $data["room_id"]      = $_POST["pk"];
+
+        $filtered = $this->room->input_filter($data);
+        $errors   = $this->room->validate($filtered);
+
+        if (count($errors) === 0) {
+            $to_save = $this->room->output_filter($filtered);
+            var_dump($this->room->update($to_save));
+        }
+        var_dump($filtered);
         die();
     }
 
@@ -169,16 +190,21 @@ class Admin {
         wp_enqueue_script('jquery-fallback', $this->assetsUrl . 'vendor/jquery/jquery.min.js');
         wp_enqueue_script('resform-jqueryui', $this->assetsUrl . 'vendor/jquery-ui/jquery-ui.min.js', array('jquery-fallback'), true);
 
+
         wp_enqueue_script('resform-x-editable', $this->assetsUrl . 'vendor/x-editable/jqueryui-editable/js/jqueryui-editable.min.js', array('resform-jqueryui'), true);
-        wp_enqueue_script('resform-colorpicker', $this->assetsUrl . 'vendor/colorpicker/jquery.colorpicker.js', array('jquery-fallback'), true);
-
-        wp_enqueue_script('resform-admin', $this->assetsUrl . 'js/admin.js', array('jquery-fallback'), true);
-
         wp_register_style( 'resform-x-editable', $this->assetsUrl . 'vendor/x-editable/jqueryui-editable/css/jqueryui-editable.css');
         wp_enqueue_style( 'resform-x-editable' );
 
-        wp_register_style( 'resform-colorpicker', $this->assetsUrl . 'vendor/colorpicker/jquery.colorpicker.css');
-        wp_enqueue_style( 'resform-colorpicker' );
+        wp_enqueue_script('resform-tooltipsy', $this->assetsUrl . 'vendor/tooltipsy/tooltipsy.min.js', array('jquery-fallback'), true);
+
+        wp_enqueue_script('resform-admin', $this->assetsUrl . 'js/admin.js', array('jquery-fallback'), true);
+
+        wp_register_style( 'resform-fontawesome', $this->assetsUrl . 'vendor/font-awesome/css/font-awesome.min.css');
+        wp_enqueue_style( 'resform-fontawesome' );
+        //
+        // wp_enqueue_script('resform-spectrum', $this->assetsUrl . 'vendor/spectrum/spectrum.js', array('jquery-fallback'), true);
+        // wp_register_style('resform-spectrum', $this->assetsUrl . 'vendor/spectrum/spectrum.css');
+        // wp_enqueue_style( 'resform-spectrum' );
     }
 
     function event_list() {
@@ -409,6 +435,7 @@ class Admin {
 
         if (count($_POST) > 0) {
             var_dump("EDITING");
+
             $persons_to_edit = $this->person->getPersonsToEdit($_POST["person_id"], $persons);
 
             $this->person->updateRoomId($persons_to_edit);

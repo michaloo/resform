@@ -25,12 +25,16 @@ class Filters {
             'This field is required',
             'This input must be a date having the format d-m-Y',
             'This input must be a valid email address',
-            'This input is not one of the accepted values'
+            'This input is not one of the accepted values',
+            'female',
+            'male'
         ), array(
             'To pole jest wymagane',
             'Data powinna mieć format dd-mm-rrrr',
             'Niepoprawny adres e-mail',
-            'Akceptacja jest wymagana'
+            'Akceptacja jest wymagana',
+            'żeński',
+            'męski'
         ), $string);
     }
 }

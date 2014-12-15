@@ -2020,16 +2020,16 @@ var requirejs, require, define;
 var components = {
     "packages": [
         {
+            "name": "tooltipsy",
+            "main": "tooltipsy-built.js"
+        },
+        {
             "name": "jquery",
             "main": "jquery-built.js"
         },
         {
             "name": "jquery-ui",
             "main": "jquery-ui-built.js"
-        },
-        {
-            "name": "colorpicker",
-            "main": "colorpicker-built.js"
         },
         {
             "name": "x-editable",

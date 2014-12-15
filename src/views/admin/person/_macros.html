@@ -12,3 +12,23 @@
 </form>
 
 {% endmacro %}
+
+
+{% macro details(person) %}
+
+{% if person.sex == "male" %}
+Mężczyzna
+{% else %}
+Kobieta
+{% endif %}
+
+
+{% if person.is_family_guardian %}
+Opiekun rodziny
+{% endif %}
+
+{% if person.family_person_id %}
+Członek rodziny
+{% endif %}
+
+{% endmacro %}

@@ -304,8 +304,11 @@ SQL;
         return array_pop($results);
     }
 
-    function update($data) {
-        $query = "UPDATE {$this->db->prefix}resform_persons SET {$this->getPairs($this->editable, $data)} WHERE person_id = {$data['person_id']} LIMIT 1";
+    function update($data, $editable = null) {
+        if (is_null($editable)) {
+            $editable = $this->editable;
+        }
+        $query = "UPDATE {$this->db->prefix}resform_persons SET {$this->getPairs($editable, $data)} WHERE person_id = {$data['person_id']} LIMIT 1";
         var_dump($query);
         return $this->db->query($query);
     }

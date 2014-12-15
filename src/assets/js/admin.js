@@ -1,25 +1,31 @@
 (function($) {
 
     function init() {
-        $.fn.editable.defaults.params = { action: "resform_person_inline_update"};
         $.fn.editable.defaults.mode = 'inline';
         $('[data-editable]').editable();
+        // $('[data-colorpicker]').colorpicker({
+        //     inline: false,
+        //     modal: true
+        // });
 
-        $('[data-colorpicker]').colorpicker({
-            inline: false,
-            modal: true
-        });
+        $('[data-tooltip]').tooltipsy();
+
 
         $("#select_view [name=view]").change(function() {
             $("#select_view").submit();
         });
 
-        $(".draggable").draggable({
-            revert: "invalid", snap: "true", snapMode: "inner",
-            connectToSortable: ".droppable"
-            });
+        $("[data-draggable]").draggable({
+            revert: "invalid",
+            snap: "true",
+            snapMode: "inner",
+            connectToSortable: "[data-droppable]",
+            handle: "[data-handle]",
+            cursorAt: { left: 5 }
+        });
 
-        $(".droppable").sortable({
+        $("[data-droppable]").sortable({
+            handle: ".non-existing-handle",
             stop: function( event, ui ) {
             //     ui.helper.css('top','');
             //     ui.helper.css('left','');

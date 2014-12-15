@@ -164,7 +164,7 @@ CREATE TRIGGER `_prefix_persons_before_update`
     BEFORE UPDATE ON `_prefix_persons`
     FOR EACH ROW proc:BEGIN
 
-        IF OLD.room_id = NEW.room_id AND OLD.room_type_id = NEW.room_type_id THEN
+        IF OLD.room_id <=> NEW.room_id AND OLD.room_type_id <=> NEW.room_type_id THEN
             LEAVE proc;
         END IF;
 

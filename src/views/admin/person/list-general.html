@@ -27,7 +27,7 @@
         </thead>
         <tbody>
             {% for person in persons.data %}
-            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color %}style="background-color: {{ person.color }}"{% endif %}>
+            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_1 %}style="background-color: {{ person.color_1 }}"{% endif %}>
 
                 <td>
                 {% if person.family_guardian %}
@@ -51,7 +51,7 @@
                 {% endif %}
                 </td>
 
-                <td>{{ person.first_name }}</td>
+                <td data-tooltip title="{{ macros.details(person) }}">{{ person.first_name }}</td>
                 <td>{{ person.last_name }}</td>
                 <td>{{ person.email }}</td>
                 <td>{{ person.age }}</td>
@@ -60,8 +60,28 @@
                 <td>{{ person.add_time|date("H:i d-m-Y") }}</td>
                 <td>{{ person.price }}</td>
                 <td>
-                    <a href="#" data-editable data-name="notes_1" data-type="text" data-pk="{{ person.person_id }}" data-url="{{ ''|ajaxurl }}" data-title="Notatki">{{ person.status }}</a>
-                    <a href="#" data-colorpicker>K</a>
+                    <a
+                        href="#"
+                        data-editable
+                        data-name="notes_1"
+                        data-type="text"
+                        data-pk="{{ person.person_id }}"
+                        data-url="{{ ''|ajaxurl }}"
+                        data-emptytext="Notatki"
+                        data-params='{"action": "resform_person_inline_update"}'
+                        data-title="Notatki">{{ person.notes_1 }}</a>
+                    <!-- <input data-colorpicker value="{{ person.color_1 }}" /> -->
+                    <!-- <input type="color"> -->
+                    <a
+                        href="#"
+                        data-name="color_1"
+                        data-pk="{{ person.person_id }}"
+                        data-url="{{ ''|ajaxurl }}"
+                        data-editable
+                        data-savenochange="true"
+                        data-tpl='<input type="color">'
+                        data-params='{"action": "resform_person_inline_update"}'
+                        data-type="tel">{{ person.color_1 }}</a>
                 </td>
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>
