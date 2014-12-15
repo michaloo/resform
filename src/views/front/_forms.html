@@ -1,12 +1,25 @@
-{% macro label_input(display_name, type, name, value, error, placeholder, classes) %}
-    <label class="{{ classes|default('two-line main') }}{% if error %} error{% endif %}">
-        {% if error %}
-        <span class="error_desc">{{ error.0 }}</span>
-        {% endif %}
-        <span>{{ display_name }}</span>
+{% macro start(display_name, error, description, classes) %}
+<label class="field {{ classes|default('') }}{% if error %} with_error{% endif %}">
+    <span class="name">{{ display_name }}</span>
+    {% if error %}
+    <span class="error">{{ error.0|translate }}</span>
+    {% endif %}
+    {% if description %}
+    <span class="description">{{ description }}</span>
+    {% endif %}
+{% endmacro %}
+
+{% macro end() %}
+</label>
+{% endmacro %}
+
+{% macro label_input(display_name, type, name, value, error, placeholder, description, classes) %}
+    {% import _self as forms %}
+    {{ forms.start(display_name, error, description, classes) }}
         <input
             type="{{ type }}"
             name="{{ name }}"
+            class="input"
             value="{{ value }}"{% if placeholder %} placeholder="{{ placeholder }}"{% endif %}>
     </label>
 {% endmacro %}

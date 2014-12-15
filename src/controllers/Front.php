@@ -78,6 +78,7 @@ class Front {
                     default:
                     case 0:
                         $template = 'page1-general-info.html';
+                        $_SESSION = array();
                         break;
 
                     case 1:

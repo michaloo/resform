@@ -1,12 +1,14 @@
 
 <form action="{{ action_url }}" method="post" class="resform">
+    <h2>Szczegóły zapisów</h2>
+
     <input type="hidden" name="step" value="3">
-    <div>{{ event.room_type_info }}</div>
-    <label class="two-line main{% if errors.room_type_id %} error{% endif %}">
+    <label class="field separated_more{% if errors.room_type_id %} with_error{% endif %}">
+        <span class="name">Typ pokoju (liczba wolnych miejsc):</span>
+        <div class="description">{{ event.room_type_info|nl2br }}</div>
         {% if errors.room_type_id %}
-        <span class="error_desc">{{ errors.room_type_id.0 }}</span>
+        <span class="error">{{ errors.room_type_id.0|translate }}</span>
         {% endif %}
-        <span>Typ pokoju (liczba wolnych miejsc):</span>
         <select name="room_type_id" id="room_type">
             <option value="">Wybierz typ pokoju</option>
             {% for room_type in room_types %}
@@ -17,12 +19,12 @@
         </select>
     </label>
 
-    <div>{{ event.transport_info }}</div>
-    <label class="two-line main{% if errors.transport_id %} error{% endif %}">
+    <label class="field separated_more{% if errors.transport_id %} with_error{% endif %}">
+        <span class="name">Transport:</span>
+        <div class="description">{{ event.transport_info|nl2br }}</div>
         {% if errors.transport_id %}
-        <span class="error_desc">{{ errors.transport_id.0 }}</span>
+        <span class="error">{{ errors.transport_id.0|translate }}</span>
         {% endif %}
-        <span>Transport:</span>
         <select name="transport_id" id="room_type">
             <option value="">Wybierz typ transportu</option>
             {% for transport in transports %}
@@ -31,11 +33,15 @@
         </select>
     </label>
 
-    <label class="two-line main{% if errors.comments %} error{% endif %}">
-        <span>Uwagi/komentarze:</span>
-        <textarea name="comments"></textarea>
+    <label class="field{% if errors.comments %} with_error{% endif %}">
+        <span class="name">Uwagi/komentarze:</span>
+        <p class="description">Jeżeli chciałbyś dzielić z kimś pokój i wybraliście ten sam typ pokoju, wpisz imię i nazwisko tej osoby, a my w miarę możliwości postaramy się zakwaterować Was wspólnie. Możesz też wpisać tutaj inne uwagi.</p>
+        <textarea class="text" name="comments"></textarea>
     </label>
 
-    <button>Idź dalej</button>
-    <button name="step" value="1">Wróc do poprzedniego kroku</button>
+    <fieldset class="submit">
+        <button class="button">Idź dalej</button>
+        <button class="button" name="step" value="1">Wróc do poprzedniego kroku</button>
+        <button class="button" name="step" value="0">Zacznij od początku</button>
+    </fieldset>
 </form>

@@ -8,21 +8,40 @@
     height: auto;
 }
 
-.resform label.two-line {
+.resform .field {
     display: block;
 }
 
-.resform label.two-line span {
+.resform .field.separated {
+    margin-bottom: 1vh;
+}
+
+.resform .field.separated_more {
+    margin-bottom: 3vh;
+}
+
+.resform .field .name {
     display: inline-block;
     width: 100%;
 }
 
-.resform label.two-line input {
+.resform .field .input {
     width: 70%;
 }
 
-.resform .main {
+.resform .field .name {
     font-weight: bold;
+}
+
+.resform .field.short {
+    display: inline;
+    width: auto;
+}
+
+.resform .field.full .name,
+.resform .field.short .name {
+    display: inline;
+    width: auto;
 }
 
 .resform h1,
@@ -33,11 +52,6 @@
 
 .resform hr {
     border-top: 1px solid black;
-}
-
-.resform .one-line {
-    display: inline-block;
-    width: 100%;
 }
 
 
@@ -56,7 +70,7 @@
     border-top: 1px solid black;
 }
 
-.resform button {
+.resform .button {
     font-size: 0.875em;
     line-height: 2.2857em;
     padding: 0.2em 0.75em;
@@ -72,15 +86,37 @@
     line-height: 1em;
 }
 
-.resform .error {
-    border: 1px solid red;
+.resform .field.with_error {
+    /* border: 1px solid red; */
 }
 
-.resform .error .error_desc {
+.resform .field.with_error .error {
+    color: red;
     display: block;
 }
 
 
-.resform label textarea {
+.resform .text {
     width: 100%;
+}
+
+.resform .field .choice {
+    width: 49%;
+    display: inline-block;
+    text-align: center;
+}
+
+.resform .family_member {
+    margin-bottom: 2vh;
+    border-bottom: 1px solid black;
+    padding-bottom: 2vh;
+}
+
+.resform .family_member .field {
+    width: 49%;
+    display: inline-block;
+}
+
+.resform .family_member .field.date {
+    width: 53%;
 }

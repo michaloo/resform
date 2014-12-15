@@ -21,9 +21,13 @@ class Person extends \Resform\Lib\Model {
 
         'is_disabled'     => 'boolify',
         'disability_type' => 'stringtrim | nullify',
+        'has_stairs_accessibility' => 'stringtrim | nullify',
+        'guardian_person_name' => 'stringtrim | nullify',
 
         'is_disabled_guardian'     => 'boolify',
-        'has_stairs_accessibility' => 'boolify',
+        'disabled_person_name' => 'stringtrim | nullify',
+
+        'is_underaged_guardian' => 'boolify',
 
         'family_first_name[*]'    => 'cleanarray',
         'family_last_name[*]'     => 'cleanarray',
@@ -40,17 +44,24 @@ class Person extends \Resform\Lib\Model {
         'sex'        => array('required | inlist({"list":["male","female"]})'),
         'first_name' => array("required"),
         'last_name'  => array("required"),
-        'birth_date' => array('required | Datetime({"format":"d-m-Y"})(Błędny format daty)()'),
-        'email'      => array("required"),
+        'birth_date' => array('required | Datetime({"format":"d-m-Y"})'),
+        'email'      => array("required | Email"),
         'phone'      => array("required"),
         'city'       => array("required"),
 
         'is_disabled'     => array("required"),
         'disability_type' => array('requiredWhen({"item":"is_disabled","rule":"Equal","rule_options":{"value":true}})'),
+        'has_stairs_accessibility' => array('requiredWhen({"item":"is_disabled","rule":"Equal","rule_options":{"value":true}})'),
+        'guardian_person_name' => array('requiredWhen({"item":"is_disabled","rule":"Equal","rule_options":{"value":true}})'),
+
+        'is_disabled_guardian' => array("required"),
+        'disabled_person_name' => array('requiredWhen({"item":"is_disabled_guardian","rule":"Equal","rule_options":{"value":true}})'),
+
+        'is_underaged_guardian' => array("required"),
 
         'family_first_name[*]' => array("required"),
         'family_last_name[*]'  => array("required"),
-        'family_birth_date[*]' => array('required | Datetime({"format":"d-m-Y"})(Błędny format daty)()'),
+        'family_birth_date[*]' => array('required | Datetime({"format":"d-m-Y"})'),
 
         'room_type_id' => array("required"),
         'transport_id' => array("required"),
@@ -94,8 +105,12 @@ class Person extends \Resform\Lib\Model {
 
             'is_disabled',
             'disability_type',
-            'is_disabled_guardian',
             'has_stairs_accessibility',
+            'guardian_person_name',
+            'is_disabled_guardian',
+            'disabled_person_name',
+
+            'is_underaged_guardian',
 
             'family_first_name[*]',
             'family_last_name[*]',

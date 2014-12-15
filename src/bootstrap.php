@@ -28,6 +28,9 @@ $container['view'] = function ($c) {
     $filter = new Twig_SimpleFilter('ajaxurl', array('\Resform\Lib\Filters', 'ajaxurl'));
     $twig->addFilter($filter);
 
+    $filter = new Twig_SimpleFilter('translate', array('\Resform\Lib\Filters', 'translate'));
+    $twig->addFilter($filter);
+
     return $twig;
 };
 

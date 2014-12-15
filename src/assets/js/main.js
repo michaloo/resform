@@ -28,11 +28,11 @@
     }
 
     function family() {
-        var $fieldset = $("#family_fieldset"),
+        var $fieldset = $("#family"),
             $template = $("#family_template").html().trim(),
             $button   = $("#family_button");
 
-        $fieldset.on("click", ".family_remove", function(ev) {
+        $fieldset.on("click", "[data-family-remove]", function(ev) {
             console.log(ev);
             $(ev.currentTarget).parent().remove();
         });
@@ -56,7 +56,7 @@
 
             count  = Math.max(first_names.length, last_names.length, birth_dates.length);
 
-        var $fieldset = $("#family_fieldset"),
+        var $fieldset = $("#family"),
             $template = $("#family_template").html().trim()
 
         for (var i = 0; i < count; i ++) {

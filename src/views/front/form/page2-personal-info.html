@@ -5,20 +5,17 @@
 
     <fieldset>
         <h2>Dane osobowe</h2>
-        <fieldset class="one-line{% if errors.sex %} error{% endif %}">
-            {% if errors.sex %}
-            <span class="error_desc">{{ errors.sex.0 }}</span>
-            {% endif %}
-            <label class="main">Płeć:</label>
-            <label>
+
+        {{ forms.start("Płeć:", errors.sex, '', '') }}
+            <label class="choice">
                 <span>Kobieta:</span>
                 <input type="radio" name="sex" value="female"{% if values.sex == 'female' %} checked{% endif %}>
             </label>
-            <label>
+            <label class="choice">
                 <span>Mężczyzna:</span>
                 <input type="radio" name="sex" value="male"{% if values.sex == 'male' %} checked{% endif %}>
             </label>
-        </fieldset>
+        {{ forms.end() }}
 
         {{ forms.label_input('Imię:', 'text', 'first_name', values.first_name, errors.first_name) }}
 
@@ -36,76 +33,82 @@
     <h2>Informacje dodatkowe</h2>
     <fieldset>
         <h3>Osoba niepełnosprawna/opiekun osoby niepełnosprawnej</h3>
-        <p>W przypadku osób niepełnosprawnych oraz ich opiekunów, proszę podać imię i nazwisko opiekuna / osoby niepełnosprawnej, którą się opiekujesz - ułatwi to nam przydzielenie do wspólnego pokoju.</p>
-        <label class="main two-line">Jestem:</label>
-        <label class="one-line">
-            <span>osobą niepełnosprawną:</span>
+        <p class="description">W przypadku osób niepełnosprawnych oraz ich opiekunów, proszę podać imię i nazwisko opiekuna / osoby niepełnosprawnej, którą się opiekujesz - ułatwi to nam przydzielenie do wspólnego pokoju.</p>
+        <label class="field">Jestem:</label>
+        <label class="field full">
+            <span class="name">osobą niepełnosprawną:</span>
             <input type="hidden" name="is_disabled" value="0" />
             <input type="checkbox" name="is_disabled" value="1"
                 data-set-id="disabled_set"
                 {% if values.is_disabled == '1' %} checked{% endif %}>
         </label>
-        <label>
-            <span>opiekunem osoby niepełnosprawnej:</span>
+        <label class="field full separated">
+            <span class="name">opiekunem osoby niepełnosprawnej:</span>
             <input type="hidden" name="is_disabled_guardian" value="0" />
             <input type="checkbox" name="is_disabled_guardian" value="1"
                 data-set-id="disabled_guardian_set"
-                {% if values.disabled_guardian == '1' %} checked{% endif %}>
+                {% if values.is_disabled_guardian == '1' %} checked{% endif %}>
         </label>
 
         <fieldset id="disabled_set" class="optional" disabled>
-            {{ forms.label_input('Stopień/rodzaj niepełnosprawności:', 'text', 'disability_type', values.disability_type, errors.disability_type) }}
-            {# <label>
-                <span>Stopień/rodzaj niepełnosprawności:</span>
-                <input type="text" name="disability_type" value="{{ values.disability_type }}">
-            </label> #}
+            {{ forms.label_input('Stopień/rodzaj niepełnosprawności:', 'text', 'disability_type', values.disability_type, errors.disability_type, '', '') }}
 
-            <label>Czy możesz chodzić po schodach?</label>
-            <label>
-                <span>tak</span>
+            {{ forms.start("Czy możesz chodzić po schodach?", errors.has_stairs_accessibility, '', '') }}
+
+            <label class="choice">
+                <span>tak:</span>
                 <input type="radio" name="has_stairs_accessibility" value="1"
                     {% if values.has_stairs_accessibility == '1' %} checked{% endif %}>
             </label>
 
-            <label>
-                <span>nie</span>
+            <label class="choice">
+                <span>nie:</span>
                 <input type="radio" name="has_stairs_accessibility" value="0"
                     {% if values.has_stairs_accessibility == '0' %} checked{% endif %}>
             </label>
+            {{ forms.end() }}
 
-            <label>
-                <span>Imię i nazwisko opiekuna:</span>
-                <input type="text" name="guardian_person_name" value="{{ values.guardian_person_name }}">
-            </label>
+            {{ forms.label_input(
+                'Imię i nazwisko opiekuna:',
+                'text',
+                'guardian_person_name',
+                values.guardian_person_name,
+                errors.guardian_person_name,
+                '',
+                '') }}
         </fieldset>
 
         <fieldset id="disabled_guardian_set" class="optional" disabled>
-            <label>
-                <span>Imię i nazwisko osoby niepełnosprawnej, którą się opiekuję:</span>
-                <input type="text" name="disabled_person_name">
-            </label>
+            {{ forms.label_input('Imię i nazwisko osoby niepełnosprawnej, którą się opiekuję:', 'text', 'disabled_person_name', values.disabled_person_name, errors.disabled_person_name, '', '') }}
         </fieldset>
     </fieldset>
 
     <fieldset>
         <h3>Niepełnoletni uczestnicy i ich opiekunowie</h3>
-        <p></p>
-        <label>
-            <span class="main">Jestem osobą niepełnoletnią, będę na wyjeździe bez opieki rodziców/prawnych opiekunów:</span>
-            <input type="checkbox" name="underaged" value="alone">
+
+        <label class="field full separated">
+            <span class="name">Jestem osobą niepełnoletnią, będę na wyjeździe bez opieki rodziców/prawnych opiekunów:</span>
+            <input type="hidden" name="underaged" value="no" />
+            <input type="checkbox" name="underaged" value="alone"
+                {% if values.underaged == 'alone' %} checked{% endif %}>
             <span class="description">W rekolekcjach mogą wziąć udział osoby niepełnoletnie bez opieki i obecności rodziców/prawnych opiekunów. Muszą jednak mieć co najmniej 16 lat i przesłać do Organizatora zgodę rodziców/prawnych opiekunów na udział ich dziecka/podopiecznego w rekolekcjach - pismo do uzupełnienia i podpisania zostanie wysłane w mailu potwierdzającym zapis. Zgodę należy przesłać jako skan na adres zapisyrekolekcje@gmail.com w ciągu 3 dni od zapisu, oryginał natomiast uczestnik rekolekcji przekaże Organizatorowi przy zakwaterowaniu.</span>
         </label>
 
-        <label>
-            <span class="main">Jestem osobą niepełnoletnią, wezmę udział w rekolekcjach z opiekunem, który nie jest moim rodzicem/opiekunem prawnym</span>
-            <input type="checkbox" name="is_underaged_guardian" value="with_guardian">
+        <label class="field full separated">
+            <span class="name">Jestem osobą niepełnoletnią, wezmę udział w rekolekcjach z opiekunem, który nie jest moim rodzicem/opiekunem prawnym</span>
+            <input type="hidden" name="is_underaged_guardian" value="0" />
+            <input type="checkbox" name="is_underaged_guardian" value="1"
+                {% if values.is_underaged_guardian == '1' %} checked{% endif %}>
             <span class="description">Jeżeli nieletni uczestnik bierze udział w rekolekcjach pod opieką osoby niebędącej jego rodzicem/opiekunem prawnym, zobowiązany jest przesłać do Organizatora zgodę rodziców/prawnych opiekunów na udział ich dziecka/podopiecznego w rekolekcjach oraz wskazanie opiekuna - pismo do uzupełnienia i podpisania zostanie wysłane w mailu potwierdzającym zapis. Zgodę należy przesłać jako skan na adres: zapisyrekolekcje@gmail.com w ciągu 3 dni od zapisu, oryginał natomiast uczestnik rekolekcji przekaże Organizatorowi przy zakwaterowaniu. Jeśli dotyczy to Państwa, prosimy również o zaznaczenie odpowiedniego pola poniżej.</span>
         </label>
 
         <fieldset>
-            <label>
-                <span class="main">Jestem opiekunem osoby niepełnoletniej</span>
-                <span>Wpisz imię i nazwisko osoby, za którą bierzesz odpowiedzialność:</span>
+            <label class="field full separated">
+                <span class="name">Jestem opiekunem osoby niepełnoletniej</span>
+                <span class="description">Wpisz imię i nazwisko osoby, za którą bierzesz odpowiedzialność:</span>
+                {% if errors.underaged_person_name %}
+                <span class="error">{{ errors.underaged_person_name.0 }}</span>
+                {% endif %}
                 <input type="text" name="underaged_person_name" value="{{ values.underaged_person_name }}">
             </label>
         </fieldset>
@@ -114,23 +117,26 @@
 
     <fieldset id="family_fieldset">
         <h3>Członkowie rodziny</h3>
-        <button id="family_button">Dodaj członka rodziny/dziecko</button>
+
+        <div id="family"></div>
+
+        <button id="family_button" class="button">Dodaj członka rodziny/dziecko</button>
 
         <div style="display: none;" id="family_template">
-            <fieldset disabled>
-                <label data-name="first_name">
-                    <span>Imię:</span>
+            <fieldset class="family_member" disabled>
+                <label class="field" data-name="first_name">
+                    <span class="name">Imię:</span>
                     <input type="text" name="family_first_name[]" value="">
                 </label>
-                <label data-name="last_name">
-                    <span>Nazwisko:</span>
+                <label class="field" data-name="last_name">
+                    <span class="name">Nazwisko:</span>
                     <input type="text" name="family_last_name[]" value="">
                 </label>
-                <label data-name="birth_date">
-                    <span>Data urodzenia:</span>
+                <label class="field" data-name="birth_date">
+                    <span class="name">Data urodzenia:</span>
                     <input type="text" name="family_birth_date[]" value="">
                 </label>
-                <label class="family_remove">Usuń</label>
+                <label data-family-remove class="button">Usuń tę osobę</label>
             </fieldset>
         </div>
         <script id="family_data">
@@ -140,17 +146,17 @@
                 birth_dates: {{ values.family_birth_date|json_encode()|raw }},
                 first_names_errors: [
                     {% for i, b in values.family_first_name %}
-                    '{{ errors['family_first_name[' ~ i ~ ']'].0 }}',
+                    '{{ errors['family_first_name[' ~ i ~ ']'].0|translate }}',
                     {% endfor %}
                 ],
                 last_name_errors: [
                     {% for i, b in values.family_last_name %}
-                    '{{ errors['family_last_name[' ~ i ~ ']'].0 }}',
+                    '{{ errors['family_last_name[' ~ i ~ ']'].0|translate }}',
                     {% endfor %}
                 ],
                 birth_date_errors: [
                     {% for i, b in values.family_birth_date %}
-                    '{{ errors['family_birth_date[' ~ i ~ ']'].0 }}',
+                    '{{ errors['family_birth_date[' ~ i ~ ']'].0|translate }}',
                     {% endfor %}
                 ]
             };
@@ -158,7 +164,7 @@
     </fieldset>
 
     <fieldset class="submit">
-        <button>Idź dalej</button>
-        <button name="step" value="0">Wróc do poprzedniego kroku</button>
+        <button class="button">Idź dalej</button>
+        <button class="button" name="step" value="0">Zacznij od początku</button>
     </fieldset>
 </form>

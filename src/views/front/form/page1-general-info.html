@@ -1,10 +1,11 @@
 
 <form action="{{ action_url }}" method="post" class="resform">
     <h2>{{ event.name }}</h2>
-    <div>
-        <h3>Informacje</h3>
-        {{ event.front_info }}
+    <div class="description">
+        {{ event.front_info|nl2br }}
     </div>
-    <input type="hidden" name="step" value="1">
-    <button>Przejdź do zapisów</button>
+    <fieldset class="submit">
+        <input type="hidden" name="step" value="1">
+        <button class="button">Przejdź do zapisów</button>
+    </fieldset>
 </form>
