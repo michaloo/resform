@@ -3,7 +3,15 @@
         <th scope="row">{{ display_name }}</th>
         <td>
             <label for="{{ name }}">
-                <input id="{{ name }}" type="{{ type|default('text') }}" name="{{ name }}" value="{{ value|e }}" placeholder="{{ placeholder }}" />
+                <input
+                    id="{{ name }}"
+                    type="{{ type|default('text') }}"
+                    {% if type == 'number' %}
+                    step="any"
+                    {% endif %}
+                    name="{{ name }}"
+                    value="{{ value|e }}"
+                    placeholder="{{ placeholder }}" />
             </label>
         </td>
     </tr>

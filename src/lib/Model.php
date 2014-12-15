@@ -64,7 +64,7 @@ abstract class Model {
                 return ($data[$key] == true) ? 'true' : 'false';
             }
 
-            $value = mysqli_real_escape_string($this->db->dbh, $data[$key]);
+            $value = mysqli_real_escape_string($this->db->dbh, stripslashes_deep($data[$key]));
 
             if (! $value) {
                 return 'NULL';
@@ -93,7 +93,7 @@ abstract class Model {
 
     protected function _getLastId() {
         $id = $this->db->insert_id;
-        var_dump($id);
+        //var_dump($id);
         return $id;
     }
 

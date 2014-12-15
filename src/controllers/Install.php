@@ -47,7 +47,7 @@ class Install {
             "DELIMITER $$",
             "DELIMITER ;",
             "$$",
-            "_prefix_",
+            "wp_resform_",
             "CREATE"
         ), array(
             "",

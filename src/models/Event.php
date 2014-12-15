@@ -66,7 +66,7 @@ class Event extends \Resform\Lib\Model {
             GROUP BY event_id
             LIMIT 20";
 
-        var_dump($query);
+        //var_dump($query);
         $results = $this->db->get_results($query, ARRAY_A);
 
         $total_count = $this->_getTotalCount();
@@ -92,7 +92,7 @@ class Event extends \Resform\Lib\Model {
         $query = "INSERT INTO
         {$this->db->prefix}resform_events ({$this->getKeys($this->validators)})
             VALUES ({$this->getValues($this->validators, $data)})";
-        var_dump($query, $data);
+        //var_dump($query, $data);
         $result = $this->db->query($query);
         $event_id = $this->_getLastId();
         $this->_saveTemplate('success_mail_template', $data['success_mail_template'], $event_id);
@@ -101,7 +101,7 @@ class Event extends \Resform\Lib\Model {
 
     function update($data) {
         $query = "UPDATE {$this->db->prefix}resform_events SET {$this->getPairs($this->validators, $data)} WHERE event_id = {$data['event_id']} LIMIT 1";
-        var_dump($query, $data);
+        //var_dump($query, $data);
         $this->_saveTemplate('success_mail_template', $data['success_mail_template'], $data['event_id']);
         return $this->db->query($query);
     }
@@ -119,7 +119,7 @@ class Event extends \Resform\Lib\Model {
 
     function delete($id) {
         $query = "DELETE FROM {$this->db->prefix}resform_events WHERE event_id = {$id} LIMIT 1";
-        var_dump($query);
+        //var_dump($query);
         return $this->db->query($query);
     }
 

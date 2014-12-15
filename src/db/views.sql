@@ -2,6 +2,7 @@
 CREATE VIEW _prefix_rooms_space_count AS
     SELECT
         rt.event_id,
+        rt.price,
         r.*,
         count(p.person_id) AS occupied_space_count,
         rt.space_count,
@@ -19,6 +20,7 @@ CREATE VIEW _prefix_room_types_space_count AS
         event_id,
         room_type_id,
         room_type_name,
+        price,
         SUM(occupied_space_count) AS occupied_space_count,
         SUM(free_space_count) AS free_space_count
     FROM _prefix_rooms_space_count GROUP BY room_type_id;
@@ -58,6 +60,6 @@ CREATE VIEW _prefix_persons_with_total_price AS
             SELECT SUM(rc.price) FROM _prefix_persons_with_price AS rc
             WHERE rc.family_person_id = p.person_id
             GROUP BY rc.family_person_id
-        ) AS price_children
+        ) AS price_family
     FROM _prefix_persons_with_price AS p
     WHERE p.family_person_id IS NULL

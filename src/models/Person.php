@@ -148,7 +148,7 @@ class Person extends \Resform\Lib\Model {
             $this->step_validators[$step]->validate($data);
             $errors = $this->step_validators[$step]->getMessages();
 
-            var_dump('<pre>', $errors, '</pre>');
+            //var_dump('<pre>', $errors, '</pre>');
 
         } else {
             $errors = $this->validate($data);
@@ -229,7 +229,7 @@ class Person extends \Resform\Lib\Model {
             {$sql_values}
         );
 SQL;
-        var_dump($query);
+        //var_dump($query);
         //$this->db->show_errors();
         $this->db->query("START TRANSACTION");
         $errors = array();
@@ -263,12 +263,19 @@ SQL;
             array_push($errors, $this->db->last_error);
         }
         var_dump($errors);
+
         if (count(array_filter($errors)) === 0) {
             $this->db->query("COMMIT");
-            return array();
+            return array(
+                'person_id' => $family_person_id,
+                'errors' => array()
+            );
         } else {
             $this->db->query("ROLLBACK");
-            return $errors;
+            return array(
+                'person_id' => $family_person_id,
+                'errors'    => $errors
+            );
         }
     }
 
@@ -298,7 +305,21 @@ SQL;
             WHERE person_id = $id LIMIT 1
         ";
 
-        var_dump($query);
+        //var_dump($query);
+
+        $results = $this->db->get_results($query, ARRAY_A);
+        return array_pop($results);
+    }
+
+    function getPriceForId($id) {
+
+        $query = "
+        SELECT *
+        FROM {$this->db->prefix}resform_persons_with_total_price
+        WHERE person_id = $id LIMIT 1
+        ";
+
+        //var_dump($query);
 
         $results = $this->db->get_results($query, ARRAY_A);
         return array_pop($results);
@@ -309,7 +330,7 @@ SQL;
             $editable = $this->editable;
         }
         $query = "UPDATE {$this->db->prefix}resform_persons SET {$this->getPairs($editable, $data)} WHERE person_id = {$data['person_id']} LIMIT 1";
-        var_dump($query);
+        //var_dump($query);
         return $this->db->query($query);
     }
 
@@ -357,12 +378,12 @@ SQL;
 SQL;
 
                 $count = $this->db->query($query);
-var_dump($query, $count);
+                //var_dump($query, $count);
                 array_push($errors, $this->db->last_error);
             }
         }
 
-        var_dump($errors);
+        //var_dump($errors);
         if (count(array_filter($errors)) === 0) {
             $this->db->query("COMMIT");
             return array();

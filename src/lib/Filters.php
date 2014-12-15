@@ -20,6 +20,10 @@ class Filters {
         return admin_url( 'admin-ajax.php' );
     }
 
+    static function format_price($value) {
+        return str_replace(".", ",", money_format('%.2n', $value));
+    }
+
     static function translate($string) {
         return str_replace(array(
             'This field is required',

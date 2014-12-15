@@ -4,7 +4,7 @@
 
     <input type="hidden" name="step" value="3">
     <label class="field separated_more{% if errors.room_type_id %} with_error{% endif %}">
-        <span class="name">Typ pokoju (liczba wolnych miejsc):</span>
+        <span class="name">Typ pokoju:</span>
         <div class="description">{{ event.room_type_info|nl2br }}</div>
         {% if errors.room_type_id %}
         <span class="error">{{ errors.room_type_id.0|translate }}</span>
@@ -14,7 +14,9 @@
             {% for room_type in room_types %}
             <option value="{{ room_type.room_type_id }}"
             {#{% if room_type.disabled == 0 %} disabled{% endif %}#}
-            {% if values.room_type_id == room_type.room_type_id %} selected{% endif %}>{{ room_type.name }} ({{ room_type.free_space_count }})</option>
+            {% if values.room_type_id == room_type.room_type_id %} selected{% endif %}>{{ room_type.name }}{# ({{ room_type.free_space_count }})#}
+            ({{ room_type.price|format_price }} PLN)
+            </option>
             {% endfor %}
         </select>
     </label>
@@ -28,7 +30,9 @@
         <select name="transport_id" id="room_type">
             <option value="">Wybierz typ transportu</option>
             {% for transport in transports %}
-            <option value="{{ transport.transport_id }}"{% if values.transport_id == transport.transport_id %} selected{% endif %}>{{ transport.name }}</option>
+            <option value="{{ transport.transport_id }}"{% if values.transport_id == transport.transport_id %} selected{% endif %}>{{ transport.name }}
+                ({{ transport.price|format_price }} PLN)
+            </option>
             {% endfor %}
         </select>
     </label>

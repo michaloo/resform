@@ -31,11 +31,16 @@ $container['view'] = function ($c) {
     $filter = new Twig_SimpleFilter('translate', array('\Resform\Lib\Filters', 'translate'));
     $twig->addFilter($filter);
 
+    $filter = new Twig_SimpleFilter('format_price', array('\Resform\Lib\Filters', 'format_price'));
+    $twig->addFilter($filter);
+
     return $twig;
 };
 
 $container['db'] = function ($c) {
     global $wpdb;
+
+    setlocale(LC_ALL, 'pl_PL');
 
     date_default_timezone_set('Europe/Warsaw');
     $origin_dtz = new DateTimeZone('Europe/Warsaw');

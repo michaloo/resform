@@ -97,7 +97,11 @@ class Front {
 
                     case 4:
                         $to_register = $this->person->output_filter($values);
-                        $register_errors = $this->person->register($to_register);
+
+                        $register_result = $this->person->register($to_register);
+                        $register_errors = $register_result["errors"];
+
+                        $person_id = $register_result["person_id"];
 
                         if (array_search("Column 'room_id' cannot be null", $register_errors) !== false) {
                             $errors['register'] = "Brak dostępnych pokoi albo wybrany pokój jest za mały";
@@ -105,7 +109,7 @@ class Front {
                             $errors['register'] = "Wystąpił błąd zapisu, spróbuj ponownie";
                         } else {
                             $_SESSION = array();
-                            $this->sendMail($values, $event);
+                            $this->sendMail($person_id, $values, $event);
                         }
 
                         $template = 'done.html';
@@ -128,10 +132,12 @@ class Front {
     }
 
 
-    function sendMail($values, $event) {
+    function sendMail($person_id, $values, $event) {
+        $person = $this->person->getPriceForId($person_id);
+
         $message = $this->view->render(
             'events/' . $event['event_id'] . '/success_mail_template',
-            $values
+            $person
         );
         $name = $values['first_name'] . ' ' . $values['last_name'];
         $this->Mail->send($values['email'], $name, $message);

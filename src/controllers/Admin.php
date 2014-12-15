@@ -32,7 +32,7 @@ class Admin {
         $data = array();
         $data[$_POST["name"]] = $_POST["value"];
         $data["person_id"]    = $_POST["pk"];
-var_dump($data);
+
         var_dump($this->person->update($data, array($_POST["name"] => 1)));
         die();
     }

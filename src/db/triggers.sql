@@ -126,7 +126,7 @@ CREATE TRIGGER `_prefix_persons_before_insert`
         END IF;
 
         -- person below third year of life doesn't take a space in a room
-        IF TIMESTAMPDIFF( YEAR, NEW.birth_date, CURDATE() ) <= 3 THEN
+        IF (TIMESTAMPDIFF( YEAR, NEW.birth_date, CURDATE() )) <= 3 THEN
             LEAVE proc;
         END IF;
 
@@ -181,7 +181,7 @@ CREATE TRIGGER `_prefix_persons_before_update`
         -- END IF;
 
         -- person below third year of life doesn't take a space in a room
-        IF TIMESTAMPDIFF( YEAR, NEW.birth_date, CURDATE() ) <= 3 THEN
+        IF (TIMESTAMPDIFF( YEAR, NEW.birth_date, CURDATE() )) <= 3 THEN
             LEAVE proc;
         END IF;
 
