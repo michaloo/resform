@@ -36,6 +36,8 @@ class Person extends \Resform\Lib\Model {
         'accept_regulation'  => 'boolify',
         'accept_information' => 'boolify',
 
+        'comments' => 'stringtrim',
+
         'notes_1' => 'stringtrim',
         'notes_2' => 'stringtrim',
         'notes_3' => 'stringtrim',
@@ -92,6 +94,20 @@ class Person extends \Resform\Lib\Model {
         'phone'      => '',
         'city'       => '',
 
+        'is_disabled'     => '',
+        'disability_type' => '',
+        'has_stairs_accessibility' => '',
+        'guardian_person_name' => '',
+
+        'is_disabled_guardian' => '',
+        'disabled_person_name' => '',
+
+        'is_underaged_guardian' => '',
+
+
+        'comments' => '',
+        'transport_id' => '',
+
         'notes_1'     => '',
         'notes_2'     => '',
         'notes_3'     => '',
@@ -99,8 +115,6 @@ class Person extends \Resform\Lib\Model {
         'color_1'      => '',
         'color_2'      => '',
         'color_3'      => '',
-
-        'transport_id' => '',
     );
 
     var $steps = array(
@@ -336,9 +350,12 @@ SQL;
         return $results;
     }
 
-    function get($limit, $page, $orderby, $sort, $event_id) {
+    function get($pager, $event_id) {
 
-        $offset = $limit * max((int) $page - 1, 0);
+        $offset = $pager['limit'] * max((int) $pager['current'] - 1, 0);
+        $limit  = $pager['limit'];
+        $sort   = $pager['sort'];
+        $orderby = $pager['orderby'];
 
         $query   = <<<SQL
             SELECT SQL_CALC_FOUND_ROWS rp.*, rrt.name AS room_type_name, rrt.room_type_id,
@@ -348,7 +365,7 @@ SQL;
                 GROUP BY p.person_id
             ) AS family_guardian_name,
             (
-                SELECT GROUP_CONCAT(CONCAT(p2.first_name, " ", p2.last_name)) FROM {$this->db->prefix}resform_persons AS p2
+                SELECT GROUP_CONCAT(CONCAT(p2.first_name, " ", p2.last_name) SEPARATOR ", ") FROM {$this->db->prefix}resform_persons AS p2
                 WHERE p2.family_person_id = rp.person_id
                 GROUP BY p2.family_person_id
             ) AS family_members_name
@@ -362,7 +379,7 @@ SQL;
         $results = $this->db->get_results($query, ARRAY_A);
         $total_count = $this->_getTotalCount();
 
-        $pager = $this->_getPager($total_count, $limit, $page, $orderby, $sort);
+        $pager = $this->_getPager($total_count, $pager);
 
         return array(
             'data' => $results,

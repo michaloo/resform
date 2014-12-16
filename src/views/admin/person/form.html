@@ -3,7 +3,10 @@
 
 {% block content %}
 
-<h2>Edytuj osobę<a href="/wp-admin/admin.php?page=resform_person_list&event_id={{person.event_id}}" class="add-new-h2">Wróc do listy</a></h2>
+<h2>Edytuj osobę
+    <a href="/wp-admin/admin.php?page=resform_person_list&event_id={{person.event_id}}" class="add-new-h2">Wróc do listy</a>
+    <a href="/wp-admin/admin.php?page=resform_room_list&event_id={{person.event_id}}" class="add-new-h2">Wróc do listy pokoi</a>
+</h2>
 
 <form name="post" action="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}" method="post">
 
@@ -155,9 +158,9 @@
             {{ forms.input('text', 'notes_1', 'Notatki 1 (lista ogólna)', person.notes_1, '', 'large-text') }}
             {{ forms.input('text', 'notes_2', 'Notatki 2 (lista płatności)', person.notes_2, '', 'large-text') }}
             {{ forms.input('text', 'notes_3', 'Notatki 3 (lista transportowa)', person.notes_3, '', 'large-text') }}
-            {{ forms.input('text', 'color_1', 'Kolor 1', person.color_1) }}
-            {{ forms.input('text', 'color_2', 'Kolor 2', person.color_2) }}
-            {{ forms.input('text', 'color_3', 'Kolor 3', person.color_3) }}
+            {{ forms.input('text', 'color_1', 'Kolor 1 (lista ogólna)', person.color_1) }}
+            {{ forms.input('text', 'color_2', 'Kolor 2 (lista płatności)', person.color_2) }}
+            {{ forms.input('text', 'color_3', 'Kolor 3 (lista transportowa)', person.color_3) }}
 
             <input type="hidden" name="accept_information" value="1" />
             <input type="hidden" name="accept_regulation" value="1" />

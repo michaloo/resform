@@ -19,6 +19,11 @@ class Admin {
 
         $this->assetsUrl = str_replace('controllers/', '', plugin_dir_url(__FILE__) . 'assets/');
 
+        if ($_SERVER["REQUEST_METHOD"] === "GET") {
+            setcookie('resform_back_link', $_SERVER["HTTP_REFERER"]);
+        }
+        $this->back_link = $_COOKIE["resform_back_link"];
+
         add_action( 'admin_menu', array($this, 'register_menu_page'));
         add_action( 'init', array($this, 'set_user'));
 
@@ -261,12 +266,12 @@ class Admin {
             $this->event->delete($id);
         }
 
-        $limit   = (isset($_GET['limit'])) ? $_GET['limit'] : 10;
-        $page    = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
-        $orderby = (isset($_GET['orderby'])) ? $_GET['orderby'] : 'event_id';
-        $sort    = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
+        // $limit   = (isset($_GET['limit'])) ? $_GET['limit'] : 10;
+        // $page    = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
+        // $orderby = (isset($_GET['orderby'])) ? $_GET['orderby'] : 'event_id';
+        // $sort    = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
 
-        $events = $this->event->get($limit, $page, $orderby, $sort);
+        $events = $this->event->get();
 
         echo $this->view->render('admin/event/list.html', array('events' => $events));
     }
@@ -456,14 +461,20 @@ class Admin {
 
         $event = $this->event->find($event_id);
 
+        $pager = array(
+            'limit'   => 10000,
+            'current' => 1,
+            'sort'    => 'asc',
+            'orderby' => 'person_id'
+        );
 
-        $persons = $this->person->get(1000, 1, 'person_id', 'asc', $event['event_id']);
+        $persons = $this->person->get($pager, $event['event_id']);
 
         if (count($_POST) > 0) {
             $persons_to_edit = $this->person->getPersonsToEdit($_POST["person_id"], $persons);
 
             $this->person->updateRoomId($persons_to_edit);
-            $persons = $this->person->get(1000, 1, 'person_id', 'asc', $event['event_id']);
+            $persons = $this->person->get($pager, $event['event_id']);
         }
 
         $rooms_list = $this->room->get($event['event_id']);
@@ -481,13 +492,11 @@ class Admin {
 
         $event = $this->event->find($event_id);
 
-        $limit   = (isset($_GET['limit'])) ? $_GET['limit'] : 10;
-        $page    = (isset($_GET['page_no'])) ? $_GET['page_no'] : 1;
-        $orderby = (isset($_GET['orderby'])) ? $_GET['orderby'] : 'person_id';
-        $sort    = (isset($_GET['sort'])) ? $_GET['sort'] : 'asc';
-        $view    = (isset($_GET['view'])) ? $_GET['view'] : 'general';
+        $view  = (isset($_GET['view'])) ? $_GET['view'] : 'general';
 
-        $persons = $this->person->get($limit, $page, $orderby, $sort, $event['event_id']);
+        $pager = $this->getPager($_GET);
+
+        $persons = $this->person->get($pager, $event['event_id']);
 
         echo $this->view->render("admin/person/list-{$view}.html", array(
             'persons' => $persons,
@@ -519,6 +528,7 @@ class Admin {
         echo $this->view->render('admin/person/form.html', array(
             'room_types' => $room_types,
             'transports' => $transports,
+            'back_link'  => $this->back_link
         ));
     }
 
@@ -549,6 +559,7 @@ class Admin {
             'person' => $person,
             'room_types' => $room_types,
             'transports' => $transports,
+            'back_link'  => $this->back_link
             ));
     }
 
@@ -560,6 +571,18 @@ class Admin {
         echo $this->view->render('admin/audit_log/list.html', array(
             'audit_logs' => $audit_logs
         ));
+    }
+
+    function getPager($get) {
+
+        $defaults = array(
+            'limit'   => 20,
+            'current' => 1,
+            'orderby' => 'person_id',
+            'sort'    => 'desc'
+        );
+
+        return array_merge($defaults, $get);
     }
 
 }

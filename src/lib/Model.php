@@ -102,9 +102,12 @@ abstract class Model {
         return (int) array_pop($total_count)->total_count;
     }
 
-    protected function _getPager($total_count, $limit, $page, $orderby, $sort) {
+    protected function _getPager($total_count, $pager) {
 
-        $count = max(floor($total_count / $limit), 1);
+        $count = max(ceil($total_count / max($pager['limit'], 1)), 1);
+
+        $page = $pager['current'];
+
         $next_page = ($page < $count) ? $page + 1 : null;
         $last_page = ($page < $count) ? $count : null;
 
@@ -112,14 +115,15 @@ abstract class Model {
         $first_page = ($page > 1) ? 1 : null;
 
         return array(
+            'limit'   => $pager['limit'],
             'current' => $page,
             'count'   => $count,
             'next'    => $next_page,
             'last'    => $last_page,
             'first'   => $first_page,
             'prev'    => $prev_page,
-            'orderby' => $orderby,
-            'sort'    => $sort,
+            'orderby' => $pager['orderby'],
+            'sort'    => $pager['sort'],
             'total_count' => $total_count
         );
     }

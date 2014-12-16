@@ -17,7 +17,7 @@
 
     <label class="field full{% if errors.accept_information %} with_error{% endif %}">
         {% if errors.accept_information %}
-        <span class="error">{{ errors.accept_information.0 }}</span>
+        <span class="error">{{ errors.accept_information.0|translate }}</span>
         {% endif %}
         <input type="hidden" name="accept_information" value="0" />
         <input type="checkbox" name="accept_information" value="1"{% if values.accept_information == true %} checked{% endif %}/>

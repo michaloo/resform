@@ -43,6 +43,8 @@ Dodaj nowe wydarzenie
             {{ forms.input('text', 'end_time', 'Data zakończenia',
             event.end_time is empty ? "" : event.end_time|date('d-m-Y'), 'dd-mm-rrrr') }}
 
+            {{ forms.checkbox(1, 'is_active', 'Zapisy aktywne?', event.is_active) }}
+
             {{ forms.input('text', 'reservation_start_time', 'Data rozpoczęcia zapisów',
             event.reservation_end_time is empty ? "" : event.reservation_start_time|date('H:i d-m-Y'), 'gg:mm dd-mm-rrrr') }}
             {{ forms.input('text', 'reservation_end_time', 'Data zakończenia zapisów',

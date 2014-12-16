@@ -39,10 +39,10 @@
     <span class="displaying-num">{{ pager.total_count }} items</span>
     <span class="pagination-links">
         <a class="first-page{% if not pager.first %} disabled{% endif %}" title="Go to the first page" href="{{ url }}">«</a>
-        <a class="prev-page{% if not pager.prev %} disabled{% endif %}" title="Go to the previous page" href="{{ url }}&page_no={{ pager.prev }}">‹</a>
+        <a class="prev-page{% if not pager.prev %} disabled{% endif %}" title="Go to the previous page" href="{{ url }}&current={{ pager.prev }}">‹</a>
         <span class="paging-input">{{ pager.current }} of <span class="total-pages">{{ pager.count }}</span></span>
-        <a class="next-page{% if not pager.next %} disabled{% endif %}" title="Go to the next page" href="{{ url }}&page_no={{ pager.next }}">›</a>
-        <a class="last-page{% if not pager.last %} disabled{% endif %}" title="Go to the last page" href="{{ url }}&page_no={{ pager.last }}">»</a>
+        <a class="next-page{% if not pager.next %} disabled{% endif %}" title="Go to the next page" href="{{ url }}&current={{ pager.next }}">›</a>
+        <a class="last-page{% if not pager.last %} disabled{% endif %}" title="Go to the last page" href="{{ url }}&current={{ pager.last }}">»</a>
     </span>
 </div>
 {% endmacro %}

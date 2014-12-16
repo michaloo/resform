@@ -14,6 +14,8 @@ class Event extends \Resform\Lib\Model {
         'reservation_start_time' => 'stringtrim',
         'reservation_end_time'   => 'stringtrim',
 
+        'is_active'   => 'boolify',
+
         'front_info'     => 'stringtrim',
         'room_type_info' => 'stringtrim',
         'transport_info' => 'stringtrim',
@@ -25,10 +27,14 @@ class Event extends \Resform\Lib\Model {
     var $validators = array(
 
         'name'       => array('required()(Nazwa jest wymagana) | minlength(min=2)(Nazwa musi mieć conajmniej dwa znaki)(Name)'),
+
         'start_time' => array('required()(Data rozpoczęcia jest wymagana)'),
         'end_time'   => array('required()(Data zakończenia jest wymagana)'),
+        'is_active'  => array('required'),
+
         'reservation_start_time' => array('required'),
         'reservation_end_time'   => array('required'),
+
         'front_info'     => array('required'),
         'room_type_info' => array('required'),
         'transport_info' => array('required'),
@@ -50,7 +56,8 @@ class Event extends \Resform\Lib\Model {
         return $this;
     }
 
-    function get($limit, $page, $orderby, $sort) {
+    function get() {
+
         $query = "SELECT
                 re.*,
                 (SELECT count(transport_id) FROM {$this->db->prefix}resform_transports WHERE
@@ -70,10 +77,10 @@ class Event extends \Resform\Lib\Model {
         $results = $this->db->get_results($query, ARRAY_A);
 
         $total_count = $this->_getTotalCount();
-        $pager = $this->_getPager($total_count, $limit, $page, $orderby, $sort);
+        //$pager = $this->_getPager($total_count, $limit, $page, $orderby, $sort);
         return array(
             'data' => $results,
-            'pager' => $pager
+            'pager' => array()
         );
     }
 
@@ -125,16 +132,21 @@ class Event extends \Resform\Lib\Model {
 
     function getActive() {
         $query = <<<SQL
-        SELECT re.* -- ,
-            -- (SELECT SUM(free_space_count) FROM {$this->db->prefix}resform_rooms_space_count
-            --    WHERE event_id = event_id GROUP BY event_id) AS free_space_count
+        SELECT re.*,
+            (
+                SELECT SUM(free_space_count) FROM {$this->db->prefix}resform_rooms_space_count
+                WHERE event_id = event_id GROUP BY event_id
+            ) AS free_space_count
         FROM {$this->db->prefix}resform_events AS re
         LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (event_id)
         LEFT JOIN {$this->db->prefix}resform_transports AS rt USING (event_id)
-        WHERE CURRENT_TIMESTAMP() BETWEEN reservation_start_time AND reservation_end_time
+        WHERE
+            CURRENT_TIMESTAMP() BETWEEN reservation_start_time AND reservation_end_time
+            AND is_active IS true
         GROUP BY event_id
         LIMIT 1
 SQL;
+
         $results = $this->db->get_results($query, ARRAY_A);
 
         return $results;
