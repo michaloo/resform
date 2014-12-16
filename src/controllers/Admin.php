@@ -26,6 +26,46 @@ class Admin {
 
         add_action( 'wp_ajax_resform_person_inline_update', array($this, "person_inline_update") );
         add_action( 'wp_ajax_resform_room_inline_update', array($this, "room_inline_update") );
+
+        add_action( 'wp_ajax_resform_person_get', array($this, "person_get") );
+        add_action( 'wp_ajax_resform_person_get_family', array($this, "person_get_family") );
+        add_action( 'wp_ajax_resform_person_search', array($this, "person_search") );
+
+        add_action( 'wp_ajax_resform_person_export', array($this, "person_export") );
+    }
+
+    function person_export() {
+
+        $event_id = $_GET["event_id"];
+        $results = $this->person->export($event_id);
+        die();
+    }
+
+    function person_search() {
+
+        $results = $this->person->like($_GET["search"]);
+
+        echo json_encode($results);
+
+        die();
+    }
+
+    function person_get_family() {
+
+        $results = $this->person->get_family($_GET["family_person_id"]);
+
+        echo json_encode($results);
+
+        die();
+    }
+
+    function person_get() {
+
+        $results = $this->person->find($_GET["person_id"]);
+
+        echo json_encode($results);
+
+        die();
     }
 
     function person_inline_update() {
@@ -194,6 +234,11 @@ class Admin {
         wp_enqueue_script('resform-x-editable', $this->assetsUrl . 'vendor/x-editable/jqueryui-editable/js/jqueryui-editable.min.js', array('resform-jqueryui'), true);
         wp_register_style( 'resform-x-editable', $this->assetsUrl . 'vendor/x-editable/jqueryui-editable/css/jqueryui-editable.css');
         wp_enqueue_style( 'resform-x-editable' );
+
+        wp_enqueue_script('resform-select2', $this->assetsUrl . 'vendor/select2/select2.js', array('resform-jqueryui'), true);
+        wp_enqueue_script('resform-select2-pl', $this->assetsUrl . 'vendor/select2/select2_locale_pl.js', array('resform-select2'), true);
+        wp_register_style( 'resform-select2', $this->assetsUrl . 'vendor/select2/select2.css');
+        wp_enqueue_style( 'resform-select2' );
 
         wp_enqueue_script('resform-tooltipsy', $this->assetsUrl . 'vendor/tooltipsy/tooltipsy.min.js', array('jquery-fallback'), true);
 
@@ -481,7 +526,8 @@ class Admin {
 
         if ($_POST) {
             $filtered = $this->person->input_filter($_POST);
-            $errors   = $this->person->validate($filtered);
+            //$errors   = $this->person->validate($filtered);
+            $errors = array();
 
             if (count($errors) === 0) {
                 $to_save = $this->person->output_filter($filtered);

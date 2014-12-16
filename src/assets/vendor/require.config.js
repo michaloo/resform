@@ -13,6 +13,10 @@ var components = {
             "main": "jquery-ui-built.js"
         },
         {
+            "name": "select2",
+            "main": "select2-built.js"
+        },
+        {
             "name": "x-editable",
             "main": "x-editable-built.js"
         }

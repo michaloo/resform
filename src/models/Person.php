@@ -35,8 +35,15 @@ class Person extends \Resform\Lib\Model {
 
         'accept_regulation'  => 'boolify',
         'accept_information' => 'boolify',
-        'status' => 'stringtrim',
-        'color' => 'stringtrim'
+
+        'notes_1' => 'stringtrim',
+        'notes_2' => 'stringtrim',
+        'notes_3' => 'stringtrim',
+
+        'color_1' => 'stringtrim',
+        'color_2' => 'stringtrim',
+        'color_3' => 'stringtrim'
+
 
     );
 
@@ -84,11 +91,15 @@ class Person extends \Resform\Lib\Model {
         'email'      => '',
         'phone'      => '',
         'city'       => '',
-        'status'     => '',
-        'color'      => '',
-        'room_id'    => '',
 
-        'room_type_id' => '',
+        'notes_1'     => '',
+        'notes_2'     => '',
+        'notes_3'     => '',
+
+        'color_1'      => '',
+        'color_2'      => '',
+        'color_3'      => '',
+
         'transport_id' => '',
     );
 
@@ -279,6 +290,52 @@ SQL;
         }
     }
 
+    function export($event_id) {
+
+        $query   = <<<SQL
+        SELECT p.* FROM {$this->db->prefix}resform_persons_with_total_price AS p
+        WHERE p.event_id = $event_id
+SQL;
+
+        //$results = $this->db->get_results($query, ARRAY_A);
+
+        $result = $this->db->dbh->query($query);
+
+        if (!$result) {
+            return false;
+        }
+
+        $headers = array_map(function ($h) {
+            return $h->name;
+        },  $result->fetch_fields());
+
+        $fp = fopen('php://output', 'w');
+
+        if ($fp && $result) {
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="export.csv"');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+            fputcsv($fp, $headers);
+
+            while ($row = $result->fetch_array(MYSQLI_NUM)) {
+                fputcsv($fp, array_values($row));
+            }
+        }
+    }
+
+    function get_family($family_person_id) {
+
+        $query   = <<<SQL
+        SELECT p.* FROM {$this->db->prefix}resform_persons AS p
+        WHERE p.family_person_id = {$family_person_id}
+SQL;
+
+        $results = $this->db->get_results($query, ARRAY_A);
+
+        return $results;
+    }
+
     function get($limit, $page, $orderby, $sort, $event_id) {
 
         $offset = $limit * max((int) $page - 1, 0);
@@ -313,17 +370,31 @@ SQL;
         );
     }
 
-    function find($id) {
+    function like($search) {
 
         $query = "
+        SELECT
+        p.*
+        FROM {$this->db->prefix}resform_persons AS p
+        LEFT JOIN {$this->db->prefix}resform_room_types AS rt USING (room_type_id)
+        WHERE
+            first_name LIKE '%$search%'
+            OR last_name LIKE '%$search%'
+        ";
+
+        $results = $this->db->get_results($query, ARRAY_A);
+        return $results;
+    }
+
+    function find($id) {
+
+        $query = <<<SQL
             SELECT
                 p.*
             FROM {$this->db->prefix}resform_persons AS p
             LEFT JOIN {$this->db->prefix}resform_room_types AS rt USING (room_type_id)
             WHERE person_id = $id LIMIT 1
-        ";
-
-        //var_dump($query);
+SQL;
 
         $results = $this->db->get_results($query, ARRAY_A);
         return array_pop($results);
@@ -348,7 +419,8 @@ SQL;
             $editable = $this->editable;
         }
         $query = "UPDATE {$this->db->prefix}resform_persons SET {$this->getPairs($editable, $data)} WHERE person_id = {$data['person_id']} LIMIT 1";
-        //var_dump($query);
+
+        var_dump($query);
         return $this->db->query($query);
     }
 

@@ -38,11 +38,96 @@
             {{ forms.input('text', 'phone', 'Telefon', person.phone, 'numer telefonu') }}
             {{ forms.input('text', 'city', 'Miasto', person.city, 'miasto') }}
 
+            {{ forms.checkbox('1', 'is_disabled', 'Osoba niepełnosprawna?', person.is_disabled) }}
+
+            {{ forms.checkbox('1', 'is_disabled_guardian', 'Opiekun osoby niepełnosprawnej?', person.is_disabled_guardian) }}
+
+            {{ forms.input('text', 'disability_type', 'Typ niepełnosprawności', person.disability_type, 'opis niepełnosprawności', 'large-text') }}
+
+            {{ forms.checkbox('1', 'has_stairs_accessibility', 'Może poruszać się po schodach?', person.has_stairs_accessibility) }}
+
+            {{ forms.input('text', 'guardian_person_name', 'Imię i nazwisko opiekuna', person.guardian_person_name, 'Dane opiekuna') }}
+
+            {{ forms.input('text', 'disabled_person_name', 'Imię i nazwisko osoby niepełnosprawnej, będącej pod opieką', person.disabled_person_name, 'Dane podopiecznego') }}
+
             <tr>
-                <th scope="row">Typ pokoju</th>
+                <th scope="row">Niepełnoletność?</th>
                 <td>
                     <label for="bathroom">
-                        <select name="room_type_id" id="room_type">
+                        {% set underaged_states = ['no', 'alone', 'with_guardian'] %}
+                        <select name="underaged" id="underaged">
+                            {% for underaged_state in underaged_states %}
+                            <option value="{{ underaged_state }}"
+                            {% if person.underaged == underaged_state %} selected{% endif %}>{{ underaged_state|translate }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </td>
+            </tr>
+
+            {{ forms.checkbox('1', 'is_underaged_guardian', 'Opiekun osoby niepełnoletniej?', person.is_underaged_guardian) }}
+
+            {{ forms.input('text', 'underaged_person_name', 'Imię i nazwisko osoby niepełnoletniej, będącej pod opieką', person.underaged_person_name, 'Dane podopiecznego niepełnoletniego') }}
+
+            {{ forms.checkbox('1', 'is_family_guardian', 'Opiekun rodziny?', person.is_family_guardian) }}
+
+
+            <tr>
+                <th scope="row">Imię i nazwisko opiekuna rodziny</th>
+                <td>
+                    <label for="family_person_id">
+
+                        <div data-search-person>
+                            <input data-search-select
+                                type="hidden"
+                                name="family_person_id"
+                                value="{{ person.family_person_id }}"
+                                data-placeholder="Wybierz opiekuna rodziny"
+                                data-url-search="{{ ''|ajaxurl }}?action=resform_person_search"
+                                data-url-get="{{ ''|ajaxurl }}?action=resform_person_get"
+                                />
+                            <a data-search-link
+                                {% if person.family_person_id is null %}
+                                data-disabled
+                                {% endif %}
+                                href="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.family_person_id }}"
+                                data-url="/wp-admin/admin.php?page=resform_person_edit&person_id=">
+                                <i class="fa fa-external-link"></i>
+                            </a>
+                        </div>
+                    </label>
+                </td>
+            </tr>
+
+
+            <tr>
+                <th scope="row">Członkowie rodziny</th>
+                <td>
+                    <table data-get-family
+                        data-url="{{ ''|ajaxurl }}?action=resform_person_get_family&family_person_id={{ person.person_id }}">
+                        <tbody data-content>
+                        {% verbatim %}
+                            <tr data-tmpl>
+                                <td>{{ first_name }}</td>
+                                <td>{{ last_name }}</td>
+                                <td>
+                                    <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person_id }}">
+                                        <i class="fa fa-external-link"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endverbatim %}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+
+            <tr>
+                <th scope="row">Preferowany typ pokoju</th>
+                <td>
+                    <label for="room_type_id">
+                        <select name="room_type_id" id="room_type_id">
+                            <option value="null" {% if person.room_type_id is null %} selected{% endif %}>nie ustalony</option>
                             {% for room_type in room_types %}
                             <option value="{{ room_type.room_type_id }}"
                             {% if person.room_type_id == room_type.room_type_id %} selected{% endif %}>{{ room_type.name }}</option>
@@ -66,8 +151,13 @@
             </tr>
 
             {{ forms.textarea('comments', 'Uwagi', person.comments) }}
-            {{ forms.textarea('status', 'Status', person.status) }}
-            {{ forms.input('text', 'color', 'Kolor', person.color, 'red') }}
+
+            {{ forms.input('text', 'notes_1', 'Notatki 1 (lista ogólna)', person.notes_1, '', 'large-text') }}
+            {{ forms.input('text', 'notes_2', 'Notatki 2 (lista płatności)', person.notes_2, '', 'large-text') }}
+            {{ forms.input('text', 'notes_3', 'Notatki 3 (lista transportowa)', person.notes_3, '', 'large-text') }}
+            {{ forms.input('text', 'color_1', 'Kolor 1', person.color_1) }}
+            {{ forms.input('text', 'color_2', 'Kolor 2', person.color_2) }}
+            {{ forms.input('text', 'color_3', 'Kolor 3', person.color_3) }}
 
             <input type="hidden" name="accept_information" value="1" />
             <input type="hidden" name="accept_regulation" value="1" />

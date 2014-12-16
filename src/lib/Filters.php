@@ -31,14 +31,20 @@ class Filters {
             'This input must be a valid email address',
             'This input is not one of the accepted values',
             'female',
-            'male'
+            'male',
+            'no',
+            'alone',
+            'with_guardian'
         ), array(
             'To pole jest wymagane',
             'Data powinna mieć format dd-mm-rrrr',
             'Niepoprawny adres e-mail',
             'Akceptacja jest wymagana',
             'żeński',
-            'męski'
+            'męski',
+            'nie',
+            'sam',
+            'z opiekunem'
         ), $string);
     }
 }

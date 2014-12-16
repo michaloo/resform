@@ -29,7 +29,8 @@
         "monolog/monolog": "~1.11",
         "vitalets/x-editable": "1.5.1-a",
         "components/font-awesome": "4.2.*",
-        "briancray/tooltipsy": "1.0.0"
+        "briancray/tooltipsy": "1.0.0",
+        "ivaynberg/select2": "3.5.*"
     },
     "repositories": [{
         "type": "package",

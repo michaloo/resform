@@ -1,4 +1,4 @@
-{% macro input(type, name, display_name, value, placeholder) %}
+{% macro input(type, name, display_name, value, placeholder, classes, attrs) %}
     <tr>
         <th scope="row">{{ display_name }}</th>
         <td>
@@ -9,6 +9,12 @@
                     {% if type == 'number' %}
                     step="any"
                     {% endif %}
+                    {% if classes %}
+                    class="{{ classes }}"
+                    {% endif %}
+                    {% if attrs %}
+                    {{ attrs }}
+                    {% endif %}
                     name="{{ name }}"
                     value="{{ value|e }}"
                     placeholder="{{ placeholder }}" />
@@ -17,6 +23,21 @@
     </tr>
 
 {% endmacro %}
+
+{% macro checkbox(checked_value, name, display_name, value, placeholder, classes) %}
+
+{% import _self as forms %}
+
+{% if value == checked_value %}
+{% set attrs = 'checked="checked"' %}
+{% endif %}
+
+<input type="hidden" name="{{ name }}" value="0" />
+
+{{ forms.input('checkbox', name, display_name, checked_value, placeholder, classes, attrs) }}
+
+{% endmacro %}
+
 
 {% macro textarea(name, display_name, value) %}
     <tr>

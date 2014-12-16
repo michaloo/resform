@@ -2,6 +2,18 @@
     margin-bottom: 1vh;
 }
 
+[data-tmpl] {
+    display: none;
+}
+
+.select2-container {
+    min-width: 22%;
+}
+
+[data-search-person] [data-search-link][data-disabled] {
+    display: none;
+}
+
 .room {
     display: inline-block;
     min-width: 20%;
