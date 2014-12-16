@@ -14,12 +14,11 @@
     <table class="wp-list-table widefat">
         <thead>
             <tr>
-                <th>Osoba</th>
                 <th>Imię</th>
                 <th>Nazwisko</th>
                 <th>E-mail</th>
                 <th>Wiek</th>
-                <th>Płeć</th>
+                <th>Status</th>
                 <th>Miasto</th>
                 <th>Data rejestracji</th>
                 <th>Cena</th>
@@ -31,7 +30,7 @@
             {% for person in persons.data %}
             <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_1 %}style="background-color: {{ person.color_1 }}"{% endif %}>
 
-                <td>
+                {#<td>
                 {% if person.family_guardian %}
                 <span title="Opiekun rodziny">👪</span>
                 {% endif %}
@@ -51,13 +50,15 @@
                     <span title="Kobieta">👩</span>
                     {% endif %}
                 {% endif %}
-                </td>
+                </td>#}
 
                 <td data-tooltip title="{{ macros.details(person) }}">{{ person.first_name }}</td>
                 <td>{{ person.last_name }}</td>
                 <td>{{ person.email }}</td>
                 <td>{{ person.age }}</td>
-                <td>{{ person.sex }}</td>
+                <td>
+                    {{ macros.status(person) }}
+                </td>
                 <td>{{ person.city }}</td>
                 <td>{{ person.add_time|date("H:i d-m-Y") }}</td>
                 <td>{{ person.price|format_price }}</td>
@@ -79,6 +80,7 @@
                         data-url="{{ ''|ajaxurl }}"
                         data-editable
                         data-savenochange="true"
+                        data-emptytext="Kolor"
                         data-tpl='<input type="color">'
                         data-params='{"action": "resform_person_inline_update"}'
                         data-type="tel">{{ person.color_1 }}</a>

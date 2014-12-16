@@ -3,7 +3,7 @@
 {% import "admin/person/_macros.html" as macros %}
 
 {% block content %}
-<h2>Osoby <a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a> <a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróc</a></h2>
+<h2>Osoby<a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a> <a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróc</a></h2>
 
 {{ macros.form(event, view) }}
 
@@ -14,47 +14,46 @@
             <tr>
                 <th>Imię</th>
                 <th>Nazwisko</th>
-                <th>E-mail</th>
-                <th>Wiek</th>
-                <th>Płeć</th>
+                <th>Typ pokoju</th>
                 <th>Rodzaj transportu</th>
                 <th>Cena</th>
+                <th>Data rejestracji</th>
                 <th>Notatki</th>
                 <th>Akcje</th>
             </tr>
         </thead>
         <tbody>
             {% for person in persons.data %}
-            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_3 %}style="background-color: {{ person.color_3 }}"{% endif %}>
+            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_2 %}style="background-color: {{ person.color_2 }}"{% endif %}>
 
                 <td data-tooltip title="{{ macros.details(person) }}">{{ person.first_name }}</td>
                 <td>{{ person.last_name }}</td>
-                <td>{{ person.email }}</td>
-                <td>{{ person.age }}</td>
-                <td>{{ person.sex }}</td>
+                <td>{{ person.room_type_name }}</td>
                 <td>{{ person.transport_name }}</td>
                 <td>{{ person.price|format_price }}</td>
+                <td>{{ person.add_time|date("H:i d-m-Y") }}</td>
                 <td>
                     <a
                         href="#"
                         data-editable
-                        data-name="notes_3"
+                        data-name="notes_2"
                         data-type="text"
                         data-pk="{{ person.person_id }}"
                         data-url="{{ ''|ajaxurl }}"
                         data-emptytext="Notatki"
                         data-params='{"action": "resform_person_inline_update"}'
-                        data-title="Notatki">{{ person.notes_3 }}</a>
+                        data-title="Notatki">{{ person.notes_2 }}</a>
                     <a
                         href="#"
-                        data-name="color_3"
+                        data-name="color_2"
                         data-pk="{{ person.person_id }}"
                         data-url="{{ ''|ajaxurl }}"
                         data-editable
                         data-savenochange="true"
+                        data-emptytext="Kolor"
                         data-tpl='<input type="color">'
                         data-params='{"action": "resform_person_inline_update"}'
-                        data-type="tel">{{ person.color_3 }}</a>
+                        data-type="tel">{{ person.color_2 }}</a>
                 </td>
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>

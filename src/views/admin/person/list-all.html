@@ -1,0 +1,68 @@
+{% extends "admin/_layout.html" %}
+
+{% import "admin/person/_macros.html" as macros %}
+
+{% block content %}
+<h2>Osoby <a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a> <a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróc</a></h2>
+
+{{ macros.form(event, view) }}
+
+<form name="external_author" action="/wp-admin/admin.php?page=handimania_external_authors" method="post">
+
+    <table class="wp-list-table widefat">
+        <thead>
+            <tr>
+                <th>Imię</th>
+                <th>Nazwisko</th>
+                <th>E-mail</th>
+                <th>Data urodzenia</th>
+                <th>Płeć</th>
+                <th>Miasto</th>
+                <th>Telefon</th>
+                <th>Status</th>
+                <th>Typ pokoju</th>
+                <th>Rodzaj transportu</th>
+                <th>Cena</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for person in persons.data %}
+            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_3 %}style="background-color: {{ person.color_3 }}"{% endif %}>
+
+                <td data-tooltip title="{{ macros.details(person) }}">{{ person.first_name }}</td>
+                <td>{{ person.last_name }}</td>
+                <td>{{ person.email }}</td>
+                <td>{{ person.birth_date|date('d-m-Y') }}</td>
+                <td>{{ person.sex }}</td>
+                <td>{{ person.city }}</td>
+                <td>{{ person.phone }}</td>
+                <td>
+                    {{ macros.status(person) }}
+                </td>
+                <td>{{ person.room_type_name }}</td>
+                <td>{{ person.transport_name }}</td>
+                <td>{{ person.price|format_price }}</td>
+                <td>
+                    <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="tablenav bottom">
+
+        <!-- <div class="alignleft actions">
+            <button class="button action">Update</button>
+        </div> -->
+
+        {{ macros.pager('/wp-admin/admin.php?page=resform_person_list&view=' ~ view ~ '&event_id=' ~ event.event_id, persons.pager) }}
+
+        <br class="clear">
+
+    </div>
+
+</form>
+
+{% endblock %}

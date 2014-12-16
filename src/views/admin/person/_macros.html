@@ -5,15 +5,15 @@
     <input type="hidden" name="event_id" value="{{ event.event_id }}" />
     <select name="view">
         <option value="general"{% if view == "general" %} selected{% endif %}>Lista ogólna</option>
-        <option value="transport"{% if view == "transport" %} selected{% endif %}>Lista transportowa</option>
         <option value="payment"{% if view == "payment" %} selected{% endif %}>Lista płatności</option>
+        <option value="all"{% if view == "all" %} selected{% endif %}>Lista pełna</option>
     </select>
 </form>
 
 {% endmacro %}
 
 
-{% macro details(person) %}
+{% macro details(person, notes) %}
 
     {% if person.sex == "male" %}
     Mężczyzna,
@@ -31,6 +31,36 @@
 
     {{ person.age }} lat
 
+    {% if notes and person[notes] %}
+    ----
+    {{ person[notes] }}
+    {% endif %}
+
+{% endmacro %}
+
+
+{% macro status(person) %}
+    {% if person.is_disabled %}
+    <i class="fa fa-wheelchair" title="Osoba niepełnosprawna"></i>
+    {% endif %}
+
+    {% if person.is_family_guardian %}
+    <i class="fa fa-umbrella" title="Opiekun rodziny"></i>
+    <i class="fa fa-users" title="Opiekun rodziny"></i>
+    {% endif %}
+
+    {% if person.family_person_id %}
+    <i class="fa fa-users" title="Członek rodziny"></i>
+    {% endif %}
+
+    {% if person.is_underaged_guardian %}
+    <i class="fa fa-umbrella" title="Opiekun osoby niepełnoletniej - {{ person.underaged_person_name }}"></i>
+    <i class="fa fa-futbol-o" title="Opiekun osoby niepełnoletniej - {{ person.underaged_person_name }}"></i>
+    {% endif %}
+
+    {% if person.underaged != 'no' %}
+    <i class="fa fa-futbol-o" title="Osoba niepełnoletnia"></i>
+    {% endif %}
 {% endmacro %}
 
 

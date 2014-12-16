@@ -358,19 +358,25 @@ SQL;
         $orderby = $pager['orderby'];
 
         $query   = <<<SQL
-            SELECT SQL_CALC_FOUND_ROWS rp.*, rrt.name AS room_type_name, rrt.room_type_id,
-            (
-                SELECT CONCAT(p.first_name, " ", p.last_name) FROM {$this->db->prefix}resform_persons AS p
-                WHERE p.person_id = rp.family_person_id
-                GROUP BY p.person_id
-            ) AS family_guardian_name,
-            (
-                SELECT GROUP_CONCAT(CONCAT(p2.first_name, " ", p2.last_name) SEPARATOR ", ") FROM {$this->db->prefix}resform_persons AS p2
-                WHERE p2.family_person_id = rp.person_id
-                GROUP BY p2.family_person_id
-            ) AS family_members_name
+            SELECT SQL_CALC_FOUND_ROWS
+                rp.*,
+                rrt.name AS room_type_name,
+                rrt.room_type_id,
+                rt.name AS transport_name,
+                (
+                    SELECT CONCAT(p.first_name, " ", p.last_name) FROM {$this->db->prefix}resform_persons AS p
+                    WHERE p.person_id = rp.family_person_id
+                    GROUP BY p.person_id
+                ) AS family_guardian_name,
+                (
+                    SELECT GROUP_CONCAT(CONCAT(p2.first_name, " ", p2.last_name) SEPARATOR ", ") FROM {$this->db->prefix}resform_persons AS p2
+                    WHERE p2.family_person_id = rp.person_id
+                    GROUP BY p2.family_person_id
+                ) AS family_members_name
             FROM {$this->db->prefix}resform_persons_with_price AS rp
-            LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (room_type_id)
+            LEFT JOIN {$this->db->prefix}resform_rooms AS rr USING (room_id)
+            LEFT JOIN {$this->db->prefix}resform_room_types AS rrt ON rr.room_type_id = rrt.room_type_id
+            LEFT JOIN {$this->db->prefix}resform_transports AS rt USING (transport_id)
             WHERE rp.event_id = {$event_id}
             ORDER BY $orderby $sort
             LIMIT $offset, $limit

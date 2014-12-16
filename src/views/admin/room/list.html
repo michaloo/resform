@@ -32,13 +32,15 @@
                 {% if person.family_person_id %}
                 {% set class = 'family_member' %}
                 {% endif %}
-                <div class="person {{ class }}"{% if not person.family_person_id %} data-draggable{% endif %}>
+                <div class="person {{ class }}"
+                {% if person.color_3 %}style="background-color: {{ person.color_3 }}"{% endif %}
+                {% if not person.family_person_id %} data-draggable{% endif %}>
                     {% if not person.family_person_id %}
                     <i class="fa fa-arrows" data-handle></i>
                     {% endif%}
 
                     <input type="hidden" name="person_id[{{ person.person_id }}]" value="{{ room.room_id }}" />
-                    <span data-tooltip title="{{ macros.details(person) }}">{{ person.first_name }} {{ person.last_name }}</span>
+                    <span data-tooltip title="{{ macros.details(person, 'notes_3') }}">{{ person.first_name }} {{ person.last_name }}</span>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}">
                         <i class="fa fa-external-link"></i>
                     </a>
