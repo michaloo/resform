@@ -47,7 +47,7 @@ class Install {
             "DELIMITER $$",
             "DELIMITER ;",
             "$$",
-            "wp_resform_",
+            "_prefix_",
             "CREATE"
         ), array(
             "",
@@ -63,7 +63,8 @@ class Install {
 
         // run commands
         $results = array_map(function($query) {
-            return $query . " " . $this->db->query($query) . "\n";
+            $count = $this->db->query($query);
+            return $query . " " . $this->db->last_error . "\n";
         }, $commands);
 
         file_put_contents(plugin_dir_path( __FILE__ ) . '../db.log', $results, FILE_APPEND);

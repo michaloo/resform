@@ -3,7 +3,7 @@
  * Plugin Name: resform
  * Plugin URI: http://URI_Of_Page_Describing_Plugin_and_Updates
  * Description: Reservation Form
- * Version: 0.1
+ * Version: 1.0.0
  * Author: Michał Rączka, Artur Kopacz
  * Author URI: http://URI_Of_The_Plugin_Author
  * License: GPL2

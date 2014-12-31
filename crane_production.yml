@@ -1,0 +1,64 @@
+containers:
+    resform_data_mysql:
+        image: tianon/true
+        run:
+            volume: ["/var/lib/mysql"]
+            detach: true
+    resform_data_web:
+        image: tianon/true
+        run:
+            volume: ["/var/www/html"]
+            detach: true
+    mysql:
+        image: michaloo/mariadb
+        run:
+            volumes-from: ["resform_data_mysql"]
+            env-file: [".env"]
+            net: host
+            detach: true
+    web:
+        image: michaloo/web-dev
+        run:
+            volumes-from: ["resform_data_web"]
+            net: host
+            detach: true
+            env-file: [".env"]
+    mysql_it:
+        image: michaloo/mariadb
+        run:
+            volumes-from: ["resform_data_web"]
+            workdir: /resform
+            net: host
+            interactive: true
+            env-file: [".env"]
+            entrypoint: /bin/bash
+            tty: true
+            rm: true
+            cmd: -c /bin/bash # /app/bin/connect
+    web_it:
+        image: michaloo/web-dev
+        run:
+            volumes-from: ["resform_data_web"]
+            workdir: /resform
+            net: host
+            interactive: true
+            env-file: [".env"]
+            tty: true
+            rm: true
+            cmd:
+            - -c
+            - bash
+    wp_it:
+        image: michaloo/web-dev
+        run:
+            volumes-from: ["resform_data_web"]
+            workdir: /var/www/html
+            net: host
+            interactive: true
+            user: www-data
+            env-file: [".env"]
+            tty: true
+            rm: true
+            cmd:
+            - -c
+            - bash

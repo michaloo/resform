@@ -27,7 +27,11 @@ gulp.task('version', [], function (done) {
 
 gulp.task('copy', ['clean'], function () {
 
-    return gulp.src('./**')
+    return gulp.src([
+            './**',
+            '!./src/assets/vendor/jquery-ui/themes/**',
+            '!./src/vendor/components/jqueryui/themes/**'
+        ])
         .pipe(gulp.dest('./dist/resform_plugin'));
 });
 
