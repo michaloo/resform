@@ -61,6 +61,13 @@ class Front {
                 $values = array_merge($_SESSION, $_POST);
                 $values["event_id"] = $event["event_id"];
 
+                // handle family member removal
+                if (count($values['family_first_name']) === 0) {
+                    unset($values['family_first_name']);
+                    unset($values['family_last_name']);
+                    unset($values['family_birth_date']);
+                }
+
                 if ($step > 1) {
 
                     $filtered = $this->person->input_filter_step($step, $values);
