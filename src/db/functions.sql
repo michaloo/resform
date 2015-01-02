@@ -17,7 +17,7 @@ BEGIN
         -- room is already occupied by same sex person (and we are not adding family_guardian or family person)
         OR (sex = new_sex AND new_is_family_guardian = false AND new_family_person_id IS NULL AND free_space_count > 0)
         -- room is already occupied by family_person
-        OR (new_family_person_id IS NOT NULL AND family_person_id = new_family_person_id AND free_space_count > 0)
+        OR (new_family_person_id IS NOT NULL AND family_person_id = new_family_person_id)
     )
     -- if new_room_id is provided we check only that room
     AND (IF(new_room_id IS NULL, true, false) OR room_id = new_room_id)

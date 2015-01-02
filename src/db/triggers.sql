@@ -125,11 +125,6 @@ CREATE TRIGGER `_prefix_persons_before_insert`
             LEAVE proc;
         END IF;
 
-        -- person below third year of life doesn't take a space in a room
-        IF (TIMESTAMPDIFF( YEAR, NEW.birth_date, CURDATE() )) <= 3 THEN
-            LEAVE proc;
-        END IF;
-
         SELECT _prefix_rooms_available(NEW.room_type_id, NEW.sex, NEW.family_person_id, NEW.is_family_guardian, NEW.room_id) INTO @room_id;
 
         IF @room_id IS NULL THEN
@@ -179,11 +174,6 @@ CREATE TRIGGER `_prefix_persons_before_update`
         --     SET NEW.room_id = OLD.room_id;
         --     LEAVE proc;
         -- END IF;
-
-        -- person below third year of life doesn't take a space in a room
-        IF (TIMESTAMPDIFF( YEAR, NEW.birth_date, CURDATE() )) <= 3 THEN
-            LEAVE proc;
-        END IF;
 
         SET @room_id = NULL;
 
