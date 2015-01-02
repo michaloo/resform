@@ -62,7 +62,7 @@ class Front {
                 $values["event_id"] = $event["event_id"];
 
                 // handle family member removal
-                if (count($values['family_first_name']) === 0) {
+                if ($step === 2 && count($_POST["family_first_name"]) === 0) {
                     unset($values['family_first_name']);
                     unset($values['family_last_name']);
                     unset($values['family_birth_date']);
