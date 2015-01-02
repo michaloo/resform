@@ -33,7 +33,7 @@
                 {% set class = 'family_member' %}
                 {% endif %}
                 <div class="person {{ class }}"
-                {% if person.color_3 %}style="background-color: {{ person.color_3 }}"{% endif %}
+                {% if person.color_1 %}style="background-color: {{ person.color_1 }}"{% endif %}
                 {% if not person.family_person_id %} data-draggable{% endif %}>
                     {% if not person.family_person_id %}
                     <i class="fa fa-arrows" data-handle></i>
