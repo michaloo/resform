@@ -101,6 +101,7 @@ $container['validator'] = $container->factory(function($c) {
 $container['filter'] = $container->factory(function($c) {
     $factory = new Sirius\Filtration\FilterFactory();
     $factory->registerFilter('boolify', '\Resform\Lib\Boolify');
+    $factory->registerFilter('datify', '\Resform\Lib\Datify');
 
     $filter = new Sirius\Filtration\Filtrator($factory);
 

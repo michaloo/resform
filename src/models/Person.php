@@ -14,7 +14,7 @@ class Person extends \Resform\Lib\Model {
         'sex'        => 'stringtrim',
         'first_name' => 'stringtrim',
         'last_name'  => 'stringtrim',
-        'birth_date' => 'stringtrim',
+        'birth_date' => 'stringtrim | datify',
         'email'      => 'stringtrim',
         'phone'      => 'stringtrim',
         'city'       => 'stringtrim',
@@ -31,7 +31,7 @@ class Person extends \Resform\Lib\Model {
 
         'family_first_name[*]'    => 'cleanarray',
         'family_last_name[*]'     => 'cleanarray',
-        'family_birth_date[*]'    => 'cleanarray',
+        'family_birth_date[*]'    => 'cleanarray | datify',
 
         'accept_regulation'  => 'boolify',
         'accept_information' => 'boolify',
@@ -210,6 +210,10 @@ class Person extends \Resform\Lib\Model {
     }
 
     function countFamily($values) {
+
+        if (!is_array($values['family_birth_date'])) {
+            return 0;
+        }
 
         $older_members = array_filter($values['family_birth_date'], function($date) {
             return $this->age($date) > 3;
