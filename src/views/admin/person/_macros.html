@@ -41,7 +41,12 @@
 
 {% macro status(person) %}
     {% if person.is_disabled %}
-    <i class="fa fa-wheelchair" title="Osoba niepełnosprawna"></i>
+    <i class="fa fa-wheelchair" title="Osoba niepełnosprawna - opiekun: {{ person.guardian_person_name }}"></i>
+    {% endif %}
+
+    {% if disabled_person_name %}
+    <i class="fa fa-umbrella" title="Opiekun osoby niepełnoletniej - {{ person.disabled_person_name }}"></i>
+    <i class="fa fa-wheelchair" title="Opiekun osoby niepełnoletniej - {{ person.disabled_person_name }}"></i>
     {% endif %}
 
     {% if person.is_family_guardian %}

@@ -28,7 +28,7 @@
         </thead>
         <tbody>
             {% for person in persons.data %}
-            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_3 %}style="background-color: {{ person.color_3 }}"{% endif %}>
+            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_1 %}style="background-color: {{ person.color_1 }}"{% endif %}>
 
                 <td data-tooltip title="{{ macros.details(person) }}">{{ person.first_name }}</td>
                 <td>{{ person.last_name }}</td>
