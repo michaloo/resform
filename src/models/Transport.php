@@ -49,8 +49,9 @@ class Transport extends \Resform\Lib\Model {
         return $this->db->query($query);
     }
 
-    function delete($data) {
-        $query = "DELETE FROM {$this->db->prefix}transports WHERE transport_id = {$data['transport_id']} LIMIT 1";
+    function delete($transport_id) {
+
+        $query = "DELETE FROM {$this->db->prefix}resform_transports WHERE transport_id = {$transport_id} LIMIT 1";
 
         return $this->db->query($query);
     }

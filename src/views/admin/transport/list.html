@@ -20,8 +20,8 @@
             <td>{{ transport.name }}</td>
             <td>{{ transport.price }}</td>
             <td>
-                <a href="/wp-admin/admin.php?page=resform_transport_edit&transport_id={{transport.transport_id}}">Edytuj</a> |
-                <a href="/wp-admin/admin.php?page=resform_transport_list&transport_id={{transport.transport_id}}">Usuń</a>
+                <a href="/wp-admin/admin.php?page=resform_transport_edit&transport_id={{transport.transport_id}}&event_id={{event.event_id}}">Edytuj</a> |
+                <a href="/wp-admin/admin.php?page=resform_transport_list&transport_id={{transport.transport_id}}&event_id={{event.event_id}}">Usuń</a>
             </td>
         </tr>
         {% endfor %}

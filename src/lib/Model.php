@@ -66,7 +66,7 @@ abstract class Model {
 
             $value = mysqli_real_escape_string($this->db->dbh, stripslashes_deep($data[$key]));
 
-            if (! $value) {
+            if ($value != "0" && ! $value) {
                 return 'NULL';
             }
 
