@@ -11,8 +11,16 @@ class Mail {
         $this->Mailer = $Mailer;
 
         $this->Mailer->isSMTP();
-        $this->Mailer->Host = 'docker.local';
-        $this->Mailer->Port = 1025;
+        $this->Mailer->Host = getenv("SMTP_HOST");
+        $this->Mailer->Port = getenv("SMTP_PORT");
+        $this->Mailer->CharSet = 'UTF-8';
+
+        if (getenv("SMTP_USER")) {
+            $this->Mailer->SMTPAuth = true;
+            $this->Mailer->Username = getenv("SMTP_USER");
+            $this->Mailer->Password = getenv("SMTP_PASS");
+            $this->Mailer->SMTPSecure = 'tls';
+        }
 
         return $this;
     }
