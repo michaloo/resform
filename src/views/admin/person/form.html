@@ -159,8 +159,8 @@
             {{ forms.input('text', 'notes_2', 'Notatki 2 (lista płatności)', person.notes_2, '', 'large-text') }}
             {{ forms.input('text', 'notes_3', 'Notatki 3 (lista pokoi)', person.notes_3, '', 'large-text') }}
             {{ forms.input('text', 'color_1', 'Kolor 1 (lista ogólna)', person.color_1) }}
-            {{ forms.input('text', 'color_2', 'Kolor 2 (lista płatności)', person.color_2) }}
-            {{ forms.input('text', 'color_3', 'Kolor 3 (lista pokoi)', person.color_3) }}
+            {#{{ forms.input('text', 'color_2', 'Kolor 2 (lista płatności)', person.color_2) }}
+            {{ forms.input('text', 'color_3', 'Kolor 3 (lista pokoi)', person.color_3) }}#}
 
             <input type="hidden" name="accept_information" value="1" />
             <input type="hidden" name="accept_regulation" value="1" />

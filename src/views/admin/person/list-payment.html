@@ -24,7 +24,7 @@
         </thead>
         <tbody>
             {% for person in persons.data %}
-            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_2 %}style="background-color: {{ person.color_2 }}"{% endif %}>
+            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_1 %}style="background-color: {{ person.color_1 }}"{% endif %}>
 
                 <td data-tooltip title="{{ macros.details(person) }}">{{ person.first_name }}</td>
                 <td>{{ person.last_name }}</td>
@@ -45,7 +45,7 @@
                         data-title="Notatki">{{ person.notes_2 }}</a>
                     <a
                         href="#"
-                        data-name="color_2"
+                        data-name="color_1"
                         data-pk="{{ person.person_id }}"
                         data-url="{{ ''|ajaxurl }}"
                         data-editable
@@ -53,7 +53,7 @@
                         data-emptytext="Kolor"
                         data-tpl='<input type="color">'
                         data-params='{"action": "resform_person_inline_update"}'
-                        data-type="tel">{{ person.color_2 }}</a>
+                        data-type="tel">{{ person.color_1 }}</a>
                 </td>
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>

@@ -22,6 +22,7 @@
                 <th>Miasto</th>
                 <th>Data rejestracji</th>
                 <th>Cena</th>
+                <th>Uwagi</th>
                 <th>Notatki</th>
                 <th>Akcje</th>
             </tr>
@@ -62,6 +63,7 @@
                 <td>{{ person.city }}</td>
                 <td>{{ person.add_time|date("H:i d-m-Y") }}</td>
                 <td>{{ person.price|format_price }}</td>
+                <td>{{ person.comments }}</td>
                 <td>
                     <a
                         href="#"
