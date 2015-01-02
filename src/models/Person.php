@@ -556,4 +556,10 @@ SQL;
         return $persons_to_edit;
     }
 
+    function delete($id) {
+        $query = "DELETE FROM {$this->db->prefix}resform_persons WHERE person_id = {$id} LIMIT 1";
+        var_dump($query);
+        return $this->db->query($query);
+    }
+
 }

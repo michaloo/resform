@@ -91,6 +91,9 @@
                 </td>
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>
+                    <a
+                        data-delete
+                        href="/wp-admin/admin.php?page=resform_person_list&event_id={{event.event_id}}&person_id={{person.person_id}}">Usuń</a>
                 </td>
             </tr>
             {% endfor %}

@@ -492,6 +492,15 @@ class Admin {
 
         $event = $this->event->find($event_id);
 
+
+        if (isset($_GET['person_id'])) {
+
+            $id = $_GET['person_id'];
+
+            $this->person->delete($id);
+
+        }
+
         $view  = (isset($_GET['view'])) ? $_GET['view'] : 'general';
 
         $pager = $this->getPager($_GET);

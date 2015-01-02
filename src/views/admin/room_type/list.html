@@ -26,7 +26,7 @@
             <td>{{ room_type.room_count }}</td>
             <td>
                 <a href="/wp-admin/admin.php?page=resform_room_type_edit&room_type_id={{room_type.room_type_id}}">Edytuj</a> |
-                <a href="/wp-admin/admin.php?page=resform_room_type_list&delete={{room_type.room_type_id}}">Usuń</a>
+                <a data-delete href="/wp-admin/admin.php?page=resform_room_type_list&delete={{room_type.room_type_id}}">Usuń</a>
             </td>
         </tr>
         {% endfor %}

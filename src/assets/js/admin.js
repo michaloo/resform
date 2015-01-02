@@ -2,6 +2,10 @@
 
     function init() {
 
+        $("[data-delete]").click(function(ev) {
+            return confirm("Usuwanie jest nieodwracalne. Potwierdź operację:");
+        });
+
         $("[data-get-family]").each(function() {
 
             var $list     = $(this),
