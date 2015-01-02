@@ -103,7 +103,10 @@ class Front {
 
                         $person_id = $register_result["person_id"];
 
-                        if (array_search("Column 'room_id' cannot be null", $register_errors) !== false) {
+                        if (
+                            array_search("Column 'room_id' cannot be null", $register_errors) !== false
+                            || array_search("This room is not available", $register_errors) !== false
+                        ) {
                             $errors['register'] = "Brak dostępnych pokoi albo wybrany pokój jest za mały";
                         } elseif (count($register_errors)) {
                             $errors['register'] = "Wystąpił błąd zapisu, spróbuj ponownie";

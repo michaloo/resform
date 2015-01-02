@@ -287,7 +287,6 @@ SQL;
             $this->db->query($query);
             array_push($errors, $this->db->last_error);
         }
-        var_dump($errors);
 
         if (count(array_filter($errors)) === 0) {
             $this->db->query("COMMIT");
