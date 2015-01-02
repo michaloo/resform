@@ -25,29 +25,21 @@ class RoomType extends \Resform\Lib\Model {
         'event_id'    => array("required")
     );
 
-    function getFree($event_id, $familyCount) {
+    function getFree($event_id, $sex, $familyCount) {
 
-        // if ($familyCount > 0) {
-        //     $query = "SELECT
-        //     room_type_name AS name,
-        //     room_type_id AS room_type_id,
-        //     r.*
-        //     FROM {$this->db->prefix}resform_rooms_space_count AS r
-        //     WHERE event_id = $event_id
-        //         AND occupied_space_count = 0
-        //         AND free_space_count = {$familyCount} + 1
-        //     GROUP BY room_type_id
-        //     LIMIT 20";
-        // } else {
-            $query = "SELECT
-                    room_type_name AS name,
-                    room_type_id AS room_type_id,
-                    r.*
-                FROM {$this->db->prefix}resform_room_types_space_count AS r
-                WHERE event_id = $event_id
-                AND free_space_count > 0
-                LIMIT 20";
-        // }
+        $query = "SELECT
+            room_type_name AS name,
+            room_type_id AS room_type_id,
+            r.*
+        FROM {$this->db->prefix}resform_rooms_space_count AS r
+        LEFT JOIN {$this->db->prefix}resform_room_types AS rt USING (room_type_id)
+        WHERE
+            r.event_id = $event_id
+            AND (
+                ({$familyCount} > 1 AND occupied_space_count = 0 AND r.space_count = {$familyCount} + 1)
+                OR ({$familyCount} = 0 AND (sex = '{$sex}' OR sex IS NULL) AND free_space_count > 0)
+            )
+        GROUP BY rt.room_type_id";
 
         $results = $this->db->get_results($query, ARRAY_A);
 

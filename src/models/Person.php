@@ -199,12 +199,29 @@ class Person extends \Resform\Lib\Model {
         return $filtered;
     }
 
+    function age($date_string) {
+
+        $age = \DateTime::createFromFormat('d-m-Y', $date_string);
+        $date = new \DateTime();
+
+        $diff = $date->diff($age);
+
+        return $diff->y;
+    }
+
     function countFamily($values) {
-        $family_members_count = max(
-            count($values['family_first_name']),
-            count($values['family_last_name']),
-            count($values['family_birth_date'])
-        );
+
+        $older_members = array_filter($values['family_birth_date'], function($date) {
+            return $this->age($date) > 3;
+        });
+
+        $family_members_count = count($older_members);
+
+        // max(
+        //     count($values['family_first_name']),
+        //     count($values['family_last_name']),
+        //     count($values['family_birth_date'])
+        // );
         return $family_members_count;
     }
 

@@ -10,7 +10,11 @@
         <span class="error">{{ errors.room_type_id.0|translate }}</span>
         {% endif %}
         <select name="room_type_id" id="room_type">
+            {% if room_types|length > 0 %}
             <option value="">Wybierz typ pokoju</option>
+            {% else %}
+            <option value="">Brak dostępnych pokoi</option>
+            {% endif %}
             {% for room_type in room_types %}
             <option value="{{ room_type.room_type_id }}"
             {#{% if room_type.disabled == 0 %} disabled{% endif %}#}

@@ -93,7 +93,12 @@ class Front {
                         break;
 
                     case 2:
-                        $room_types = $this->room_type->getFree($event['event_id'], $this->person->countFamily($values));
+                        $room_types = $this->room_type->getFree(
+                            $event['event_id'],
+                            $values["sex"],
+                            $this->person->countFamily($values)
+                        );
+
                         $transports = $this->transport->get($event['event_id']);
                         $template = 'page3-details.html';
                         break;
