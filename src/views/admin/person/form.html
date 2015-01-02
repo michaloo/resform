@@ -3,12 +3,19 @@
 
 {% block content %}
 
+{% set action = 'add' %}
+
+{% if person %}
+{% set action = 'edit&person_id=' ~ person.person_id %}
+{% endif %}
+
+
 <h2>Edytuj osobę
     <a href="/wp-admin/admin.php?page=resform_person_list&event_id={{person.event_id}}" class="add-new-h2">Wróć do listy</a>
     <a href="/wp-admin/admin.php?page=resform_room_list&event_id={{person.event_id}}" class="add-new-h2">Wróć do listy pokoi</a>
 </h2>
 
-<form name="post" action="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}" method="post">
+<form name="post" action="/wp-admin/admin.php?page=resform_person_{{ action }}" method="post">
 
     <table class="form-table">
         <tbody>
@@ -167,7 +174,11 @@
         </tbody>
     </table>
     <p class="submit">
+        {% if person %}
         <button class="button button-primary">Edytuj</button>
+        {% else %}
+        <button class="button button-primary">Dodaj</button>
+        {% endif %}
     </p>
 
 </form>
