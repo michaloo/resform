@@ -468,21 +468,29 @@ class Admin {
             'orderby' => 'person_id'
         );
 
-        $persons = $this->person->get($pager, $event['event_id']);
+        $filter = (isset($_GET['filter']) && is_array($_GET['filter']))
+            ? $_GET['filter']
+            : array();
+
+        $persons = $this->person->get($pager, $event['event_id'], $filter);
 
         if (count($_POST) > 0) {
             $persons_to_edit = $this->person->getPersonsToEdit($_POST["person_id"], $persons);
 
             $this->person->updateRoomId($persons_to_edit);
-            $persons = $this->person->get($pager, $event['event_id']);
+            $persons = $this->person->get($pager, $event['event_id'], $filter);
         }
 
-        $rooms_list = $this->room->get($event['event_id']);
+        $rooms_list = $this->room->get($event['event_id'], $filter);
         $rooms = $this->person->getGroupedByRooms($persons, $rooms_list);
 
+        $room_types = $this->room_type->get($event['event_id']);
+
         echo $this->view->render('admin/room/list.html', array(
-            'rooms' => $rooms,
-            'event' => $event
+            'rooms'  => $rooms,
+            'event'  => $event,
+            'filter' => $filter,
+            'room_types' => $room_types
         ));
     }
 
@@ -523,13 +531,15 @@ class Admin {
             if (count($errors) === 0) {
                 $to_save = $this->person->output_filter($filtered);
                 var_dump($to_save);
-                $this->person->register($to_save);
+                $save_errors = $this->person->register($to_save);
+                var_dump($save_errors);
             } else {
                 var_dump($errors);
             }
         }
 
         $event_id = $_GET['event_id'];
+        $event = $this->event->find($event_id);
 
         $room_types = $this->room_type->get($event_id);
         $transports = $this->transport->get($event_id);
@@ -537,6 +547,7 @@ class Admin {
         echo $this->view->render('admin/person/form.html', array(
             'room_types' => $room_types,
             'transports' => $transports,
+            'event'      => $event,
             'back_link'  => $this->back_link
         ));
     }
@@ -561,11 +572,14 @@ class Admin {
 
         $person = $this->person->find($id);
 
+        $event = $this->event->find($person['event_id']);
+
         $room_types = $this->room_type->get($person['event_id']);
         $transports = $this->transport->get($person['event_id']);
 
         echo $this->view->render('admin/person/form.html', array(
             'person' => $person,
+            'event'  => $event,
             'room_types' => $room_types,
             'transports' => $transports,
             'back_link'  => $this->back_link

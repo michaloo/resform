@@ -6,6 +6,19 @@
 
 <h2>Lista pokoi <a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróć</a></h2>
 
+<form id="filter_view" action="/wp-admin/admin.php" method="get">
+    <input type="hidden" name="page" value="resform_room_list" />
+    <input type="hidden" name="event_id" value="{{ event.event_id }}" />
+    {% for room_type in room_types %}
+    <label>{{ room_type.name }}: <input type="checkbox" name="filter[]" value="{{ room_type.room_type_id }}"
+        {% if room_type.room_type_id in filter %}
+        checked
+        {% endif %}
+        /></label>
+    {% endfor %}
+    <button>Filtruj widok</button>
+</form>
+
 <form name="room_list" action="/wp-admin/admin.php?page=resform_room_list&event_id={{ event.event_id }}" method="post">
 
     <div id="rooms">

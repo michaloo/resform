@@ -3,7 +3,7 @@
 
 {% block content %}
 
-{% set action = 'add' %}
+{% set action = 'add&event_id=' ~ event.event_id %}
 
 {% if person %}
 {% set action = 'edit&person_id=' ~ person.person_id %}
@@ -11,8 +11,8 @@
 
 
 <h2>Edytuj osobę
-    <a href="/wp-admin/admin.php?page=resform_person_list&event_id={{person.event_id}}" class="add-new-h2">Wróć do listy</a>
-    <a href="/wp-admin/admin.php?page=resform_room_list&event_id={{person.event_id}}" class="add-new-h2">Wróć do listy pokoi</a>
+    <a href="/wp-admin/admin.php?page=resform_person_list&event_id={{event.event_id}}" class="add-new-h2">Wróć do listy</a>
+    <a href="/wp-admin/admin.php?page=resform_room_list&event_id={{event.event_id}}" class="add-new-h2">Wróć do listy pokoi</a>
 </h2>
 
 <form name="post" action="/wp-admin/admin.php?page=resform_person_{{ action }}" method="post">
@@ -20,15 +20,17 @@
     <table class="form-table">
         <tbody>
 
+            <input type="hidden" name="event_id" value="{{event.event_id}}" />
+
             {% if person %}
             <input type="hidden" name="person_id" value="{{person.person_id}}" />
             {% endif %}
 
-            {{ forms.input('text', 'first_name', 'Imię', person.first_name, 'imię') }}
-            {{ forms.input('text', 'last_name', 'Nazwisko', person.last_name, 'nazwisko') }}
+            {{ forms.input('text', 'first_name', 'Imię*', person.first_name, 'imię') }}
+            {{ forms.input('text', 'last_name', 'Nazwisko*', person.last_name, 'nazwisko') }}
 
             <tr>
-                <th scope="row">Płeć</th>
+                <th scope="row">Płeć*</th>
                 <td>
                     <label>
                         <span>Kobieta:</span>
@@ -41,12 +43,12 @@
                 </td>
             </tr>
 
-            {{ forms.input('text', 'birth_date', 'Data urodzenia',
+            {{ forms.input('text', 'birth_date', 'Data urodzenia*',
                 person.birth_date is empty ? "" : person.birth_date|date('d-m-Y'), 'dd-mm-rrrr') }}
 
-            {{ forms.input('text', 'email', 'Adres e-mail', person.email, 'adres e-mail') }}
-            {{ forms.input('text', 'phone', 'Telefon', person.phone, 'numer telefonu') }}
-            {{ forms.input('text', 'city', 'Miasto', person.city, 'miasto') }}
+            {{ forms.input('text', 'email', 'Adres e-mail*', person.email, 'adres e-mail') }}
+            {{ forms.input('text', 'phone', 'Telefon*', person.phone, 'numer telefonu') }}
+            {{ forms.input('text', 'city', 'Miasto*', person.city, 'miasto') }}
 
             {{ forms.checkbox('1', 'is_disabled', 'Osoba niepełnosprawna?', person.is_disabled) }}
 
@@ -133,7 +135,7 @@
             </tr>
 
             <tr>
-                <th scope="row">Preferowany typ pokoju</th>
+                <th scope="row">Preferowany typ pokoju*</th>
                 <td>
                     <label for="room_type_id">
                         <select name="room_type_id" id="room_type_id">
@@ -148,7 +150,7 @@
             </tr>
 
             <tr>
-                <th scope="row">Opcja transportu</th>
+                <th scope="row">Opcja transportu*</th>
                 <td>
                     <label for="transport_id">
                         <select name="transport_id" id="transport_id">
@@ -165,7 +167,7 @@
             {{ forms.input('text', 'notes_1', 'Notatki 1 (lista ogólna)', person.notes_1, '', 'large-text') }}
             {{ forms.input('text', 'notes_2', 'Notatki 2 (lista płatności)', person.notes_2, '', 'large-text') }}
             {{ forms.input('text', 'notes_3', 'Notatki 3 (lista pokoi)', person.notes_3, '', 'large-text') }}
-            {{ forms.input('text', 'color_1', 'Kolor 1 (lista ogólna)', person.color_1) }}
+            {{ forms.input('color', 'color_1', 'Kolor 1 (lista ogólna)', person.color_1) }}
             {#{{ forms.input('text', 'color_2', 'Kolor 2 (lista płatności)', person.color_2) }}
             {{ forms.input('text', 'color_3', 'Kolor 3 (lista pokoi)', person.color_3) }}#}
 

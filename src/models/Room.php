@@ -17,11 +17,18 @@ class Room extends \Resform\Lib\Model {
     var $output_filters = array(
     );
 
-    function get($event_id) {
+    function get($event_id, $filter_room_type_ids) {
+
+        $filter = "";
+        if (count($filter_room_type_ids) > 0) {
+            $ids = join(", ", $filter_room_type_ids);
+            $filter = "AND room_type_id IN ($ids)";
+        }
 
         $query = "SELECT *
             FROM {$this->db->prefix}resform_rooms_space_count
             WHERE event_id = $event_id
+            $filter
             ORDER BY room_type_id
             LIMIT 20
             ";

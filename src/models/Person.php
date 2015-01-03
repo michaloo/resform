@@ -21,7 +21,7 @@ class Person extends \Resform\Lib\Model {
 
         'is_disabled'     => 'boolify',
         'disability_type' => 'stringtrim | nullify',
-        'has_stairs_accessibility' => 'stringtrim | nullify',
+        'has_stairs_accessibility' => 'stringtrim | boolify',
         'guardian_person_name' => 'stringtrim | nullify',
 
         'is_disabled_guardian'     => 'boolify',
@@ -370,12 +370,18 @@ SQL;
         return $results;
     }
 
-    function get($pager, $event_id) {
+    function get($pager, $event_id, $filter_room_type_ids) {
 
         $offset = $pager['limit'] * max((int) $pager['current'] - 1, 0);
         $limit  = $pager['limit'];
         $sort   = $pager['sort'];
         $orderby = $pager['orderby'];
+
+        $filter = "";
+        if (count($filter_room_type_ids) > 0) {
+            $ids = join(", ", $filter_room_type_ids);
+            $filter = "AND rrt.room_type_id IN ($ids)";
+        }
 
         $query   = <<<SQL
             SELECT SQL_CALC_FOUND_ROWS
@@ -398,6 +404,7 @@ SQL;
             LEFT JOIN {$this->db->prefix}resform_room_types AS rrt ON rr.room_type_id = rrt.room_type_id
             LEFT JOIN {$this->db->prefix}resform_transports AS rt USING (transport_id)
             WHERE rp.event_id = {$event_id}
+                {$filter}
             ORDER BY $orderby $sort
             LIMIT $offset, $limit
 SQL;
