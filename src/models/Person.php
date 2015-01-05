@@ -370,7 +370,7 @@ SQL;
         return $results;
     }
 
-    function get($pager, $event_id, $filter_room_type_ids) {
+    function get($pager, $event_id, $filter_room_type_ids = array()) {
 
         $offset = $pager['limit'] * max((int) $pager['current'] - 1, 0);
         $limit  = $pager['limit'];

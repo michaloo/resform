@@ -17,7 +17,7 @@ class Room extends \Resform\Lib\Model {
     var $output_filters = array(
     );
 
-    function get($event_id, $filter_room_type_ids) {
+    function get($event_id, $filter_room_type_ids = array()) {
 
         $filter = "";
         if (count($filter_room_type_ids) > 0) {
