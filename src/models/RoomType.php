@@ -13,7 +13,9 @@ class RoomType extends \Resform\Lib\Model {
         'space_count' => 'integer',
         'room_count'  => 'integer',
         'price'       => 'double',
-        'has_bathroom'    => 'boolify',
+
+        'has_bathroom' => 'boolify',
+        'is_family'    => 'boolify',
     );
 
     var $validators = array(
@@ -21,8 +23,10 @@ class RoomType extends \Resform\Lib\Model {
         'space_count' => array("required"),
         'room_count'  => array("required"),
         'price'       => array("required"),
-        'has_bathroom'    => array("required"),
-        'event_id'    => array("required")
+        'event_id'    => array("required"),
+
+        'has_bathroom' => array("required"),
+        'is_family'    => array("required"),
     );
 
     function getFree($event_id, $sex, $familyCount) {
@@ -36,8 +40,16 @@ class RoomType extends \Resform\Lib\Model {
         WHERE
             r.event_id = $event_id
             AND (
-                ({$familyCount} > 1 AND occupied_space_count = 0 AND r.space_count = {$familyCount} + 1)
-                OR ({$familyCount} = 0 AND (sex = '{$sex}' OR sex IS NULL) AND free_space_count > 0)
+                (
+                    {$familyCount} > 0
+                    AND occupied_space_count = 0
+                    AND r.space_count = {$familyCount} + 1
+                    AND rt.is_family = true
+                ) OR (
+                    {$familyCount} = 0
+                    AND (sex = '{$sex}' OR sex IS NULL)
+                    AND free_space_count > 0)
+                    AND rt.is_family = false
             )
         GROUP BY rt.room_type_id";
 

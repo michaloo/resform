@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS _prefix_room_types (
   name VARCHAR(255) NOT NULL,
   space_count INT NOT NULL,
   has_bathroom BOOLEAN NOT NULL,
+  is_family BOOLEAN NOT NULL,
   room_count INT NOT NULL,
   price DECIMAL(10,2) NOT NULL,
   event_id MEDIUMINT(9) NOT NULL,

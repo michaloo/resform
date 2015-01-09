@@ -47,10 +47,22 @@ Dodaj Typ pokoju
             <tr>
                 <th scope="row">Łazienka?</th>
                 <td>
-                    <label for="bathroom">
-                        <select name="has_bathroom" placeholder="łazienka?" id="bathroom">
+                    <label for="has_bathroom">
+                        <select name="has_bathroom" placeholder="łazienka?" id="has_bathroom">
                             <option value="1">Tak</option>
-                            <option value="0"{% if not room_type.bathroom %} selected{% endif %}>Nie</option>
+                            <option value="0"{% if not room_type.has_bathroom %} selected{% endif %}>Nie</option>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+
+            <tr>
+                <th scope="row">Pokój tylko dla rodzin?</th>
+                <td>
+                    <label for="is_family">
+                        <select name="is_family" placeholder="rodzinny?" id="is_family">
+                            <option value="1">Tak</option>
+                            <option value="0"{% if not room_type.is_family %} selected{% endif %}>Nie</option>
                         </select>
                     </label>
                 </td>
