@@ -61,7 +61,7 @@ class Person extends \Resform\Lib\Model {
         'is_disabled'     => array("required"),
         'disability_type' => array('requiredWhen({"item":"is_disabled","rule":"Equal","rule_options":{"value":true}})'),
         'has_stairs_accessibility' => array('requiredWhen({"item":"is_disabled","rule":"Equal","rule_options":{"value":true}})'),
-        'guardian_person_name' => array('requiredWhen({"item":"is_disabled","rule":"Equal","rule_options":{"value":true}})'),
+        'guardian_person_name' => array(),
 
         'is_disabled_guardian' => array("required"),
         'disabled_person_name' => array('requiredWhen({"item":"is_disabled_guardian","rule":"Equal","rule_options":{"value":true}})'),

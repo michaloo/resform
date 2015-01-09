@@ -3,7 +3,11 @@
 {% import "admin/person/_macros.html" as macros %}
 
 {% block content %}
-<h2>Osoby<a href="/wp-admin/admin.php?page=resform_event_add" class="add-new-h2">Eksportuj</a> <a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróć</a></h2>
+<h2>Osoby
+    <a href="{{ ''|ajaxurl }}?action=resform_person_export&event_id={{ event.event_id }}" class="add-new-h2">Eksportuj</a>
+    <a href="/wp-admin/admin.php?page=resform_event_list" class="add-new-h2">Wróć</a>
+    <a href="/wp-admin/admin.php?page=resform_person_add&event_id={{event.event_id}}" class="add-new-h2">Dodaj osobę</a>
+</h2>
 
 {{ macros.form(event, view) }}
 
@@ -57,6 +61,9 @@
                 </td>
                 <td>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>
+                    <a
+                        data-delete
+                        href="/wp-admin/admin.php?page=resform_person_list&event_id={{event.event_id}}&person_id={{person.person_id}}">Usuń</a>
                 </td>
             </tr>
             {% endfor %}
