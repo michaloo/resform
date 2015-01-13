@@ -1,5 +1,5 @@
 /src/vendor/
-.env
+.env*
 composer.lock
 *.log
 node_modules

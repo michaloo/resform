@@ -29,7 +29,7 @@
 
     function family() {
         var $fieldset = $("#family"),
-            $template = $("#family_template").html().trim(),
+            $template = ($("#family_template").html() || '').trim(),
             $button   = $("#family_button");
 
         $fieldset.on("click", "[data-family-remove]", function(ev) {
@@ -45,6 +45,9 @@
     }
 
     function populate() {
+        // if (! window.resform_family_data) {
+        //     return;
+        // }
         var data = window.resform_family_data,
             first_names = data.first_names || [],
             last_names  = data.last_names || [],

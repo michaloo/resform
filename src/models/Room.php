@@ -30,7 +30,7 @@ class Room extends \Resform\Lib\Model {
             WHERE event_id = $event_id
             $filter
             ORDER BY room_type_id
-            LIMIT 20
+            LIMIT 200
             ";
 
         $results = $this->db->get_results($query, ARRAY_A);

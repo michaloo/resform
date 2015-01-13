@@ -91,7 +91,7 @@
             <input type="hidden" name="underaged" value="no" />
             <input type="checkbox" name="underaged" value="alone"
                 {% if values.underaged == 'alone' %} checked{% endif %}>
-            <span class="description">W rekolekcjach mogą wziąć udział osoby niepełnoletnie bez opieki i obecności rodziców/prawnych opiekunów. Muszą jednak mieć co najmniej 16 lat i przesłać do Organizatora zgodę rodziców/prawnych opiekunów na udział ich dziecka/podopiecznego w rekolekcjach - pismo do uzupełnienia i podpisania zostanie wysłane w mailu potwierdzającym zapis. Zgodę należy przesłać jako skan na adres zapisyrekolekcje@gmail.com w ciągu 3 dni od zapisu, oryginał natomiast uczestnik rekolekcji przekaże Organizatorowi przy zakwaterowaniu.</span>
+            <span class="description">W rekolekcjach mogą wziąć udział osoby niepełnoletnie bez opieki i obecności rodziców/prawnych opiekunów. Muszą jednak mieć co najmniej 16 lat i przesłać do Organizatora zgodę rodziców/prawnych opiekunów na udział ich dziecka/podopiecznego w rekolekcjach - pismo do uzupełnienia i podpisania zostanie wysłane w mailu potwierdzającym zapis.</span>
         </label>
 
         <label class="field full separated">
@@ -99,7 +99,7 @@
             <input type="hidden" name="is_underaged_guardian" value="0" />
             <input type="checkbox" name="is_underaged_guardian" value="1"
                 {% if values.is_underaged_guardian == '1' %} checked{% endif %}>
-            <span class="description">Jeżeli nieletni uczestnik bierze udział w rekolekcjach pod opieką osoby niebędącej jego rodzicem/opiekunem prawnym, zobowiązany jest przesłać do Organizatora zgodę rodziców/prawnych opiekunów na udział ich dziecka/podopiecznego w rekolekcjach oraz wskazanie opiekuna - pismo do uzupełnienia i podpisania zostanie wysłane w mailu potwierdzającym zapis. Zgodę należy przesłać jako skan na adres: zapisyrekolekcje@gmail.com w ciągu 3 dni od zapisu, oryginał natomiast uczestnik rekolekcji przekaże Organizatorowi przy zakwaterowaniu. Jeśli dotyczy to Państwa, prosimy również o zaznaczenie odpowiedniego pola poniżej.</span>
+            <span class="description">Jeżeli niepełnoletni uczestnik bierze udział w rekolekcjach pod opieką osoby niebędącej jego rodzicem/opiekunem prawnym, zobowiązany jest przesłać do Organizatora zgodę rodziców/prawnych opiekunów na udział ich podopiecznego w rekolekcjach oraz wskazanie opiekuna - pismo do uzupełnienia i podpisania zostanie wysłane w mailu potwierdzającym zapis.</span>
         </label>
 
         <fieldset>
@@ -117,7 +117,8 @@
 
     <fieldset id="family_fieldset">
         <h3>Członkowie rodziny</h3>
-
+        <p class="description">Rodzina może zapisać się jedynie do pokoju, który zapełni w całości. Np. jeżeli zapisujesz rodzinę 4-osobową (z dziećmi powyżej 3 r.ż.) w formularzu jako dostępne zostaną wyświetlone tylko pokoje 4-osobowe. Jeżeli wybrany przez Ciebie typ pokoju jest niedostępny, spróbuj zapisać oddzielnie jednego z członków rodziny (zostanie on zakwaterowany do innego pokoju). UWAGA: Dziecko do 3 r.ż. jest zwolnione z opłaty za rekolekcje oraz nie otrzymuje własnego łóżka.</p>
+        <p class="description">DOSTĘPNE POKOJE: 2,3,4,5,8-osobowe.</p>
         <div id="family"></div>
 
         <button id="family_button" class="button">Dodaj członka rodziny/dziecko</button>
