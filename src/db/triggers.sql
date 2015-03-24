@@ -3,14 +3,17 @@ DELIMITER $$
 ---- events
 
 -- audit log trigger
+DROP TRIGGER IF EXISTS _prefix_events_after_insert$$
 CREATE TRIGGER `_prefix_events_after_insert`
     AFTER INSERT ON `_prefix_events`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.event_id, "INSERT event", @user)$$
 
+DROP TRIGGER IF EXISTS _prefix_events_after_update$$
 CREATE TRIGGER `_prefix_events_after_update`
     AFTER UPDATE ON `_prefix_events`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.event_id, "UPDATE event", @user)$$
 
+DROP TRIGGER IF EXISTS _prefix_events_after_delete$$
 CREATE TRIGGER `_prefix_events_after_delete`
     AFTER DELETE ON `_prefix_events`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(OLD.event_id, "DELETE event", @user)$$
@@ -18,6 +21,7 @@ CREATE TRIGGER `_prefix_events_after_delete`
 ---- room_types
 
 -- trigger creates pool of rooms for new room_type
+DROP TRIGGER IF EXISTS _prefix_room_types_after_insert$$
 CREATE TRIGGER `_prefix_room_types_after_insert`
     AFTER INSERT ON `_prefix_room_types`
     FOR EACH ROW BEGIN
@@ -32,7 +36,9 @@ CREATE TRIGGER `_prefix_room_types_after_insert`
         INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.room_type_id, "INSERT room_type", @user);
     END$$
 
+
 -- trigger inserts or deletes rooms in relation to changed room_count column
+DROP TRIGGER IF EXISTS _prefix_room_types_after_update$$
 CREATE TRIGGER `_prefix_room_types_after_update`
     AFTER UPDATE ON `_prefix_room_types`
     FOR EACH ROW proc:BEGIN
@@ -63,6 +69,7 @@ CREATE TRIGGER `_prefix_room_types_after_update`
 
     END$$
 
+DROP TRIGGER IF EXISTS `_prefix_room_types_after_delete`$$
 CREATE TRIGGER `_prefix_room_types_after_delete`
     AFTER DELETE ON `_prefix_room_types`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(OLD.room_type_id, "DELETE room_type", @user)$$
@@ -81,14 +88,17 @@ CREATE TRIGGER `_prefix_room_types_after_delete`
 --         END REPEAT;
 --     END$$
 
+DROP TRIGGER IF EXISTS `_prefix_rooms_after_insert`$$
 CREATE TRIGGER `_prefix_rooms_after_insert`
     AFTER INSERT ON `_prefix_rooms`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.room_id, "INSERT room", @user)$$
 
+DROP TRIGGER IF EXISTS `_prefix_rooms_after_update`$$
 CREATE TRIGGER `_prefix_rooms_after_update`
     AFTER UPDATE ON `_prefix_rooms`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.room_id, "UPDATE room", @user)$$
 
+DROP TRIGGER IF EXISTS `_prefix_rooms_after_delete`$$
 CREATE TRIGGER `_prefix_rooms_after_delete`
     AFTER DELETE ON `_prefix_rooms`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(OLD.room_id, "DELETE room", @user)$$
@@ -97,14 +107,17 @@ CREATE TRIGGER `_prefix_rooms_after_delete`
 ---- transports
 
 -- audit log trigger
+DROP TRIGGER IF EXISTS `_prefix_transports_after_insert`$$
 CREATE TRIGGER `_prefix_transports_after_insert`
     AFTER INSERT ON `_prefix_transports`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.transport_id, "INSERT transport", @user);
 
+DROP TRIGGER IF EXISTS `_prefix_transports_after_update`$$
 CREATE TRIGGER `_prefix_transports_after_update`
     AFTER UPDATE ON `_prefix_transports`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.transport_id, "UPDATE transport", @user);
 
+DROP TRIGGER IF EXISTS `_prefix_transports_after_delete`$$
 CREATE TRIGGER `_prefix_transports_after_delete`
     AFTER DELETE ON `_prefix_transports`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(OLD.transport_id, "DELETE transport", @user);
@@ -113,6 +126,7 @@ CREATE TRIGGER `_prefix_transports_after_delete`
 ---- persons
 
 -- trigger query for new room_id for new persons record
+DROP TRIGGER IF EXISTS `_prefix_persons_before_insert`$$
 CREATE TRIGGER `_prefix_persons_before_insert`
     BEFORE INSERT ON `_prefix_persons`
     FOR EACH ROW proc:BEGIN
@@ -155,6 +169,7 @@ CREATE TRIGGER `_prefix_persons_before_insert`
 --     END$$
 
 -- trigger makes sure that updated room_id is checked before saving
+DROP TRIGGER IF EXISTS `_prefix_persons_before_update`$$
 CREATE TRIGGER `_prefix_persons_before_update`
     BEFORE UPDATE ON `_prefix_persons`
     FOR EACH ROW proc:BEGIN
@@ -189,6 +204,7 @@ CREATE TRIGGER `_prefix_persons_before_update`
     END$$
 
 -- trigger updates room data only for is_family_guardian persons
+DROP TRIGGER IF EXISTS `_prefix_persons_after_update`$$
 CREATE TRIGGER `_prefix_persons_after_update`
     AFTER UPDATE ON `_prefix_persons`
     FOR EACH ROW proc:BEGIN
@@ -202,6 +218,7 @@ CREATE TRIGGER `_prefix_persons_after_update`
 
     END$$
 
+DROP TRIGGER IF EXISTS `_prefix_persons_after_delete`$$
 CREATE TRIGGER `_prefix_persons_after_delete`
     AFTER DELETE ON `_prefix_persons`
     FOR EACH ROW INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(OLD.person_id, "DELETE person", @user)$$

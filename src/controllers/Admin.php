@@ -19,10 +19,14 @@ class Admin {
 
         $this->assetsUrl = str_replace('controllers/', '', plugin_dir_url(__FILE__) . 'assets/');
 
-        if ($_SERVER["REQUEST_METHOD"] === "GET") {
+        if ($_SERVER["REQUEST_METHOD"] === "GET"
+            && isset($_SERVER["HTTP_REFERER"])) {
             setcookie('resform_back_link', $_SERVER["HTTP_REFERER"]);
         }
-        $this->back_link = $_COOKIE["resform_back_link"];
+
+        if (isset($_COOKIE["resform_back_link"])) {
+            $this->back_link = $_COOKIE["resform_back_link"];
+        }
 
         add_action( 'admin_menu', array($this, 'register_menu_page'));
         add_action( 'init', array($this, 'set_user'));
@@ -599,7 +603,7 @@ class Admin {
     function getPager($get) {
 
         $defaults = array(
-            'limit'   => 20,
+            'limit'   => 500,
             'current' => 1,
             'orderby' => 'person_id',
             'sort'    => 'desc'

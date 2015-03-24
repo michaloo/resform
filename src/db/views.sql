@@ -1,4 +1,5 @@
 
+DROP VIEW IF EXISTS _prefix_rooms_space_count;
 CREATE VIEW _prefix_rooms_space_count AS
     SELECT
         rt.event_id,
@@ -15,6 +16,7 @@ CREATE VIEW _prefix_rooms_space_count AS
     LEFT JOIN _prefix_room_types AS rt ON r.room_type_id = rt.room_type_id
     GROUP BY r.room_id, p.sex;
 
+DROP VIEW IF EXISTS _prefix_room_types_space_count;
 CREATE VIEW _prefix_room_types_space_count AS
     SELECT
         event_id,
@@ -26,6 +28,7 @@ CREATE VIEW _prefix_room_types_space_count AS
     FROM _prefix_rooms_space_count GROUP BY room_type_id;
 
 
+DROP VIEW IF EXISTS _prefix_persons_family;
 CREATE VIEW _prefix_persons_family AS
     SELECT p.*, GROUP_CONCAT(CONCAT_WS(' ', pc.first_name, pc.last_name)) AS children
     FROM _prefix_persons AS p
@@ -33,6 +36,7 @@ CREATE VIEW _prefix_persons_family AS
     WHERE p.is_family_guardian = true
     GROUP BY p.person_id;
 
+DROP VIEW IF EXISTS _prefix_persons_with_age;
 CREATE VIEW _prefix_persons_with_age AS
     SELECT
         p.*,
@@ -40,6 +44,7 @@ CREATE VIEW _prefix_persons_with_age AS
     FROM _prefix_persons AS p;
 
 
+DROP VIEW IF EXISTS _prefix_persons_with_price;
 CREATE VIEW _prefix_persons_with_price AS
     SELECT
         p.*,
@@ -53,6 +58,7 @@ CREATE VIEW _prefix_persons_with_price AS
     LEFT JOIN _prefix_room_types AS rrt ON rr.room_type_id = rrt.room_type_id
     LEFT JOIN _prefix_transports AS rt USING (transport_id);
 
+DROP VIEW IF EXISTS _prefix_persons_with_total_price;
 CREATE VIEW _prefix_persons_with_total_price AS
     SELECT
         p.*,
@@ -62,4 +68,4 @@ CREATE VIEW _prefix_persons_with_total_price AS
             GROUP BY rc.family_person_id
         ) AS price_family
     FROM _prefix_persons_with_price AS p
-    WHERE p.family_person_id IS NULL
+    WHERE p.family_person_id IS NULL;

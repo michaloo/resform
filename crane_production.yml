@@ -9,6 +9,11 @@ containers:
         run:
             volume: ["/var/www/html"]
             detach: true
+    resform_data_web2:
+        image: tianon/true
+        run:
+            volume: ["/app"]
+            detach: true
     mysql:
         image: michaloo/mariadb
         run:
@@ -16,13 +21,33 @@ containers:
             env-file: [".env"]
             net: host
             detach: true
+    # web:
+    #     image: michaloo/web-dev
+    #     run:
+    #         volumes-from: ["resform_data_web"]
+    #         net: host
+    #         detach: true
+    #         env-file: [".env"]
     web:
-        image: michaloo/web-dev
+        image: malak/wp
         run:
-            volumes-from: ["resform_data_web"]
-            net: host
+            volumes-from: ["resform_data_web", "resform_data_web2"]
+            net: "host"
             detach: true
             env-file: [".env"]
+    web_it:
+        image: malak/wp
+        run:
+            volumes-from: ["resform_data_web", "resform_data_web2"]
+            workdir: /resform
+            net: host
+            interactive: true
+            env-file: [".env"]
+            tty: true
+            rm: true
+            cmd:
+            - -c
+            - bash
     mysql_it:
         image: michaloo/mariadb
         run:
@@ -35,19 +60,19 @@ containers:
             tty: true
             rm: true
             cmd: -c /bin/bash # /app/bin/connect
-    web_it:
-        image: michaloo/web-dev
-        run:
-            volumes-from: ["resform_data_web"]
-            workdir: /resform
-            net: host
-            interactive: true
-            env-file: [".env"]
-            tty: true
-            rm: true
-            cmd:
-            - -c
-            - bash
+    # web_it:
+    #     image: michaloo/web-dev
+    #     run:
+    #         volumes-from: ["resform_data_web"]
+    #         workdir: /resform
+    #         net: host
+    #         interactive: true
+    #         env-file: [".env"]
+    #         tty: true
+    #         rm: true
+    #         cmd:
+    #         - -c
+    #         - bash
     wp_it:
         image: michaloo/web-dev
         run:
@@ -62,3 +87,10 @@ containers:
             cmd:
             - -c
             - bash
+    upstarter:
+        image: $REPO/handimania/upstarter
+        run:
+            net: host
+            volume: ["/etc/init/zapisy/:/etc/init/zapisy"]
+            env-file: [".env"]
+            rm: true

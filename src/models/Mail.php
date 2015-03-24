@@ -2,7 +2,6 @@
 
 namespace Resform\Model;
 
-
 class Mail {
 
     function __construct($db, $Mailer) {
@@ -28,15 +27,17 @@ class Mail {
     public function send($email, $name, $message) {
         $mail = $this->Mailer;
 
-        $mail->From = 'zapisy@fundacjamalak.pl';
+        $mail->From = 'rekolekcje@fundacjamalak.pl';
         $mail->FromName = 'Zapisy';
         $mail->addAddress($email, $name);
-        $mail->addBCC('zapisy@fundacjamalak.pl');
+        $mail->addBCC('rekolekcje@fundacjamalak.pl');
 
         $mail->WordWrap = 50;
         //$mail->isHTML(true);
+        $path = plugin_dir_path( __FILE__ ) . '../WPL-VII-Regulamin.pdf';
+        $mail->AddAttachment($path);
 
-        $mail->Subject = 'Zapisy';
+        $mail->Subject = 'Rekolekcje WEEKEND PEŁEN ŁASKI VII';
         $mail->Body    = $message;
         //$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 

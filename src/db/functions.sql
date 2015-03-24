@@ -1,5 +1,8 @@
+DROP FUNCTION IF EXISTS _prefix_rooms_available;
+
 DELIMITER $$
-CREATE FUNCTION _prefix_rooms_available(
+
+CREATE FUNCTION _prefix_rooms_available (
     new_room_type_id MEDIUMINT(9),
     new_sex ENUM('male', 'female'),
     new_family_person_id MEDIUMINT(9),

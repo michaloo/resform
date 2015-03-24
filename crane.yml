@@ -56,9 +56,7 @@ containers:
             - "MYSQL_PASS=root"
             tty: true
             rm: true
-            cmd:
-            - -c
-            - bash
+            cmd: -c /bin/bash
     wp_it:
         image: michaloo/web-dev
         run:

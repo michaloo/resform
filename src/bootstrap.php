@@ -7,11 +7,13 @@ $container = new Container();
 $container["log"] = function($c) {
     $log = new Monolog\Logger('name');
 
-    @mkdir(plugin_dir_path( __FILE__ ) . 'logs');
-    $log->pushHandler(new Monolog\Handler\StreamHandler(__DIR__ . '/logs/debug.log', Monolog\Logger::DEBUG));
-    $log->pushHandler(new Monolog\Handler\StreamHandler(__DIR__ . '/logs/warning.log', Monolog\Logger::WARNING));
+    $path = plugin_dir_path( __FILE__ ) . 'logs/';
 
-    $log->addInfo('Initialize logger');
+    @mkdir($path);
+
+    $log->pushHandler(new Monolog\Handler\StreamHandler($path . 'debug.log', Monolog\Logger::DEBUG));
+    $log->pushHandler(new Monolog\Handler\StreamHandler($path . 'warning.log', Monolog\Logger::WARNING));
+
     return $log;
 };
 
@@ -140,6 +142,7 @@ $container['transport_model'] = function($c) {
 
 $container['person_model'] = function($c) {
     return new \Resform\Model\Person(
+        $c['log'],
         $c['db'],
         $c['filter'],
         $c['filter'],

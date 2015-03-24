@@ -155,11 +155,13 @@ class Person extends \Resform\Lib\Model {
     protected $step_filters;
     protected $step_validators;
 
-    function __construct($db, $input_filter, $output_filter, $validator, $step_filters, $step_validators) {
+    function __construct($log, $db, $input_filter, $output_filter, $validator, $step_filters, $step_validators) {
         parent::__construct($db, $input_filter, $output_filter, $validator);
 
         $this->step_filters    = $step_filters;
         $this->step_validators = $step_validators;
+
+        $this->log = $log;
 
         return $this;
     }
@@ -306,6 +308,11 @@ SQL;
             );
 SQL;
             $this->db->query($query);
+
+            $this->log->addInfo('Person.register', array(
+                'query' => $query
+            ));
+
             array_push($errors, $this->db->last_error);
         }
 
@@ -470,7 +477,8 @@ SQL;
         }
         $query = "UPDATE {$this->db->prefix}resform_persons SET {$this->getPairs($editable, $data)} WHERE person_id = {$data['person_id']} LIMIT 1";
 
-        var_dump($query);
+        $this->log->addInfo('Person.update', array('query' => $query));
+
         return $this->db->query($query);
     }
 
@@ -489,6 +497,12 @@ SQL;
                 WHERE person_id = {$sql_values["person_id"]}
 SQL;
             $count = $this->db->query($query);
+
+            $this->log->addInfo('Person.updateRoomId', array(
+                'query' => $query,
+                'count' => $count
+            ));
+
             array_push($errors, $this->db->last_error);
             return true;
             //return $count > 0;
@@ -506,7 +520,12 @@ SQL;
 
 
             $count = $this->db->query($query);
-            var_dump($query, $count);
+
+            $this->log->addInfo('Person.updateRoomId', array(
+                'query' => $query,
+                'count' => $count
+            ));
+
             array_push($errors, $this->db->last_error);
 
             if ($person['is_family_guardian'] == 1) {
@@ -518,12 +537,20 @@ SQL;
 SQL;
 
                 $count = $this->db->query($query);
-                var_dump($query, $count);
+
+                $this->log->addInfo('Person.updateRoomId', array(
+                    'query' => $query,
+                    'count' => $count
+                ));
+
                 array_push($errors, $this->db->last_error);
             }
         }
 
-        var_dump($errors);
+        $this->log->addInfo('Person.updateRoomId', array(
+            'errors' => $errors
+        ));
+
         if (count(array_filter($errors)) === 0) {
             $this->db->query("COMMIT");
             return array();
@@ -565,7 +592,11 @@ SQL;
 
     function delete($id) {
         $query = "DELETE FROM {$this->db->prefix}resform_persons WHERE person_id = {$id} LIMIT 1";
-        var_dump($query);
+
+        $this->log->addInfo('Person.delete', array(
+            'query' => $query
+        ));
+
         return $this->db->query($query);
     }
 
