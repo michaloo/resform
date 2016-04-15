@@ -67,7 +67,16 @@ class Front {
             $template = 'done.html';
 
         } elseif (count($events) === 0) {
-            $template = 'none.html';
+
+            $futureEvents = $this->event->getFuture();
+
+            if (count($futureEvents) > 0) {
+                $event = array_pop($futureEvents);
+                $template = 'future.html';
+            } else {
+                $template = 'none.html';
+            }
+
         } else {
 
             $event = array_pop($events);

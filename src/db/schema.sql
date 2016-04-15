@@ -97,3 +97,12 @@ CREATE TABLE IF NOT EXISTS _prefix_audit_logs (
   user TEXT,
   add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS _prefix_person_reservations (
+    person_reservation_id MEDIUMINT(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    person_id MEDIUMINT(9),
+    preference VARCHAR(255),
+    add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    edit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY(person_id) REFERENCES _prefix_persons(person_id)
+);

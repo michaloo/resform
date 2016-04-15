@@ -130,6 +130,11 @@ CREATE TRIGGER `_prefix_persons_before_insert`
 
         SET @room_id = NULL;
 
+        -- we don't try to find room for a reservation entry
+        IF NEW.is_reservation = 1 THEN
+            LEAVE proc;
+        END IF;
+
         IF NEW.room_id IS NULL
             AND NEW.room_type_id IS NULL
             AND NEW.family_person_id IS NULL THEN
@@ -170,6 +175,11 @@ DROP TRIGGER IF EXISTS `_prefix_persons_before_update`$$
 CREATE TRIGGER `_prefix_persons_before_update`
     BEFORE UPDATE ON `_prefix_persons`
     FOR EACH ROW proc:BEGIN
+
+        -- we don't try to find room for a reservation entry
+        IF NEW.is_reservation = 1 THEN
+            LEAVE proc;
+        END IF;
 
         IF OLD.room_id <=> NEW.room_id AND OLD.room_type_id <=> NEW.room_type_id THEN
             LEAVE proc;

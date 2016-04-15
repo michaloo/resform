@@ -152,4 +152,21 @@ SQL;
         return $results;
     }
 
+    function getFuture()
+    {
+        $query = <<<SQL
+        SELECT re.*
+        FROM {$this->db->prefix}resform_events AS re
+        WHERE
+            CURRENT_TIMESTAMP() < reservation_start_time
+            AND is_active IS true
+        GROUP BY event_id
+        LIMIT 1
+SQL;
+
+        $results = $this->db->get_results($query, ARRAY_A);
+
+        return $results;
+    }
+
 }

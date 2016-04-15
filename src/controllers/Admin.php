@@ -304,6 +304,7 @@ class Admin {
             if (count($errors) === 0) {
                 $to_save = $this->event->output_filter($filtered);
                 $this->event->save($to_save);
+                $this->redirect(admin_url('admin.php?page=resform_event_list'));
             } else {
             }
         }
@@ -326,6 +327,7 @@ class Admin {
                 if (function_exists('wp_cache_clear_cache')) {
                     wp_cache_clear_cache();
                 }
+                $this->redirect(admin_url('admin.php?page=resform_event_list'));
             } else {
                 var_dump($errors);
             }
@@ -373,6 +375,7 @@ class Admin {
             if (count($errors) === 0) {
                 $to_save = $this->transport->output_filter($filtered);
                 $this->transport->save($to_save);
+                $this->redirect(admin_url('admin.php?page=resform_transport_list&event_id=' . $to_save['event_id']));
             } else {
                 var_dump($errors);
             }
@@ -390,6 +393,7 @@ class Admin {
             if (count($errors) === 0) {
                 $to_save = $this->transport->output_filter($filtered);
                 $this->transport->update($to_save);
+                $this->redirect(admin_url('admin.php?page=resform_transport_list&event_id=' . $to_save['event_id']));
             } else {
                 var_dump($errors);
             }
@@ -436,6 +440,8 @@ class Admin {
             if (count($errors) === 0) {
                 $to_save = $this->room_type->output_filter($filtered);
                 $this->room_type->save($to_save);
+
+                $this->redirect(admin_url('admin.php?page=resform_room_type_list&event_id=' . $to_save['event_id']));
             } else {
                 var_dump($errors);
             }
@@ -453,6 +459,8 @@ class Admin {
             if (count($errors) === 0) {
                 $to_save = $this->room_type->output_filter($filtered);
                 $this->room_type->update($to_save);
+
+                $this->redirect(admin_url('admin.php?page=resform_room_type_list&event_id=' . $to_save['event_id']));
             } else {
                 var_dump($errors);
             }
@@ -638,5 +646,15 @@ class Admin {
         $this->log->info('admin.login', array(
             'login' => $user->user_login
         ));
+    }
+
+    function redirect($url)
+    {
+        $string = '<script type="text/javascript">';
+        $string .= 'window.location = "' . $url . '"';
+        $string .= '</script>';
+
+        echo $string;
+        exit;
     }
 }

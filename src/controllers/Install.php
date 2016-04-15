@@ -54,14 +54,16 @@ class Install {
             "$$",
             "_prefix_",
             "CREATE",
-            "DROP"
+            "DROP",
+            "ALTER"
         ), array(
             "",
             "",
             ";",
             $this->db->prefix . "resform_",
             "-- break \nCREATE",
-            "-- break \nDROP"
+            "-- break \nDROP",
+            "-- break \nALTER"
         ), $sql);
 
         // divide commands on '-- break' comment, trim whitespaces and filter empty
