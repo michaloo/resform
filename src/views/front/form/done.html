@@ -8,6 +8,11 @@
 {% else %}
 <div>
     <p>Gratulujemy!</p>
+
+    {% if values.is_reservation %}
+    <p>Twoje zgłoszenie na listę rezerwową zostało zapisane, dziękujemy</p>
+    {% else %}
+
     <p>Twoje zgłoszenie na rekolekcje Weekend Pełen Łaski zostało zarejestrowane.
     Wszystkie szczegółowe informacje zostały wysłane do Ciebie na podany w formularzu adres e-mail. Udział w rekolekcjach zostanie ostatecznie potwierdzony po wpłynięciu pełnej opłaty za rekolekcje na konto Fundacji Malak (termin płatności: 3 dni od daty przesłania zgłoszenia).
     Jeżeli masz pytania, napisz: rekolekcje@fundacjamalak.pl</p>
@@ -15,6 +20,8 @@
     <strong>Kwota do zapłaty:</strong> <span>{{ (values.price + values.price_family)|format_price }}</span><br />
 
     <strong>Typ pokoju:</strong> <span>{{ values.room_type_name }}</span><br />
+
+    {% endif %}
 
 
     <p>Pozdrawiamy!</p>

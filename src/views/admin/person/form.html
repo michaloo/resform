@@ -29,6 +29,8 @@
             {{ forms.input('text', 'first_name', 'Imię*', person.first_name, 'imię') }}
             {{ forms.input('text', 'last_name', 'Nazwisko*', person.last_name, 'nazwisko') }}
 
+            {{ forms.checkbox('1', 'is_reservation', 'Na liście rezerwowej', person.is_reservation) }}
+
             <tr>
                 <th scope="row">Płeć*</th>
                 <td>

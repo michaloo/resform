@@ -1,8 +1,15 @@
 
 <form action="{{ action_url }}" method="post" class="resform">
+
+    {% if is_full %}
+    <p>Z powodu braku miejsc formularz nie przyjmuje już zapisów.</p>
+    <p>Zgłaszasz się na listę rezerwową.</p>
+    {% endif %}
+
     <h2>Szczegóły zapisów</h2>
 
     <input type="hidden" name="step" value="3">
+
     <label class="field separated_more{% if errors.room_type_id %} with_error{% endif %}">
         <span class="name">Typ pokoju:</span>
         <div class="description">{{ event.room_type_info|nl2br }}</div>

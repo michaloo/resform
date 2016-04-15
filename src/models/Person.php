@@ -11,6 +11,7 @@ class Person extends \Resform\Lib\Model {
         'room_type_id' => 'integer | nullify',
         'transport_id' => 'integer | nullify',
 
+        'is_reservation' => 'boolify',
         'sex'        => 'stringtrim',
         'first_name' => 'stringtrim',
         'last_name'  => 'stringtrim',
@@ -72,8 +73,8 @@ class Person extends \Resform\Lib\Model {
         'family_last_name[*]'  => array("required"),
         'family_birth_date[*]' => array('required | Datetime({"format":"Y-m-d"})'),
 
-        'room_type_id' => array("required"),
-        'transport_id' => array("required"),
+        'room_type_id' => array('requiredWhen({"item":"is_reservation","rule":"Equal","rule_options":{"value":false}})'),
+        'transport_id' => array('required'),
 
         'accept_regulation'  => array('required | inlist({"list":[true]})'),
         'accept_information' => array('required | inlist({"list":[true]})'),
@@ -120,6 +121,7 @@ class Person extends \Resform\Lib\Model {
     var $steps = array(
         array(),
         array(
+            'is_reservation',
             'sex',
             'first_name',
             'last_name',

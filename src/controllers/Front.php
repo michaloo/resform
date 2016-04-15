@@ -81,112 +81,113 @@ class Front {
 
             $event = array_pop($events);
 
-            if ($event['free_space_count'] == '0') {
-                $template = 'closed.html';
-            } else {
+            $isFull = ((int) $event['free_space_count'] == 0) ? true : false;
 
-                $step = (isset($_POST['step'])) ? (int) $_POST['step'] : 0;
+            $step = (isset($_POST['step'])) ? (int) $_POST['step'] : 0;
 
-                $values = array_merge($_SESSION, $_POST);
-                $values["event_id"] = $event["event_id"];
+            $values = array_merge($_SESSION, $_POST);
+            $values["event_id"] = $event["event_id"];
 
-                // handle family member removal
-                if ($step === 2 && count($_POST["family_first_name"]) === 0) {
-                    unset($values['family_first_name']);
-                    unset($values['family_last_name']);
-                    unset($values['family_birth_date']);
+            // handle family member removal
+            if ($step === 2 && count($_POST["family_first_name"]) === 0) {
+                unset($values['family_first_name']);
+                unset($values['family_last_name']);
+                unset($values['family_birth_date']);
+            }
+
+            if ($step > 1) {
+
+                $filtered = $this->person->input_filter_step($step, $values);
+                $errors   = $this->person->validate_step($step, $filtered);
+
+                if (count($errors) > 0) {
+                    $step--;
                 }
 
-                if ($step > 1) {
+                $this->log->info('front.show_form.step', array(
+                    'post'   => $_POST,
+                    'errors' => $errors
+                ));
 
-                    $filtered = $this->person->input_filter_step($step, $values);
-                    $errors   = $this->person->validate_step($step, $filtered);
+                $values   = array_merge($values, $filtered);
+                $_SESSION = $values;
+            }
 
-                    if (count($errors) > 0) {
-                        $step--;
+            switch ($step) {
+                default:
+                case 0:
+                    $template = 'page1-general-info.html';
+                    $_SESSION = array();
+                    if ($isFull) {
+                        $template = 'closed.html';
+                    }
+                    break;
+
+                case 1:
+                    $template = 'page2-personal-info.html';
+                    break;
+
+                case 2:
+
+                    $room_types = $this->room_type->getFree(
+                        $event['event_id'],
+                        $values["sex"],
+                        $this->person->countFamily($values)
+                    );
+
+                    $transports = $this->transport->get($event['event_id']);
+                    $template = 'page3-details.html';
+                    break;
+
+                case 3:
+                    $template = 'page4-regulations.html';
+                    break;
+
+                case 4:
+                    $to_register = $this->person->output_filter($values);
+
+                    $register_result = $this->person->register($to_register);
+                    $register_errors = $register_result["errors"];
+
+                    $person_id = $register_result["person_id"];
+
+                    if (
+                        array_search("Column 'room_id' cannot be null", $register_errors) !== false
+                        || array_search("This room is not available", $register_errors) !== false
+                    ) {
+                        $errors['register'] = "Brak dostępnych pokoi albo wybrany pokój jest za mały";
+                    } elseif (count($register_errors)) {
+                        $errors['register'] = "Wystąpił błąd zapisu, spróbuj ponownie";
+                    } else {
+                        $_SESSION = array();
+                        $this->sendMail($person_id, $values, $event);
+
+                        $urlPart = base64_encode(mcrypt_encrypt(
+                            MCRYPT_BLOWFISH,
+                            $this->salt,
+                            $person_id,
+                            MCRYPT_MODE_ECB
+                        ));
+
+                        $this->log->info('front.show_form.register', array(
+                            'person_id' => $person_id,
+                            'urlPart'   => $urlPart
+                        ));
+
+                        $url = '/?z=' . $urlPart;
+                        $string = '<script type="text/javascript">';
+                        $string .= 'window.location = "' . $url . '"';
+                        $string .= '</script>';
+
+                        echo $string;
+                        exit;
                     }
 
-                    $this->log->info('front.show_form.step', array(
-                        'post'   => $_POST,
-                        'errors' => $errors
-                    ));
+                    $template = 'done.html';
 
-                    $values   = array_merge($values, $filtered);
-                    $_SESSION = $values;
-                }
-
-                switch ($step) {
-                    default:
-                    case 0:
-                        $template = 'page1-general-info.html';
-                        $_SESSION = array();
-                        break;
-
-                    case 1:
-                        $template = 'page2-personal-info.html';
-                        break;
-
-                    case 2:
-
-                        $room_types = $this->room_type->getFree(
-                            $event['event_id'],
-                            $values["sex"],
-                            $this->person->countFamily($values)
-                        );
-
-                        $transports = $this->transport->get($event['event_id']);
-                        $template = 'page3-details.html';
-                        break;
-
-                    case 3:
-                        $template = 'page4-regulations.html';
-                        break;
-
-                    case 4:
-                        $to_register = $this->person->output_filter($values);
-
-                        $register_result = $this->person->register($to_register);
-                        $register_errors = $register_result["errors"];
-
-                        $person_id = $register_result["person_id"];
-
-                        if (
-                            array_search("Column 'room_id' cannot be null", $register_errors) !== false
-                            || array_search("This room is not available", $register_errors) !== false
-                        ) {
-                            $errors['register'] = "Brak dostępnych pokoi albo wybrany pokój jest za mały";
-                        } elseif (count($register_errors)) {
-                            $errors['register'] = "Wystąpił błąd zapisu, spróbuj ponownie";
-                        } else {
-                            $_SESSION = array();
-                            $this->sendMail($person_id, $values, $event);
-
-                            $urlPart = base64_encode(mcrypt_encrypt(
-                                MCRYPT_BLOWFISH,
-                                $this->salt,
-                                $person_id,
-                                MCRYPT_MODE_ECB
-                            ));
-
-                            $this->log->info('front.show_form.register', array(
-                                'person_id' => $person_id,
-                                'urlPart'   => $urlPart
-                            ));
-
-                            $url = '/?z=' . $urlPart;
-                            $string = '<script type="text/javascript">';
-                            $string .= 'window.location = "' . $url . '"';
-                            $string .= '</script>';
-
-                            echo $string;
-                            exit;
-                        }
-
-                        $template = 'done.html';
-
-                        break;
-                }
+                    break;
             }
+
         }
 
         echo $this->view->render(
@@ -197,7 +198,8 @@ class Front {
                 'transports' => $transports,
                 'action_url' => get_page_link(),
                 'errors'     => $errors,
-                'values'     => $values
+                'values'     => $values,
+                'is_full'    => $isFull
             ));
     }
 

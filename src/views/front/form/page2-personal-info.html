@@ -4,6 +4,15 @@
     <input type="hidden" name="step" value="2">
 
     <fieldset>
+
+        {% if is_full %}
+        <p>Z powodu braku miejsc formularz nie przyjmuje już zapisów.</p>
+        <p>Zgłaszasz się na listę rezerwową.</p>
+        <input type="hidden" name="is_reservation" value="1">
+        {% else %}
+        <input type="hidden" name="is_reservation" value="0">
+        {% endif %}
+
         <h2>Dane osobowe</h2>
 
         {{ forms.start("Płeć:", errors.sex, '', '') }}
