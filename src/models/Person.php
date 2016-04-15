@@ -53,7 +53,7 @@ class Person extends \Resform\Lib\Model {
         'sex'        => array('required | inlist({"list":["male","female"]})'),
         'first_name' => array("required"),
         'last_name'  => array("required"),
-        'birth_date' => array('required | Datetime({"format":"d-m-Y"})'),
+        'birth_date' => array('required | Datetime({"format":"Y-m-d"})'),
         'email'      => array("required | Email"),
         'phone'      => array("required"),
         'city'       => array("required"),
@@ -70,7 +70,7 @@ class Person extends \Resform\Lib\Model {
 
         'family_first_name[*]' => array("required"),
         'family_last_name[*]'  => array("required"),
-        'family_birth_date[*]' => array('required | Datetime({"format":"d-m-Y"})'),
+        'family_birth_date[*]' => array('required | Datetime({"format":"Y-m-d"})'),
 
         'room_type_id' => array("required"),
         'transport_id' => array("required"),
@@ -80,9 +80,9 @@ class Person extends \Resform\Lib\Model {
     );
 
     var $output_filters = array(
-        'birth_date' => 'normalizedate(input_format=d-m-Y&output_format=Y-m-d)',
-
-        'family_birth_date[*]' => 'normalizedate(input_format=d-m-Y&output_format=Y-m-d)'
+        // 'birth_date' => 'normalizedate(input_format=Y-m-d&output_format=Y-m-d)',
+        //
+        // 'family_birth_date[*]' => 'normalizedate(input_format=Y-m-d&output_format=Y-m-d)'
     );
 
     var $editable = array(
@@ -203,7 +203,7 @@ class Person extends \Resform\Lib\Model {
 
     function age($date_string) {
 
-        $age = \DateTime::createFromFormat('d-m-Y', $date_string);
+        $age = \DateTime::createFromFormat('Y-m-d', $date_string);
         $date = new \DateTime();
 
         $diff = $date->diff($age);
@@ -460,8 +460,9 @@ SQL;
     function getPriceForId($id) {
 
         $query = "
-        SELECT *
-        FROM {$this->db->prefix}resform_persons_with_total_price
+        SELECT p.*, rt.name AS room_type_name
+        FROM {$this->db->prefix}resform_persons_with_total_price as p
+        LEFT JOIN {$this->db->prefix}resform_room_types AS rt USING (room_type_id)
         WHERE person_id = $id LIMIT 1
         ";
 

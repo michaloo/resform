@@ -19,6 +19,10 @@ var components = {
         {
             "name": "x-editable",
             "main": "x-editable-built.js"
+        },
+        {
+            "name": "vue",
+            "main": "vue-built.js"
         }
     ],
     "shim": {

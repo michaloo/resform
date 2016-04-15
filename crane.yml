@@ -1,26 +1,15 @@
 containers:
-    resform_data_mysql:
-        image: tianon/true
-        run:
-            volume: ["/var/lib/mysql"]
-            detach: true
-    resform_data_web:
-        image: tianon/true
-        run:
-            volume: ["/var/www/html"]
-            detach: true
     mysql:
         image: michaloo/mariadb
         run:
-            volumes-from: ["resform_data_mysql"]
+            volume: ["/data/malak/resform:/var/lib/mysql"]
             env-file: [".env"]
             net: host
             detach: true
     web:
         image: michaloo/web-dev
         run:
-            volumes-from: ["resform_data_web"]
-            volume: ["./src:/var/www/html/wp-content/plugins/resform"]
+            volume: ["/data/malak/resform/web:/var/www/src","./src:/var/www/src/wp-content/plugins/resform"]
             net: host
             detach: true
             env-file: [".env"]
@@ -45,15 +34,11 @@ containers:
     web_it:
         image: michaloo/web-dev
         run:
-            volumes-from: ["resform_data_web"]
-            volume: [".:/resform", "./src:/var/www/html/wp-content/plugins/resform"]
+            volume: [".:/resform","/data/malak/resform/web:/var/www/src","./src:/var/www/src/wp-content/plugins/resform"]
             workdir: /resform
             net: host
             interactive: true
             env-file: [".env"]
-            env:
-            - "MYSQL_USER=root"
-            - "MYSQL_PASS=root"
             tty: true
             rm: true
             cmd: -c /bin/bash

@@ -5,14 +5,34 @@ use Pimple\Container;
 $container = new Container();
 
 $container["log"] = function($c) {
-    $log = new Monolog\Logger('name');
+
+    $log = new Monolog\Logger('resform');
 
     $path = plugin_dir_path( __FILE__ ) . 'logs/';
 
     @mkdir($path);
 
-    $log->pushHandler(new Monolog\Handler\StreamHandler($path . 'debug.log', Monolog\Logger::DEBUG));
-    $log->pushHandler(new Monolog\Handler\StreamHandler($path . 'warning.log', Monolog\Logger::WARNING));
+    $log->pushProcessor(new Monolog\Processor\WebProcessor());
+    $log->pushProcessor(new Monolog\Processor\MemoryUsageProcessor());
+
+    $log->pushProcessor(function ($record) {
+        $record['extra']['session_id'] = session_id();
+        $record['extra']['hostname'] = gethostname();
+        return $record;
+    });
+
+    if (!defined('WP_DEBUG') || WP_DEBUG !== true) {
+
+        $token = getenv('LOGGLY_TOKEN');
+
+        $log->pushHandler(new Monolog\Handler\LogglyHandler($token . '/tag/monolog', Monolog\Logger::DEBUG));
+
+        Monolog\ErrorHandler::register($log, array(), Psr\Log\LogLevel::NOTICE);
+
+        return $log;
+    }
+
+    $log->pushHandler(new Monolog\Handler\BrowserConsoleHandler(Monolog\Logger::DEBUG));
 
     return $log;
 };
@@ -64,11 +84,12 @@ $container['db'] = function ($c) {
 
 
 $container['install_controller'] = function($c) {
-    return new \Resform\Controller\Install($c['db']);
+    return new \Resform\Controller\Install($c['log'], $c['db']);
 };
 
 $container['admin_controller'] = function($c) {
     return new \Resform\Controller\Admin(
+        $c['log'],
         $c['view'],
         $c['db'],
         $c['event_model'],
@@ -83,6 +104,7 @@ $container['admin_controller'] = function($c) {
 
 $container['front_controller'] = function($c) {
     return new \Resform\Controller\Front(
+        $c['log'],
         $c['view'],
         $c['event_model'],
         $c['transport_model'],

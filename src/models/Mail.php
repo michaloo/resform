@@ -30,14 +30,14 @@ class Mail {
         $mail->From = 'rekolekcje@fundacjamalak.pl';
         $mail->FromName = 'Zapisy';
         $mail->addAddress($email, $name);
-        $mail->addBCC('rekolekcje@fundacjamalak.pl');
+        // $mail->addBCC('rekolekcje@fundacjamalak.pl');
 
         $mail->WordWrap = 50;
         //$mail->isHTML(true);
-        $path = plugin_dir_path( __FILE__ ) . '../WPL-VII-Regulamin.pdf';
+        $path = plugin_dir_path( __FILE__ ) . '../WPL-IX-Regulamin.pdf';
         $mail->AddAttachment($path);
 
-        $mail->Subject = 'Rekolekcje WEEKEND PEŁEN ŁASKI VII';
+        $mail->Subject = 'Rekolekcje WEEKEND PEŁEN ŁASKI';
         $mail->Body    = $message;
         //$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 

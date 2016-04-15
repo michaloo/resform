@@ -2038,6 +2038,10 @@ var components = {
         {
             "name": "x-editable",
             "main": "x-editable-built.js"
+        },
+        {
+            "name": "vue",
+            "main": "vue-built.js"
         }
     ],
     "shim": {
@@ -2083,7 +2087,7 @@ define('tooltipsy', function (require, exports, module) {
 
 define('jquery', function (require, exports, module) {
 /*!
- * jQuery JavaScript Library v2.1.1
+ * jQuery JavaScript Library v2.1.3
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -2093,19 +2097,19 @@ define('jquery', function (require, exports, module) {
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2014-05-01T17:11Z
+ * Date: 2014-12-18T15:11Z
  */
 
 (function( global, factory ) {
 
 	if ( typeof module === "object" && typeof module.exports === "object" ) {
-		// For CommonJS and CommonJS-like environments where a proper window is present,
-		// execute the factory and get jQuery
-		// For environments that do not inherently posses a window with a document
-		// (such as Node.js), expose a jQuery-making factory as module.exports
-		// This accentuates the need for the creation of a real window
+		// For CommonJS and CommonJS-like environments where a proper `window`
+		// is present, execute the factory and get jQuery.
+		// For environments that do not have a `window` with a `document`
+		// (such as Node.js), expose a factory as module.exports.
+		// This accentuates the need for the creation of a real `window`.
 		// e.g. var jQuery = require("jquery")(window);
-		// See ticket #14549 for more info
+		// See ticket #14549 for more info.
 		module.exports = global.document ?
 			factory( global, true ) :
 			function( w ) {
@@ -2121,10 +2125,10 @@ define('jquery', function (require, exports, module) {
 // Pass this if window is not defined yet
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
-// Can't do this because several apps including ASP.NET trace
+// Support: Firefox 18+
+// Can't be in strict mode, several libs including ASP.NET trace
 // the stack via arguments.caller.callee and Firefox dies if
 // you try to trace through "use strict" call chains. (#13335)
-// Support: Firefox 18+
 //
 
 var arr = [];
@@ -2151,7 +2155,7 @@ var
 	// Use the correct document accordingly with window argument (sandbox)
 	document = window.document,
 
-	version = "2.1.1",
+	version = "2.1.3",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -2269,7 +2273,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 	if ( typeof target === "boolean" ) {
 		deep = target;
 
-		// skip the boolean and the target
+		// Skip the boolean and the target
 		target = arguments[ i ] || {};
 		i++;
 	}
@@ -2279,7 +2283,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 		target = {};
 	}
 
-	// extend jQuery itself if only one argument is passed
+	// Extend jQuery itself if only one argument is passed
 	if ( i === length ) {
 		target = this;
 		i--;
@@ -2336,9 +2340,6 @@ jQuery.extend({
 
 	noop: function() {},
 
-	// See test/unit/core.js for details concerning isFunction.
-	// Since version 1.3, DOM methods and functions like alert
-	// aren't supported. They return false on IE (#2968).
 	isFunction: function( obj ) {
 		return jQuery.type(obj) === "function";
 	},
@@ -2353,7 +2354,8 @@ jQuery.extend({
 		// parseFloat NaNs numeric-cast false positives (null|true|false|"")
 		// ...but misinterprets leading-number strings, particularly hex literals ("0x...")
 		// subtraction forces infinities to NaN
-		return !jQuery.isArray( obj ) && obj - parseFloat( obj ) >= 0;
+		// adding 1 corrects loss of precision from parseFloat (#15100)
+		return !jQuery.isArray( obj ) && (obj - parseFloat( obj ) + 1) >= 0;
 	},
 
 	isPlainObject: function( obj ) {
@@ -2387,7 +2389,7 @@ jQuery.extend({
 		if ( obj == null ) {
 			return obj + "";
 		}
-		// Support: Android < 4.0, iOS < 6 (functionish RegExp)
+		// Support: Android<4.0, iOS<6 (functionish RegExp)
 		return typeof obj === "object" || typeof obj === "function" ?
 			class2type[ toString.call(obj) ] || "object" :
 			typeof obj;
@@ -2417,6 +2419,7 @@ jQuery.extend({
 	},
 
 	// Convert dashed to camelCase; used by the css and data modules
+	// Support: IE9-11+
 	// Microsoft forgot to hump their vendor prefix (#9572)
 	camelCase: function( string ) {
 		return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
@@ -2632,14 +2635,14 @@ function isArraylike( obj ) {
 }
 var Sizzle =
 /*!
- * Sizzle CSS Selector Engine v1.10.19
+ * Sizzle CSS Selector Engine v2.2.0-pre
  * http://sizzlejs.com/
  *
- * Copyright 2013 jQuery Foundation, Inc. and other contributors
+ * Copyright 2008, 2014 jQuery Foundation, Inc. and other contributors
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2014-04-18
+ * Date: 2014-12-16
  */
 (function( window ) {
 
@@ -2666,7 +2669,7 @@ var i,
 	contains,
 
 	// Instance-specific data
-	expando = "sizzle" + -(new Date()),
+	expando = "sizzle" + 1 * new Date(),
 	preferredDoc = window.document,
 	dirruns = 0,
 	done = 0,
@@ -2681,7 +2684,6 @@ var i,
 	},
 
 	// General-purpose constants
-	strundefined = typeof undefined,
 	MAX_NEGATIVE = 1 << 31,
 
 	// Instance methods
@@ -2691,12 +2693,13 @@ var i,
 	push_native = arr.push,
 	push = arr.push,
 	slice = arr.slice,
-	// Use a stripped-down indexOf if we can't use a native one
-	indexOf = arr.indexOf || function( elem ) {
+	// Use a stripped-down indexOf as it's faster than native
+	// http://jsperf.com/thor-indexof-vs-for/5
+	indexOf = function( list, elem ) {
 		var i = 0,
-			len = this.length;
+			len = list.length;
 		for ( ; i < len; i++ ) {
-			if ( this[i] === elem ) {
+			if ( list[i] === elem ) {
 				return i;
 			}
 		}
@@ -2736,6 +2739,7 @@ var i,
 		")\\)|)",
 
 	// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
+	rwhitespace = new RegExp( whitespace + "+", "g" ),
 	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
 
 	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
@@ -2787,6 +2791,14 @@ var i,
 				String.fromCharCode( high + 0x10000 ) :
 				// Supplemental Plane codepoint (surrogate pair)
 				String.fromCharCode( high >> 10 | 0xD800, high & 0x3FF | 0xDC00 );
+	},
+
+	// Used for iframes
+	// See setDocument()
+	// Removing the function wrapper causes a "Permission Denied"
+	// error in IE
+	unloadHandler = function() {
+		setDocument();
 	};
 
 // Optimize for push.apply( _, NodeList )
@@ -2829,19 +2841,18 @@ function Sizzle( selector, context, results, seed ) {
 
 	context = context || document;
 	results = results || [];
+	nodeType = context.nodeType;
 
-	if ( !selector || typeof selector !== "string" ) {
+	if ( typeof selector !== "string" || !selector ||
+		nodeType !== 1 && nodeType !== 9 && nodeType !== 11 ) {
+
 		return results;
 	}
 
-	if ( (nodeType = context.nodeType) !== 1 && nodeType !== 9 ) {
-		return [];
-	}
+	if ( !seed && documentIsHTML ) {
 
-	if ( documentIsHTML && !seed ) {
-
-		// Shortcuts
-		if ( (match = rquickExpr.exec( selector )) ) {
+		// Try to shortcut find operations when possible (e.g., not under DocumentFragment)
+		if ( nodeType !== 11 && (match = rquickExpr.exec( selector )) ) {
 			// Speed-up: Sizzle("#ID")
 			if ( (m = match[1]) ) {
 				if ( nodeType === 9 ) {
@@ -2873,7 +2884,7 @@ function Sizzle( selector, context, results, seed ) {
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")
-			} else if ( (m = match[3]) && support.getElementsByClassName && context.getElementsByClassName ) {
+			} else if ( (m = match[3]) && support.getElementsByClassName ) {
 				push.apply( results, context.getElementsByClassName( m ) );
 				return results;
 			}
@@ -2883,7 +2894,7 @@ function Sizzle( selector, context, results, seed ) {
 		if ( support.qsa && (!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
 			nid = old = expando;
 			newContext = context;
-			newSelector = nodeType === 9 && selector;
+			newSelector = nodeType !== 1 && selector;
 
 			// qSA works strangely on Element-rooted queries
 			// We can work around this by specifying an extra ID on the root
@@ -3070,7 +3081,7 @@ function createPositionalPseudo( fn ) {
  * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
  */
 function testContext( context ) {
-	return context && typeof context.getElementsByTagName !== strundefined && context;
+	return context && typeof context.getElementsByTagName !== "undefined" && context;
 }
 
 // Expose support vars for convenience
@@ -3094,9 +3105,8 @@ isXML = Sizzle.isXML = function( elem ) {
  * @returns {Object} Returns the current document
  */
 setDocument = Sizzle.setDocument = function( node ) {
-	var hasCompare,
-		doc = node ? node.ownerDocument || node : preferredDoc,
-		parent = doc.defaultView;
+	var hasCompare, parent,
+		doc = node ? node.ownerDocument || node : preferredDoc;
 
 	// If no document and documentElement is available, return
 	if ( doc === document || doc.nodeType !== 9 || !doc.documentElement ) {
@@ -3106,9 +3116,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// Set our document
 	document = doc;
 	docElem = doc.documentElement;
-
-	// Support tests
-	documentIsHTML = !isXML( doc );
+	parent = doc.defaultView;
 
 	// Support: IE>8
 	// If iframe document is assigned to "document" variable and if iframe has been reloaded,
@@ -3117,21 +3125,22 @@ setDocument = Sizzle.setDocument = function( node ) {
 	if ( parent && parent !== parent.top ) {
 		// IE11 does not have attachEvent, so all must suffer
 		if ( parent.addEventListener ) {
-			parent.addEventListener( "unload", function() {
-				setDocument();
-			}, false );
+			parent.addEventListener( "unload", unloadHandler, false );
 		} else if ( parent.attachEvent ) {
-			parent.attachEvent( "onunload", function() {
-				setDocument();
-			});
+			parent.attachEvent( "onunload", unloadHandler );
 		}
 	}
+
+	/* Support tests
+	---------------------------------------------------------------------- */
+	documentIsHTML = !isXML( doc );
 
 	/* Attributes
 	---------------------------------------------------------------------- */
 
 	// Support: IE<8
-	// Verify that getAttribute really returns attributes and not properties (excepting IE8 booleans)
+	// Verify that getAttribute really returns attributes and not properties
+	// (excepting IE8 booleans)
 	support.attributes = assert(function( div ) {
 		div.className = "i";
 		return !div.getAttribute("className");
@@ -3146,17 +3155,8 @@ setDocument = Sizzle.setDocument = function( node ) {
 		return !div.getElementsByTagName("*").length;
 	});
 
-	// Check if getElementsByClassName can be trusted
-	support.getElementsByClassName = rnative.test( doc.getElementsByClassName ) && assert(function( div ) {
-		div.innerHTML = "<div class='a'></div><div class='a i'></div>";
-
-		// Support: Safari<4
-		// Catch class over-caching
-		div.firstChild.className = "i";
-		// Support: Opera<10
-		// Catch gEBCN failure to find non-leading classes
-		return div.getElementsByClassName("i").length === 2;
-	});
+	// Support: IE<9
+	support.getElementsByClassName = rnative.test( doc.getElementsByClassName );
 
 	// Support: IE<10
 	// Check if getElementById returns elements by name
@@ -3170,7 +3170,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// ID find and filter
 	if ( support.getById ) {
 		Expr.find["ID"] = function( id, context ) {
-			if ( typeof context.getElementById !== strundefined && documentIsHTML ) {
+			if ( typeof context.getElementById !== "undefined" && documentIsHTML ) {
 				var m = context.getElementById( id );
 				// Check parentNode to catch when Blackberry 4.6 returns
 				// nodes that are no longer in the document #6963
@@ -3191,7 +3191,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 		Expr.filter["ID"] =  function( id ) {
 			var attrId = id.replace( runescape, funescape );
 			return function( elem ) {
-				var node = typeof elem.getAttributeNode !== strundefined && elem.getAttributeNode("id");
+				var node = typeof elem.getAttributeNode !== "undefined" && elem.getAttributeNode("id");
 				return node && node.value === attrId;
 			};
 		};
@@ -3200,14 +3200,20 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// Tag
 	Expr.find["TAG"] = support.getElementsByTagName ?
 		function( tag, context ) {
-			if ( typeof context.getElementsByTagName !== strundefined ) {
+			if ( typeof context.getElementsByTagName !== "undefined" ) {
 				return context.getElementsByTagName( tag );
+
+			// DocumentFragment nodes don't have gEBTN
+			} else if ( support.qsa ) {
+				return context.querySelectorAll( tag );
 			}
 		} :
+
 		function( tag, context ) {
 			var elem,
 				tmp = [],
 				i = 0,
+				// By happy coincidence, a (broken) gEBTN appears on DocumentFragment nodes too
 				results = context.getElementsByTagName( tag );
 
 			// Filter out possible comments
@@ -3225,7 +3231,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 
 	// Class
 	Expr.find["CLASS"] = support.getElementsByClassName && function( className, context ) {
-		if ( typeof context.getElementsByClassName !== strundefined && documentIsHTML ) {
+		if ( documentIsHTML ) {
 			return context.getElementsByClassName( className );
 		}
 	};
@@ -3254,13 +3260,15 @@ setDocument = Sizzle.setDocument = function( node ) {
 			// setting a boolean content attribute,
 			// since its presence should be enough
 			// http://bugs.jquery.com/ticket/12359
-			div.innerHTML = "<select msallowclip=''><option selected=''></option></select>";
+			docElem.appendChild( div ).innerHTML = "<a id='" + expando + "'></a>" +
+				"<select id='" + expando + "-\f]' msallowcapture=''>" +
+				"<option selected=''></option></select>";
 
 			// Support: IE8, Opera 11-12.16
 			// Nothing should be selected when empty strings follow ^= or $= or *=
 			// The test attribute must be unknown in Opera but "safe" for WinRT
 			// http://msdn.microsoft.com/en-us/library/ie/hh465388.aspx#attribute_section
-			if ( div.querySelectorAll("[msallowclip^='']").length ) {
+			if ( div.querySelectorAll("[msallowcapture^='']").length ) {
 				rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:''|\"\")" );
 			}
 
@@ -3270,11 +3278,23 @@ setDocument = Sizzle.setDocument = function( node ) {
 				rbuggyQSA.push( "\\[" + whitespace + "*(?:value|" + booleans + ")" );
 			}
 
+			// Support: Chrome<29, Android<4.2+, Safari<7.0+, iOS<7.0+, PhantomJS<1.9.7+
+			if ( !div.querySelectorAll( "[id~=" + expando + "-]" ).length ) {
+				rbuggyQSA.push("~=");
+			}
+
 			// Webkit/Opera - :checked should return selected option elements
 			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
 			// IE8 throws error here and will not see later tests
 			if ( !div.querySelectorAll(":checked").length ) {
 				rbuggyQSA.push(":checked");
+			}
+
+			// Support: Safari 8+, iOS 8+
+			// https://bugs.webkit.org/show_bug.cgi?id=136851
+			// In-page `selector#id sibing-combinator selector` fails
+			if ( !div.querySelectorAll( "a#" + expando + "+*" ).length ) {
+				rbuggyQSA.push(".#.+[+~]");
 			}
 		});
 
@@ -3392,7 +3412,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 
 			// Maintain original order
 			return sortInput ?
-				( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
+				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
 				0;
 		}
 
@@ -3419,7 +3439,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 				aup ? -1 :
 				bup ? 1 :
 				sortInput ?
-				( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
+				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
 				0;
 
 		// If the nodes are siblings, we can do a quick check
@@ -3482,7 +3502,7 @@ Sizzle.matchesSelector = function( elem, expr ) {
 					elem.document && elem.document.nodeType !== 11 ) {
 				return ret;
 			}
-		} catch(e) {}
+		} catch (e) {}
 	}
 
 	return Sizzle( expr, document, null, [ elem ] ).length > 0;
@@ -3701,7 +3721,7 @@ Expr = Sizzle.selectors = {
 			return pattern ||
 				(pattern = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" )) &&
 				classCache( className, function( elem ) {
-					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== strundefined && elem.getAttribute("class") || "" );
+					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== "undefined" && elem.getAttribute("class") || "" );
 				});
 		},
 
@@ -3723,7 +3743,7 @@ Expr = Sizzle.selectors = {
 					operator === "^=" ? check && result.indexOf( check ) === 0 :
 					operator === "*=" ? check && result.indexOf( check ) > -1 :
 					operator === "$=" ? check && result.slice( -check.length ) === check :
-					operator === "~=" ? ( " " + result + " " ).indexOf( check ) > -1 :
+					operator === "~=" ? ( " " + result.replace( rwhitespace, " " ) + " " ).indexOf( check ) > -1 :
 					operator === "|=" ? result === check || result.slice( 0, check.length + 1 ) === check + "-" :
 					false;
 			};
@@ -3843,7 +3863,7 @@ Expr = Sizzle.selectors = {
 							matched = fn( seed, argument ),
 							i = matched.length;
 						while ( i-- ) {
-							idx = indexOf.call( seed, matched[i] );
+							idx = indexOf( seed, matched[i] );
 							seed[ idx ] = !( matches[ idx ] = matched[i] );
 						}
 					}) :
@@ -3882,6 +3902,8 @@ Expr = Sizzle.selectors = {
 				function( elem, context, xml ) {
 					input[0] = elem;
 					matcher( input, null, xml, results );
+					// Don't keep the element (issue #299)
+					input[0] = null;
 					return !results.pop();
 				};
 		}),
@@ -3893,6 +3915,7 @@ Expr = Sizzle.selectors = {
 		}),
 
 		"contains": markFunction(function( text ) {
+			text = text.replace( runescape, funescape );
 			return function( elem ) {
 				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
 			};
@@ -4314,7 +4337,7 @@ function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postS
 				i = matcherOut.length;
 				while ( i-- ) {
 					if ( (elem = matcherOut[i]) &&
-						(temp = postFinder ? indexOf.call( seed, elem ) : preMap[i]) > -1 ) {
+						(temp = postFinder ? indexOf( seed, elem ) : preMap[i]) > -1 ) {
 
 						seed[temp] = !(results[temp] = elem);
 					}
@@ -4349,13 +4372,16 @@ function matcherFromTokens( tokens ) {
 			return elem === checkContext;
 		}, implicitRelative, true ),
 		matchAnyContext = addCombinator( function( elem ) {
-			return indexOf.call( checkContext, elem ) > -1;
+			return indexOf( checkContext, elem ) > -1;
 		}, implicitRelative, true ),
 		matchers = [ function( elem, context, xml ) {
-			return ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
+			var ret = ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
 				(checkContext = context).nodeType ?
 					matchContext( elem, context, xml ) :
 					matchAnyContext( elem, context, xml ) );
+			// Avoid hanging onto element (issue #299)
+			checkContext = null;
+			return ret;
 		} ];
 
 	for ( ; i < len; i++ ) {
@@ -4605,7 +4631,7 @@ select = Sizzle.select = function( selector, context, results, seed ) {
 // Sort stability
 support.sortStable = expando.split("").sort( sortOrder ).join("") === expando;
 
-// Support: Chrome<14
+// Support: Chrome 14-35+
 // Always assume duplicates if they aren't passed to the comparison function
 support.detectDuplicates = !!hasDuplicate;
 
@@ -4814,7 +4840,7 @@ var rootjQuery,
 				if ( match[1] ) {
 					context = context instanceof jQuery ? context[0] : context;
 
-					// scripts is true for back-compat
+					// Option to run scripts is true for back-compat
 					// Intentionally let the error be thrown if parseHTML is not present
 					jQuery.merge( this, jQuery.parseHTML(
 						match[1],
@@ -4842,8 +4868,8 @@ var rootjQuery,
 				} else {
 					elem = document.getElementById( match[2] );
 
-					// Check parentNode to catch when Blackberry 4.6 returns
-					// nodes that are no longer in the document #6963
+					// Support: Blackberry 4.6
+					// gEBID returns nodes no longer in the document (#6963)
 					if ( elem && elem.parentNode ) {
 						// Inject the element directly into the jQuery object
 						this.length = 1;
@@ -4896,7 +4922,7 @@ rootjQuery = jQuery( document );
 
 
 var rparentsprev = /^(?:parents|prev(?:Until|All))/,
-	// methods guaranteed to produce a unique set when starting from a unique set
+	// Methods guaranteed to produce a unique set when starting from a unique set
 	guaranteedUnique = {
 		children: true,
 		contents: true,
@@ -4976,8 +5002,7 @@ jQuery.fn.extend({
 		return this.pushStack( matched.length > 1 ? jQuery.unique( matched ) : matched );
 	},
 
-	// Determine the position of an element within
-	// the matched set of elements
+	// Determine the position of an element within the set
 	index: function( elem ) {
 
 		// No argument, return index in parent
@@ -4985,7 +5010,7 @@ jQuery.fn.extend({
 			return ( this[ 0 ] && this[ 0 ].parentNode ) ? this.first().prevAll().length : -1;
 		}
 
-		// index in selector
+		// Index in selector
 		if ( typeof elem === "string" ) {
 			return indexOf.call( jQuery( elem ), this[ 0 ] );
 		}
@@ -5401,7 +5426,7 @@ jQuery.extend({
 
 			progressValues, progressContexts, resolveContexts;
 
-		// add listeners to Deferred subordinates; treat others as resolved
+		// Add listeners to Deferred subordinates; treat others as resolved
 		if ( length > 1 ) {
 			progressValues = new Array( length );
 			progressContexts = new Array( length );
@@ -5418,7 +5443,7 @@ jQuery.extend({
 			}
 		}
 
-		// if we're not waiting on anything, resolve the master
+		// If we're not waiting on anything, resolve the master
 		if ( !remaining ) {
 			deferred.resolveWith( resolveContexts, resolveValues );
 		}
@@ -5497,7 +5522,7 @@ jQuery.ready.promise = function( obj ) {
 		readyList = jQuery.Deferred();
 
 		// Catch cases where $(document).ready() is called after the browser event has already occurred.
-		// we once tried to use readyState "interactive" here, but it caused issues like the one
+		// We once tried to use readyState "interactive" here, but it caused issues like the one
 		// discovered by ChrisS here: http://bugs.jquery.com/ticket/12282#comment:15
 		if ( document.readyState === "complete" ) {
 			// Handle it asynchronously to allow scripts the opportunity to delay ready
@@ -5591,7 +5616,7 @@ jQuery.acceptData = function( owner ) {
 
 
 function Data() {
-	// Support: Android < 4,
+	// Support: Android<4,
 	// Old WebKit does not have Object.preventExtensions/freeze method,
 	// return new empty object instead with no [[set]] accessor
 	Object.defineProperty( this.cache = {}, 0, {
@@ -5600,7 +5625,7 @@ function Data() {
 		}
 	});
 
-	this.expando = jQuery.expando + Math.random();
+	this.expando = jQuery.expando + Data.uid++;
 }
 
 Data.uid = 1;
@@ -5628,7 +5653,7 @@ Data.prototype = {
 				descriptor[ this.expando ] = { value: unlock };
 				Object.defineProperties( owner, descriptor );
 
-			// Support: Android < 4
+			// Support: Android<4
 			// Fallback to a less secure definition
 			} catch ( e ) {
 				descriptor[ this.expando ] = unlock;
@@ -5768,17 +5793,16 @@ var data_user = new Data();
 
 
 
-/*
-	Implementation Summary
+//	Implementation Summary
+//
+//	1. Enforce API surface and semantic compatibility with 1.9.x branch
+//	2. Improve the module's maintainability by reducing the storage
+//		paths to a single mechanism.
+//	3. Use the same single mechanism to support "private" and "user" data.
+//	4. _Never_ expose "private" data to user code (TODO: Drop _data, _removeData)
+//	5. Avoid exposing implementation details on user objects (eg. expando properties)
+//	6. Provide a clear path for implementation upgrade to WeakMap in 2014
 
-	1. Enforce API surface and semantic compatibility with 1.9.x branch
-	2. Improve the module's maintainability by reducing the storage
-		paths to a single mechanism.
-	3. Use the same single mechanism to support "private" and "user" data.
-	4. _Never_ expose "private" data to user code (TODO: Drop _data, _removeData)
-	5. Avoid exposing implementation details on user objects (eg. expando properties)
-	6. Provide a clear path for implementation upgrade to WeakMap in 2014
-*/
 var rbrace = /^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,
 	rmultiDash = /([A-Z])/g;
 
@@ -5983,7 +6007,7 @@ jQuery.extend({
 				queue.unshift( "inprogress" );
 			}
 
-			// clear up the last queue stop function
+			// Clear up the last queue stop function
 			delete hooks.stop;
 			fn.call( elem, next, hooks );
 		}
@@ -5993,7 +6017,7 @@ jQuery.extend({
 		}
 	},
 
-	// not intended for public consumption - generates a queueHooks object, or returns the current one
+	// Not public - generate a queueHooks object, or return the current one
 	_queueHooks: function( elem, type ) {
 		var key = type + "queueHooks";
 		return data_priv.get( elem, key ) || data_priv.access( elem, key, {
@@ -6023,7 +6047,7 @@ jQuery.fn.extend({
 			this.each(function() {
 				var queue = jQuery.queue( this, type, data );
 
-				// ensure a hooks for this queue
+				// Ensure a hooks for this queue
 				jQuery._queueHooks( this, type );
 
 				if ( type === "fx" && queue[0] !== "inprogress" ) {
@@ -6090,21 +6114,22 @@ var rcheckableType = (/^(?:checkbox|radio)$/i);
 		div = fragment.appendChild( document.createElement( "div" ) ),
 		input = document.createElement( "input" );
 
-	// #11217 - WebKit loses check when the name is after the checked attribute
+	// Support: Safari<=5.1
+	// Check state lost if the name is set (#11217)
 	// Support: Windows Web Apps (WWA)
-	// `name` and `type` need .setAttribute for WWA
+	// `name` and `type` must use .setAttribute for WWA (#14901)
 	input.setAttribute( "type", "radio" );
 	input.setAttribute( "checked", "checked" );
 	input.setAttribute( "name", "t" );
 
 	div.appendChild( input );
 
-	// Support: Safari 5.1, iOS 5.1, Android 4.x, Android 2.3
-	// old WebKit doesn't clone checked state correctly in fragments
+	// Support: Safari<=5.1, Android<4.2
+	// Older WebKit doesn't clone checked state correctly in fragments
 	support.checkClone = div.cloneNode( true ).cloneNode( true ).lastChild.checked;
 
+	// Support: IE<=11+
 	// Make sure textarea (and checkbox) defaultValue is properly cloned
-	// Support: IE9-IE11+
 	div.innerHTML = "<textarea>x</textarea>";
 	support.noCloneChecked = !!div.cloneNode( true ).lastChild.defaultValue;
 })();
@@ -6482,8 +6507,8 @@ jQuery.event = {
 			j = 0;
 			while ( (handleObj = matched.handlers[ j++ ]) && !event.isImmediatePropagationStopped() ) {
 
-				// Triggered event must either 1) have no namespace, or
-				// 2) have namespace(s) a subset or equal to those in the bound event (both can have no namespace).
+				// Triggered event must either 1) have no namespace, or 2) have namespace(s)
+				// a subset or equal to those in the bound event (both can have no namespace).
 				if ( !event.namespace_re || event.namespace_re.test( handleObj.namespace ) ) {
 
 					event.handleObj = handleObj;
@@ -6633,7 +6658,7 @@ jQuery.event = {
 			event.target = document;
 		}
 
-		// Support: Safari 6.0+, Chrome < 28
+		// Support: Safari 6.0+, Chrome<28
 		// Target should not be a text node (#504, #13143)
 		if ( event.target.nodeType === 3 ) {
 			event.target = event.target.parentNode;
@@ -6738,7 +6763,7 @@ jQuery.Event = function( src, props ) {
 		// by a handler lower down the tree; reflect the correct value.
 		this.isDefaultPrevented = src.defaultPrevented ||
 				src.defaultPrevented === undefined &&
-				// Support: Android < 4.0
+				// Support: Android<4.0
 				src.returnValue === false ?
 			returnTrue :
 			returnFalse;
@@ -6828,8 +6853,8 @@ jQuery.each({
 	};
 });
 
-// Create "bubbling" focus and blur events
 // Support: Firefox, Chrome, Safari
+// Create "bubbling" focus and blur events
 if ( !support.focusinBubbles ) {
 	jQuery.each({ focus: "focusin", blur: "focusout" }, function( orig, fix ) {
 
@@ -6982,7 +7007,7 @@ var
 	// We have to close these tags to support XHTML (#13200)
 	wrapMap = {
 
-		// Support: IE 9
+		// Support: IE9
 		option: [ 1, "<select multiple='multiple'>", "</select>" ],
 
 		thead: [ 1, "<table>", "</table>" ],
@@ -6993,7 +7018,7 @@ var
 		_default: [ 0, "", "" ]
 	};
 
-// Support: IE 9
+// Support: IE9
 wrapMap.optgroup = wrapMap.option;
 
 wrapMap.tbody = wrapMap.tfoot = wrapMap.colgroup = wrapMap.caption = wrapMap.thead;
@@ -7083,7 +7108,7 @@ function getAll( context, tag ) {
 		ret;
 }
 
-// Support: IE >= 9
+// Fix IE bugs, see support tests
 function fixInput( src, dest ) {
 	var nodeName = dest.nodeName.toLowerCase();
 
@@ -7103,8 +7128,7 @@ jQuery.extend({
 			clone = elem.cloneNode( true ),
 			inPage = jQuery.contains( elem.ownerDocument, elem );
 
-		// Support: IE >= 9
-		// Fix Cloning issues
+		// Fix IE cloning issues
 		if ( !support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) &&
 				!jQuery.isXMLDoc( elem ) ) {
 
@@ -7155,8 +7179,8 @@ jQuery.extend({
 
 				// Add nodes directly
 				if ( jQuery.type( elem ) === "object" ) {
-					// Support: QtWebKit
-					// jQuery.merge because push.apply(_, arraylike) throws
+					// Support: QtWebKit, PhantomJS
+					// push.apply(_, arraylike) throws on ancient WebKit
 					jQuery.merge( nodes, elem.nodeType ? [ elem ] : elem );
 
 				// Convert non-html into a text node
@@ -7178,15 +7202,14 @@ jQuery.extend({
 						tmp = tmp.lastChild;
 					}
 
-					// Support: QtWebKit
-					// jQuery.merge because push.apply(_, arraylike) throws
+					// Support: QtWebKit, PhantomJS
+					// push.apply(_, arraylike) throws on ancient WebKit
 					jQuery.merge( nodes, tmp.childNodes );
 
 					// Remember the top-level container
 					tmp = fragment.firstChild;
 
-					// Fixes #12346
-					// Support: Webkit, IE
+					// Ensure the created nodes are orphaned (#12392)
 					tmp.textContent = "";
 				}
 			}
@@ -7548,7 +7571,7 @@ function actualDisplay( name, doc ) {
 		// getDefaultComputedStyle might be reliably used only on attached element
 		display = window.getDefaultComputedStyle && ( style = window.getDefaultComputedStyle( elem[ 0 ] ) ) ?
 
-			// Use of this method is a temporary fix (more like optmization) until something better comes along,
+			// Use of this method is a temporary fix (more like optimization) until something better comes along,
 			// since it was removed from specification and supported only in FF
 			style.display : jQuery.css( elem[ 0 ], "display" );
 
@@ -7598,7 +7621,14 @@ var rmargin = (/^margin/);
 var rnumnonpx = new RegExp( "^(" + pnum + ")(?!px)[a-z%]+$", "i" );
 
 var getStyles = function( elem ) {
-		return elem.ownerDocument.defaultView.getComputedStyle( elem, null );
+		// Support: IE<=11+, Firefox<=30+ (#15098, #14150)
+		// IE throws on elements created in popups
+		// FF meanwhile throws on frame elements through "defaultView.getComputedStyle"
+		if ( elem.ownerDocument.defaultView.opener ) {
+			return elem.ownerDocument.defaultView.getComputedStyle( elem, null );
+		}
+
+		return window.getComputedStyle( elem, null );
 	};
 
 
@@ -7610,7 +7640,7 @@ function curCSS( elem, name, computed ) {
 	computed = computed || getStyles( elem );
 
 	// Support: IE9
-	// getPropertyValue is only needed for .css('filter') in IE9, see #12537
+	// getPropertyValue is only needed for .css('filter') (#12537)
 	if ( computed ) {
 		ret = computed.getPropertyValue( name ) || computed[ name ];
 	}
@@ -7656,15 +7686,13 @@ function addGetHookIf( conditionFn, hookFn ) {
 	return {
 		get: function() {
 			if ( conditionFn() ) {
-				// Hook not needed (or it's not possible to use it due to missing dependency),
-				// remove it.
-				// Since there are no other hooks for marginRight, remove the whole object.
+				// Hook not needed (or it's not possible to use it due
+				// to missing dependency), remove it.
 				delete this.get;
 				return;
 			}
 
 			// Hook needed; redefine it so that the support test is not executed again.
-
 			return (this.get = hookFn).apply( this, arguments );
 		}
 	};
@@ -7681,6 +7709,8 @@ function addGetHookIf( conditionFn, hookFn ) {
 		return;
 	}
 
+	// Support: IE9-11+
+	// Style of cloned element affects source element cloned (#8908)
 	div.style.backgroundClip = "content-box";
 	div.cloneNode( true ).style.backgroundClip = "";
 	support.clearCloneStyle = div.style.backgroundClip === "content-box";
@@ -7713,6 +7743,7 @@ function addGetHookIf( conditionFn, hookFn ) {
 	if ( window.getComputedStyle ) {
 		jQuery.extend( support, {
 			pixelPosition: function() {
+
 				// This test is executed only once but we still do memoizing
 				// since we can use the boxSizingReliable pre-computing.
 				// No need to check if the test was already performed, though.
@@ -7726,6 +7757,7 @@ function addGetHookIf( conditionFn, hookFn ) {
 				return boxSizingReliableVal;
 			},
 			reliableMarginRight: function() {
+
 				// Support: Android 2.3
 				// Check if div with explicit width and no margin-right incorrectly
 				// gets computed margin-right based on width of container. (#3333)
@@ -7747,6 +7779,7 @@ function addGetHookIf( conditionFn, hookFn ) {
 				ret = !parseFloat( window.getComputedStyle( marginDiv, null ).marginRight );
 
 				docElem.removeChild( container );
+				div.removeChild( marginDiv );
 
 				return ret;
 			}
@@ -7778,8 +7811,8 @@ jQuery.swap = function( elem, options, callback, args ) {
 
 
 var
-	// swappable if display is none or starts with table except "table", "table-cell", or "table-caption"
-	// see here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
+	// Swappable if display is none or starts with table except "table", "table-cell", or "table-caption"
+	// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
 	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
 	rnumsplit = new RegExp( "^(" + pnum + ")(.*)$", "i" ),
 	rrelNum = new RegExp( "^([+-])=(" + pnum + ")", "i" ),
@@ -7792,15 +7825,15 @@ var
 
 	cssPrefixes = [ "Webkit", "O", "Moz", "ms" ];
 
-// return a css property mapped to a potentially vendor prefixed property
+// Return a css property mapped to a potentially vendor prefixed property
 function vendorPropName( style, name ) {
 
-	// shortcut for names that are not vendor prefixed
+	// Shortcut for names that are not vendor prefixed
 	if ( name in style ) {
 		return name;
 	}
 
-	// check for vendor prefixed names
+	// Check for vendor prefixed names
 	var capName = name[0].toUpperCase() + name.slice(1),
 		origName = name,
 		i = cssPrefixes.length;
@@ -7833,7 +7866,7 @@ function augmentWidthOrHeight( elem, name, extra, isBorderBox, styles ) {
 		val = 0;
 
 	for ( ; i < 4; i += 2 ) {
-		// both box models exclude margin, so add it if we want it
+		// Both box models exclude margin, so add it if we want it
 		if ( extra === "margin" ) {
 			val += jQuery.css( elem, extra + cssExpand[ i ], true, styles );
 		}
@@ -7844,15 +7877,15 @@ function augmentWidthOrHeight( elem, name, extra, isBorderBox, styles ) {
 				val -= jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
 			}
 
-			// at this point, extra isn't border nor margin, so remove border
+			// At this point, extra isn't border nor margin, so remove border
 			if ( extra !== "margin" ) {
 				val -= jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
 			}
 		} else {
-			// at this point, extra isn't content, so add padding
+			// At this point, extra isn't content, so add padding
 			val += jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
 
-			// at this point, extra isn't content nor padding, so add border
+			// At this point, extra isn't content nor padding, so add border
 			if ( extra !== "padding" ) {
 				val += jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
 			}
@@ -7870,7 +7903,7 @@ function getWidthOrHeight( elem, name, extra ) {
 		styles = getStyles( elem ),
 		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
 
-	// some non-html elements return undefined for offsetWidth, so check for null/undefined
+	// Some non-html elements return undefined for offsetWidth, so check for null/undefined
 	// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
 	// MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
 	if ( val <= 0 || val == null ) {
@@ -7885,7 +7918,7 @@ function getWidthOrHeight( elem, name, extra ) {
 			return val;
 		}
 
-		// we need the check for style in case a browser which returns unreliable values
+		// Check for style in case a browser which returns unreliable values
 		// for getComputedStyle silently falls back to the reliable elem.style
 		valueIsBorderBox = isBorderBox &&
 			( support.boxSizingReliable() || val === elem.style[ name ] );
@@ -7894,7 +7927,7 @@ function getWidthOrHeight( elem, name, extra ) {
 		val = parseFloat( val ) || 0;
 	}
 
-	// use the active box-sizing model to add/subtract irrelevant styles
+	// Use the active box-sizing model to add/subtract irrelevant styles
 	return ( val +
 		augmentWidthOrHeight(
 			elem,
@@ -7958,12 +7991,14 @@ function showHide( elements, show ) {
 }
 
 jQuery.extend({
+
 	// Add in style property hooks for overriding the default
 	// behavior of getting and setting a style property
 	cssHooks: {
 		opacity: {
 			get: function( elem, computed ) {
 				if ( computed ) {
+
 					// We should always get a number back from opacity
 					var ret = curCSS( elem, "opacity" );
 					return ret === "" ? "1" : ret;
@@ -7991,12 +8026,12 @@ jQuery.extend({
 	// Add in properties whose names you wish to fix before
 	// setting or getting the value
 	cssProps: {
-		// normalize float css property
 		"float": "cssFloat"
 	},
 
 	// Get and set the style property on a DOM Node
 	style: function( elem, name, value, extra ) {
+
 		// Don't set styles on text and comment nodes
 		if ( !elem || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style ) {
 			return;
@@ -8009,33 +8044,32 @@ jQuery.extend({
 
 		name = jQuery.cssProps[ origName ] || ( jQuery.cssProps[ origName ] = vendorPropName( style, origName ) );
 
-		// gets hook for the prefixed version
-		// followed by the unprefixed version
+		// Gets hook for the prefixed version, then unprefixed version
 		hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
 
 		// Check if we're setting a value
 		if ( value !== undefined ) {
 			type = typeof value;
 
-			// convert relative number strings (+= or -=) to relative numbers. #7345
+			// Convert "+=" or "-=" to relative numbers (#7345)
 			if ( type === "string" && (ret = rrelNum.exec( value )) ) {
 				value = ( ret[1] + 1 ) * ret[2] + parseFloat( jQuery.css( elem, name ) );
 				// Fixes bug #9237
 				type = "number";
 			}
 
-			// Make sure that null and NaN values aren't set. See: #7116
+			// Make sure that null and NaN values aren't set (#7116)
 			if ( value == null || value !== value ) {
 				return;
 			}
 
-			// If a number was passed in, add 'px' to the (except for certain CSS properties)
+			// If a number, add 'px' to the (except for certain CSS properties)
 			if ( type === "number" && !jQuery.cssNumber[ origName ] ) {
 				value += "px";
 			}
 
-			// Fixes #8908, it can be done more correctly by specifying setters in cssHooks,
-			// but it would mean to define eight (for every problematic property) identical functions
+			// Support: IE9-11+
+			// background-* props affect original clone's values
 			if ( !support.clearCloneStyle && value === "" && name.indexOf( "background" ) === 0 ) {
 				style[ name ] = "inherit";
 			}
@@ -8063,8 +8097,7 @@ jQuery.extend({
 		// Make sure that we're working with the right name
 		name = jQuery.cssProps[ origName ] || ( jQuery.cssProps[ origName ] = vendorPropName( elem.style, origName ) );
 
-		// gets hook for the prefixed version
-		// followed by the unprefixed version
+		// Try prefixed name followed by the unprefixed name
 		hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
 
 		// If a hook was provided get the computed value from there
@@ -8077,12 +8110,12 @@ jQuery.extend({
 			val = curCSS( elem, name, styles );
 		}
 
-		//convert "normal" to computed value
+		// Convert "normal" to computed value
 		if ( val === "normal" && name in cssNormalTransform ) {
 			val = cssNormalTransform[ name ];
 		}
 
-		// Return, converting to number if forced or a qualifier was provided and val looks numeric
+		// Make numeric if forced or a qualifier was provided and val looks numeric
 		if ( extra === "" || extra ) {
 			num = parseFloat( val );
 			return extra === true || jQuery.isNumeric( num ) ? num || 0 : val;
@@ -8095,8 +8128,9 @@ jQuery.each([ "height", "width" ], function( i, name ) {
 	jQuery.cssHooks[ name ] = {
 		get: function( elem, computed, extra ) {
 			if ( computed ) {
-				// certain elements can have dimension info if we invisibly show them
-				// however, it must have a current display style that would benefit from this
+
+				// Certain elements can have dimension info if we invisibly show them
+				// but it must have a current display style that would benefit
 				return rdisplayswap.test( jQuery.css( elem, "display" ) ) && elem.offsetWidth === 0 ?
 					jQuery.swap( elem, cssShow, function() {
 						return getWidthOrHeight( elem, name, extra );
@@ -8124,8 +8158,6 @@ jQuery.each([ "height", "width" ], function( i, name ) {
 jQuery.cssHooks.marginRight = addGetHookIf( support.reliableMarginRight,
 	function( elem, computed ) {
 		if ( computed ) {
-			// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
-			// Work around by temporarily setting element display to inline-block
 			return jQuery.swap( elem, { "display": "inline-block" },
 				curCSS, [ elem, "marginRight" ] );
 		}
@@ -8143,7 +8175,7 @@ jQuery.each({
 			var i = 0,
 				expanded = {},
 
-				// assumes a single number if not a string
+				// Assumes a single number if not a string
 				parts = typeof value === "string" ? value.split(" ") : [ value ];
 
 			for ( ; i < 4; i++ ) {
@@ -8266,17 +8298,18 @@ Tween.propHooks = {
 				return tween.elem[ tween.prop ];
 			}
 
-			// passing an empty string as a 3rd parameter to .css will automatically
-			// attempt a parseFloat and fallback to a string if the parse fails
-			// so, simple values such as "10px" are parsed to Float.
-			// complex values such as "rotate(1rad)" are returned as is.
+			// Passing an empty string as a 3rd parameter to .css will automatically
+			// attempt a parseFloat and fallback to a string if the parse fails.
+			// Simple values such as "10px" are parsed to Float;
+			// complex values such as "rotate(1rad)" are returned as-is.
 			result = jQuery.css( tween.elem, tween.prop, "" );
 			// Empty strings, null, undefined and "auto" are converted to 0.
 			return !result || result === "auto" ? 0 : result;
 		},
 		set: function( tween ) {
-			// use step hook for back compat - use cssHook if its there - use .style if its
-			// available and use plain properties where available
+			// Use step hook for back compat.
+			// Use cssHook if its there.
+			// Use .style if available and use plain properties where available.
 			if ( jQuery.fx.step[ tween.prop ] ) {
 				jQuery.fx.step[ tween.prop ]( tween );
 			} else if ( tween.elem.style && ( tween.elem.style[ jQuery.cssProps[ tween.prop ] ] != null || jQuery.cssHooks[ tween.prop ] ) ) {
@@ -8290,7 +8323,6 @@ Tween.propHooks = {
 
 // Support: IE9
 // Panic based approach to setting things on disconnected nodes
-
 Tween.propHooks.scrollTop = Tween.propHooks.scrollLeft = {
 	set: function( tween ) {
 		if ( tween.elem.nodeType && tween.elem.parentNode ) {
@@ -8346,16 +8378,16 @@ var
 				start = +target || 1;
 
 				do {
-					// If previous iteration zeroed out, double until we get *something*
-					// Use a string for doubling factor so we don't accidentally see scale as unchanged below
+					// If previous iteration zeroed out, double until we get *something*.
+					// Use string for doubling so we don't accidentally see scale as unchanged below
 					scale = scale || ".5";
 
 					// Adjust and apply
 					start = start / scale;
 					jQuery.style( tween.elem, prop, start + unit );
 
-				// Update scale, tolerating zero or NaN from tween.cur()
-				// And breaking the loop if scale is unchanged or perfect, or if we've just had enough
+				// Update scale, tolerating zero or NaN from tween.cur(),
+				// break the loop if scale is unchanged or perfect, or if we've just had enough
 				} while ( scale !== (scale = tween.cur() / target) && scale !== 1 && --maxIterations );
 			}
 
@@ -8387,8 +8419,8 @@ function genFx( type, includeWidth ) {
 		i = 0,
 		attrs = { height: type };
 
-	// if we include width, step value is 1 to do all cssExpand values,
-	// if we don't include width, step value is 2 to skip over Left and Right
+	// If we include width, step value is 1 to do all cssExpand values,
+	// otherwise step value is 2 to skip over Left and Right
 	includeWidth = includeWidth ? 1 : 0;
 	for ( ; i < 4 ; i += 2 - includeWidth ) {
 		which = cssExpand[ i ];
@@ -8410,7 +8442,7 @@ function createTween( value, prop, animation ) {
 	for ( ; index < length; index++ ) {
 		if ( (tween = collection[ index ].call( animation, prop, value )) ) {
 
-			// we're done with this property
+			// We're done with this property
 			return tween;
 		}
 	}
@@ -8425,7 +8457,7 @@ function defaultPrefilter( elem, props, opts ) {
 		hidden = elem.nodeType && isHidden( elem ),
 		dataShow = data_priv.get( elem, "fxshow" );
 
-	// handle queue: false promises
+	// Handle queue: false promises
 	if ( !opts.queue ) {
 		hooks = jQuery._queueHooks( elem, "fx" );
 		if ( hooks.unqueued == null ) {
@@ -8440,8 +8472,7 @@ function defaultPrefilter( elem, props, opts ) {
 		hooks.unqueued++;
 
 		anim.always(function() {
-			// doing this makes sure that the complete handler will be called
-			// before this completes
+			// Ensure the complete handler is called before this completes
 			anim.always(function() {
 				hooks.unqueued--;
 				if ( !jQuery.queue( elem, "fx" ).length ) {
@@ -8451,7 +8482,7 @@ function defaultPrefilter( elem, props, opts ) {
 		});
 	}
 
-	// height/width overflow pass
+	// Height/width overflow pass
 	if ( elem.nodeType === 1 && ( "height" in props || "width" in props ) ) {
 		// Make sure that nothing sneaks out
 		// Record all 3 overflow attributes because IE9-10 do not
@@ -8513,7 +8544,7 @@ function defaultPrefilter( elem, props, opts ) {
 			dataShow = data_priv.access( elem, "fxshow", {} );
 		}
 
-		// store state if its toggle - enables .stop().toggle() to "reverse"
+		// Store state if its toggle - enables .stop().toggle() to "reverse"
 		if ( toggle ) {
 			dataShow.hidden = !hidden;
 		}
@@ -8573,8 +8604,8 @@ function propFilter( props, specialEasing ) {
 			value = hooks.expand( value );
 			delete props[ name ];
 
-			// not quite $.extend, this wont overwrite keys already present.
-			// also - reusing 'index' from above because we have the correct "name"
+			// Not quite $.extend, this won't overwrite existing keys.
+			// Reusing 'index' because we have the correct "name"
 			for ( index in value ) {
 				if ( !( index in props ) ) {
 					props[ index ] = value[ index ];
@@ -8593,7 +8624,7 @@ function Animation( elem, properties, options ) {
 		index = 0,
 		length = animationPrefilters.length,
 		deferred = jQuery.Deferred().always( function() {
-			// don't match elem in the :animated selector
+			// Don't match elem in the :animated selector
 			delete tick.elem;
 		}),
 		tick = function() {
@@ -8602,7 +8633,8 @@ function Animation( elem, properties, options ) {
 			}
 			var currentTime = fxNow || createFxNow(),
 				remaining = Math.max( 0, animation.startTime + animation.duration - currentTime ),
-				// archaic crash bug won't allow us to use 1 - ( 0.5 || 0 ) (#12497)
+				// Support: Android 2.3
+				// Archaic crash bug won't allow us to use `1 - ( 0.5 || 0 )` (#12497)
 				temp = remaining / animation.duration || 0,
 				percent = 1 - temp,
 				index = 0,
@@ -8638,7 +8670,7 @@ function Animation( elem, properties, options ) {
 			},
 			stop: function( gotoEnd ) {
 				var index = 0,
-					// if we are going to the end, we want to run all the tweens
+					// If we are going to the end, we want to run all the tweens
 					// otherwise we skip this part
 					length = gotoEnd ? animation.tweens.length : 0;
 				if ( stopped ) {
@@ -8649,8 +8681,7 @@ function Animation( elem, properties, options ) {
 					animation.tweens[ index ].run( 1 );
 				}
 
-				// resolve when we played the last frame
-				// otherwise, reject
+				// Resolve when we played the last frame; otherwise, reject
 				if ( gotoEnd ) {
 					deferred.resolveWith( elem, [ animation, gotoEnd ] );
 				} else {
@@ -8732,7 +8763,7 @@ jQuery.speed = function( speed, easing, fn ) {
 	opt.duration = jQuery.fx.off ? 0 : typeof opt.duration === "number" ? opt.duration :
 		opt.duration in jQuery.fx.speeds ? jQuery.fx.speeds[ opt.duration ] : jQuery.fx.speeds._default;
 
-	// normalize opt.queue - true/undefined/null -> "fx"
+	// Normalize opt.queue - true/undefined/null -> "fx"
 	if ( opt.queue == null || opt.queue === true ) {
 		opt.queue = "fx";
 	}
@@ -8756,10 +8787,10 @@ jQuery.speed = function( speed, easing, fn ) {
 jQuery.fn.extend({
 	fadeTo: function( speed, to, easing, callback ) {
 
-		// show any hidden elements after setting opacity to 0
+		// Show any hidden elements after setting opacity to 0
 		return this.filter( isHidden ).css( "opacity", 0 ).show()
 
-			// animate to the value specified
+			// Animate to the value specified
 			.end().animate({ opacity: to }, speed, easing, callback );
 	},
 	animate: function( prop, speed, easing, callback ) {
@@ -8822,9 +8853,9 @@ jQuery.fn.extend({
 				}
 			}
 
-			// start the next in the queue if the last step wasn't forced
-			// timers currently will call their complete callbacks, which will dequeue
-			// but only if they were gotoEnd
+			// Start the next in the queue if the last step wasn't forced.
+			// Timers currently will call their complete callbacks, which
+			// will dequeue but only if they were gotoEnd.
 			if ( dequeue || !gotoEnd ) {
 				jQuery.dequeue( this, type );
 			}
@@ -8842,17 +8873,17 @@ jQuery.fn.extend({
 				timers = jQuery.timers,
 				length = queue ? queue.length : 0;
 
-			// enable finishing flag on private data
+			// Enable finishing flag on private data
 			data.finish = true;
 
-			// empty the queue first
+			// Empty the queue first
 			jQuery.queue( this, type, [] );
 
 			if ( hooks && hooks.stop ) {
 				hooks.stop.call( this, true );
 			}
 
-			// look for any active animations, and finish them
+			// Look for any active animations, and finish them
 			for ( index = timers.length; index--; ) {
 				if ( timers[ index ].elem === this && timers[ index ].queue === type ) {
 					timers[ index ].anim.stop( true );
@@ -8860,14 +8891,14 @@ jQuery.fn.extend({
 				}
 			}
 
-			// look for any animations in the old queue and finish them
+			// Look for any animations in the old queue and finish them
 			for ( index = 0; index < length; index++ ) {
 				if ( queue[ index ] && queue[ index ].finish ) {
 					queue[ index ].finish.call( this );
 				}
 			}
 
-			// turn off finishing flag
+			// Turn off finishing flag
 			delete data.finish;
 		});
 	}
@@ -8970,21 +9001,21 @@ jQuery.fn.delay = function( time, type ) {
 
 	input.type = "checkbox";
 
-	// Support: iOS 5.1, Android 4.x, Android 2.3
-	// Check the default checkbox/radio value ("" on old WebKit; "on" elsewhere)
+	// Support: iOS<=5.1, Android<=4.2+
+	// Default value for a checkbox should be "on"
 	support.checkOn = input.value !== "";
 
-	// Must access the parent to make an option select properly
-	// Support: IE9, IE10
+	// Support: IE<=11+
+	// Must access selectedIndex to make default options select
 	support.optSelected = opt.selected;
 
-	// Make sure that the options inside disabled selects aren't marked as disabled
-	// (WebKit marks them as disabled)
+	// Support: Android<=2.3
+	// Options inside disabled selects are incorrectly marked as disabled
 	select.disabled = true;
 	support.optDisabled = !opt.disabled;
 
-	// Check if an input maintains its value after becoming a radio
-	// Support: IE9, IE10
+	// Support: IE<=11+
+	// An input loses its value after becoming a radio
 	input = document.createElement( "input" );
 	input.value = "t";
 	input.type = "radio";
@@ -9081,8 +9112,6 @@ jQuery.extend({
 			set: function( elem, value ) {
 				if ( !support.radioValue && value === "radio" &&
 					jQuery.nodeName( elem, "input" ) ) {
-					// Setting the type on a radio button after the value resets the value in IE6-9
-					// Reset value to default in case type is set after value during creation
 					var val = elem.value;
 					elem.setAttribute( "type", value );
 					if ( val ) {
@@ -9152,7 +9181,7 @@ jQuery.extend({
 		var ret, hooks, notxml,
 			nType = elem.nodeType;
 
-		// don't get/set properties on text, comment and attribute nodes
+		// Don't get/set properties on text, comment and attribute nodes
 		if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
 			return;
 		}
@@ -9188,8 +9217,6 @@ jQuery.extend({
 	}
 });
 
-// Support: IE9+
-// Selectedness for an option in an optgroup can be inaccurate
 if ( !support.optSelected ) {
 	jQuery.propHooks.selected = {
 		get: function( elem ) {
@@ -9297,7 +9324,7 @@ jQuery.fn.extend({
 						}
 					}
 
-					// only assign if different to avoid unneeded rendering.
+					// Only assign if different to avoid unneeded rendering.
 					finalValue = value ? jQuery.trim( cur ) : "";
 					if ( elem.className !== finalValue ) {
 						elem.className = finalValue;
@@ -9324,14 +9351,14 @@ jQuery.fn.extend({
 
 		return this.each(function() {
 			if ( type === "string" ) {
-				// toggle individual class names
+				// Toggle individual class names
 				var className,
 					i = 0,
 					self = jQuery( this ),
 					classNames = value.match( rnotwhite ) || [];
 
 				while ( (className = classNames[ i++ ]) ) {
-					// check each className given, space separated list
+					// Check each className given, space separated list
 					if ( self.hasClass( className ) ) {
 						self.removeClass( className );
 					} else {
@@ -9346,7 +9373,7 @@ jQuery.fn.extend({
 					data_priv.set( this, "__className__", this.className );
 				}
 
-				// If the element has a class name or if we're passed "false",
+				// If the element has a class name or if we're passed `false`,
 				// then remove the whole classname (if there was one, the above saved it).
 				// Otherwise bring back whatever was previously saved (if anything),
 				// falling back to the empty string if nothing was stored.
@@ -9390,9 +9417,9 @@ jQuery.fn.extend({
 				ret = elem.value;
 
 				return typeof ret === "string" ?
-					// handle most common string cases
+					// Handle most common string cases
 					ret.replace(rreturn, "") :
-					// handle cases where value is null/undef or number
+					// Handle cases where value is null/undef or number
 					ret == null ? "" : ret;
 			}
 
@@ -9500,7 +9527,7 @@ jQuery.extend({
 					}
 				}
 
-				// force browsers to behave consistently when non-matching value is set
+				// Force browsers to behave consistently when non-matching value is set
 				if ( !optionSet ) {
 					elem.selectedIndex = -1;
 				}
@@ -9521,8 +9548,6 @@ jQuery.each([ "radio", "checkbox" ], function() {
 	};
 	if ( !support.checkOn ) {
 		jQuery.valHooks[ this ].get = function( elem ) {
-			// Support: Webkit
-			// "" is returned instead of "on" if a value isn't specified
 			return elem.getAttribute("value") === null ? "on" : elem.value;
 		};
 	}
@@ -9604,10 +9629,6 @@ jQuery.parseXML = function( data ) {
 
 
 var
-	// Document location
-	ajaxLocParts,
-	ajaxLocation,
-
 	rhash = /#.*$/,
 	rts = /([?&])_=[^&]*/,
 	rheaders = /^(.*?):[ \t]*([^\r\n]*)$/mg,
@@ -9636,22 +9657,13 @@ var
 	transports = {},
 
 	// Avoid comment-prolog char sequence (#10098); must appease lint and evade compression
-	allTypes = "*/".concat("*");
+	allTypes = "*/".concat( "*" ),
 
-// #8138, IE may throw an exception when accessing
-// a field from window.location if document.domain has been set
-try {
-	ajaxLocation = location.href;
-} catch( e ) {
-	// Use the href attribute of an A element
-	// since IE will modify it given document.location
-	ajaxLocation = document.createElement( "a" );
-	ajaxLocation.href = "";
-	ajaxLocation = ajaxLocation.href;
-}
+	// Document location
+	ajaxLocation = window.location.href,
 
-// Segment location into parts
-ajaxLocParts = rurl.exec( ajaxLocation.toLowerCase() ) || [];
+	// Segment location into parts
+	ajaxLocParts = rurl.exec( ajaxLocation.toLowerCase() ) || [];
 
 // Base "constructor" for jQuery.ajaxPrefilter and jQuery.ajaxTransport
 function addToPrefiltersOrTransports( structure ) {
@@ -10130,7 +10142,8 @@ jQuery.extend({
 		}
 
 		// We can fire global events as of now if asked to
-		fireGlobals = s.global;
+		// Don't fire events if jQuery.event is undefined in an AMD-usage scenario (#15118)
+		fireGlobals = jQuery.event && s.global;
 
 		// Watch for a new set of requests
 		if ( fireGlobals && jQuery.active++ === 0 ) {
@@ -10203,7 +10216,7 @@ jQuery.extend({
 			return jqXHR.abort();
 		}
 
-		// aborting is no longer a cancellation
+		// Aborting is no longer a cancellation
 		strAbort = "abort";
 
 		// Install callbacks on deferreds
@@ -10315,8 +10328,7 @@ jQuery.extend({
 					isSuccess = !error;
 				}
 			} else {
-				// We extract error from statusText
-				// then normalize statusText and status for non-aborts
+				// Extract error from statusText and normalize for non-aborts
 				error = statusText;
 				if ( status || !statusText ) {
 					statusText = "error";
@@ -10372,7 +10384,7 @@ jQuery.extend({
 
 jQuery.each( [ "get", "post" ], function( i, method ) {
 	jQuery[ method ] = function( url, data, callback, type ) {
-		// shift arguments if data argument was omitted
+		// Shift arguments if data argument was omitted
 		if ( jQuery.isFunction( data ) ) {
 			type = type || callback;
 			callback = data;
@@ -10386,13 +10398,6 @@ jQuery.each( [ "get", "post" ], function( i, method ) {
 			data: data,
 			success: callback
 		});
-	};
-});
-
-// Attach a bunch of functions for handling common AJAX events
-jQuery.each( [ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function( i, type ) {
-	jQuery.fn[ type ] = function( fn ) {
-		return this.on( type, fn );
 	};
 });
 
@@ -10613,8 +10618,9 @@ var xhrId = 0,
 
 // Support: IE9
 // Open requests must be manually aborted on unload (#5280)
-if ( window.ActiveXObject ) {
-	jQuery( window ).on( "unload", function() {
+// See https://support.microsoft.com/kb/2856746 for more info
+if ( window.attachEvent ) {
+	window.attachEvent( "onunload", function() {
 		for ( var key in xhrCallbacks ) {
 			xhrCallbacks[ key ]();
 		}
@@ -10967,6 +10973,16 @@ jQuery.fn.load = function( url, params, callback ) {
 
 
 
+// Attach a bunch of functions for handling common AJAX events
+jQuery.each( [ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function( i, type ) {
+	jQuery.fn[ type ] = function( fn ) {
+		return this.on( type, fn );
+	};
+});
+
+
+
+
 jQuery.expr.filters.animated = function( elem ) {
 	return jQuery.grep(jQuery.timers, function( fn ) {
 		return elem === fn.elem;
@@ -11003,7 +11019,8 @@ jQuery.offset = {
 		calculatePosition = ( position === "absolute" || position === "fixed" ) &&
 			( curCSSTop + curCSSLeft ).indexOf("auto") > -1;
 
-		// Need to be able to calculate position if either top or left is auto and position is either absolute or fixed
+		// Need to be able to calculate position if either
+		// top or left is auto and position is either absolute or fixed
 		if ( calculatePosition ) {
 			curPosition = curElem.position();
 			curTop = curPosition.top;
@@ -11060,8 +11077,8 @@ jQuery.fn.extend({
 			return box;
 		}
 
+		// Support: BlackBerry 5, iOS 3 (original iPhone)
 		// If we don't have gBCR, just use 0,0 rather than error
-		// BlackBerry 5, iOS 3 (original iPhone)
 		if ( typeof elem.getBoundingClientRect !== strundefined ) {
 			box = elem.getBoundingClientRect();
 		}
@@ -11083,7 +11100,7 @@ jQuery.fn.extend({
 
 		// Fixed elements are offset from window (parentOffset = {top:0, left: 0}, because it is its only offset parent
 		if ( jQuery.css( elem, "position" ) === "fixed" ) {
-			// We assume that getBoundingClientRect is available when computed position is fixed
+			// Assume getBoundingClientRect is there when computed position is fixed
 			offset = elem.getBoundingClientRect();
 
 		} else {
@@ -11146,16 +11163,18 @@ jQuery.each( { scrollLeft: "pageXOffset", scrollTop: "pageYOffset" }, function( 
 	};
 });
 
+// Support: Safari<7+, Chrome<37+
 // Add the top/left cssHooks using jQuery.fn.position
 // Webkit bug: https://bugs.webkit.org/show_bug.cgi?id=29084
-// getComputedStyle returns percent when specified for top/left/bottom/right
-// rather than make the css module depend on the offset module, we just check for it here
+// Blink bug: https://code.google.com/p/chromium/issues/detail?id=229280
+// getComputedStyle returns percent when specified for top/left/bottom/right;
+// rather than make the css module depend on the offset module, just check for it here
 jQuery.each( [ "top", "left" ], function( i, prop ) {
 	jQuery.cssHooks[ prop ] = addGetHookIf( support.pixelPosition,
 		function( elem, computed ) {
 			if ( computed ) {
 				computed = curCSS( elem, prop );
-				// if curCSS returns percentage, fallback to offset
+				// If curCSS returns percentage, fallback to offset
 				return rnumnonpx.test( computed ) ?
 					jQuery( elem ).position()[ prop ] + "px" :
 					computed;
@@ -11168,7 +11187,7 @@ jQuery.each( [ "top", "left" ], function( i, prop ) {
 // Create innerHeight, innerWidth, height, width, outerHeight and outerWidth methods
 jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
 	jQuery.each( { padding: "inner" + name, content: type, "": "outer" + name }, function( defaultExtra, funcName ) {
-		// margin is only for outerHeight, outerWidth
+		// Margin is only for outerHeight, outerWidth
 		jQuery.fn[ funcName ] = function( margin, value ) {
 			var chainable = arguments.length && ( defaultExtra || typeof margin !== "boolean" ),
 				extra = defaultExtra || ( margin === true || value === true ? "margin" : "border" );
@@ -11259,8 +11278,8 @@ jQuery.noConflict = function( deep ) {
 	return jQuery;
 };
 
-// Expose jQuery and $ identifiers, even in
-// AMD (#7102#comment:10, https://github.com/jquery/jquery/pull/557)
+// Expose jQuery and $ identifiers, even in AMD
+// (#7102#comment:10, https://github.com/jquery/jquery/pull/557)
 // and CommonJS for browser emulators (#13566)
 if ( typeof noGlobal === strundefined ) {
 	window.jQuery = window.$ = jQuery;
@@ -11272,13 +11291,14 @@ if ( typeof noGlobal === strundefined ) {
 return jQuery;
 
 }));
+
 });
 
 define('jquery-ui', function (require, exports, module) {
-/*! jQuery UI - v1.11.2 - 2014-10-16
+/*! jQuery UI - v1.11.4 - 2015-03-11
 * http://jqueryui.com
 * Includes: core.js, widget.js, mouse.js, position.js, accordion.js, autocomplete.js, button.js, datepicker.js, dialog.js, draggable.js, droppable.js, effect.js, effect-blind.js, effect-bounce.js, effect-clip.js, effect-drop.js, effect-explode.js, effect-fade.js, effect-fold.js, effect-highlight.js, effect-puff.js, effect-pulsate.js, effect-scale.js, effect-shake.js, effect-size.js, effect-slide.js, effect-transfer.js, menu.js, progressbar.js, resizable.js, selectable.js, selectmenu.js, slider.js, sortable.js, spinner.js, tabs.js, tooltip.js
-* Copyright 2014 jQuery Foundation and other contributors; Licensed MIT */
+* Copyright 2015 jQuery Foundation and other contributors; Licensed MIT */
 
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
@@ -11292,10 +11312,10 @@ define('jquery-ui', function (require, exports, module) {
 	}
 }(function( $ ) {
 /*!
- * jQuery UI Core 1.11.2
+ * jQuery UI Core 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -11307,7 +11327,7 @@ define('jquery-ui', function (require, exports, module) {
 $.ui = $.ui || {};
 
 $.extend( $.ui, {
-	version: "1.11.2",
+	version: "1.11.4",
 
 	keyCode: {
 		BACKSPACE: 8,
@@ -11380,7 +11400,7 @@ function focusable( element, isTabIndexNotNaN ) {
 		img = $( "img[usemap='#" + mapName + "']" )[ 0 ];
 		return !!img && visible( img );
 	}
-	return ( /input|select|textarea|button|object/.test( nodeName ) ?
+	return ( /^(input|select|textarea|button|object)$/.test( nodeName ) ?
 		!element.disabled :
 		"a" === nodeName ?
 			element.href || isTabIndexNotNaN :
@@ -11586,10 +11606,10 @@ $.ui.plugin = {
 
 
 /*!
- * jQuery UI Widget 1.11.2
+ * jQuery UI Widget 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -11767,11 +11787,6 @@ $.widget.bridge = function( name, object ) {
 			args = widget_slice.call( arguments, 1 ),
 			returnValue = this;
 
-		// allow multiple hashes to be passed on init
-		options = !isMethodCall && args.length ?
-			$.widget.extend.apply( null, [ options ].concat(args) ) :
-			options;
-
 		if ( isMethodCall ) {
 			this.each(function() {
 				var methodValue,
@@ -11796,6 +11811,12 @@ $.widget.bridge = function( name, object ) {
 				}
 			});
 		} else {
+
+			// Allow multiple hashes to be passed on init
+			if ( args.length ) {
+				options = $.widget.extend.apply( null, [ options ].concat(args) );
+			}
+
 			this.each(function() {
 				var instance = $.data( this, fullName );
 				if ( instance ) {
@@ -12133,10 +12154,10 @@ var widget = $.widget;
 
 
 /*!
- * jQuery UI Mouse 1.11.2
+ * jQuery UI Mouse 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -12150,7 +12171,7 @@ $( document ).mouseup( function() {
 });
 
 var mouse = $.widget("ui.mouse", {
-	version: "1.11.2",
+	version: "1.11.4",
 	options: {
 		cancel: "input,textarea,button,select,option",
 		distance: 1,
@@ -12319,10 +12340,10 @@ var mouse = $.widget("ui.mouse", {
 
 
 /*!
- * jQuery UI Position 1.11.2
+ * jQuery UI Position 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -12758,12 +12779,12 @@ $.ui.position = {
 				newOverBottom;
 			if ( overTop < 0 ) {
 				newOverBottom = position.top + myOffset + atOffset + offset + data.collisionHeight - outerHeight - withinOffset;
-				if ( ( position.top + myOffset + atOffset + offset) > overTop && ( newOverBottom < 0 || newOverBottom < abs( overTop ) ) ) {
+				if ( newOverBottom < 0 || newOverBottom < abs( overTop ) ) {
 					position.top += myOffset + atOffset + offset;
 				}
 			} else if ( overBottom > 0 ) {
 				newOverTop = position.top - data.collisionPosition.marginTop + myOffset + atOffset + offset - offsetTop;
-				if ( ( position.top + myOffset + atOffset + offset) > overBottom && ( newOverTop > 0 || abs( newOverTop ) < overBottom ) ) {
+				if ( newOverTop > 0 || abs( newOverTop ) < overBottom ) {
 					position.top += myOffset + atOffset + offset;
 				}
 			}
@@ -12826,10 +12847,10 @@ var position = $.ui.position;
 
 
 /*!
- * jQuery UI Accordion 1.11.2
+ * jQuery UI Accordion 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -12838,7 +12859,7 @@ var position = $.ui.position;
 
 
 var accordion = $.widget( "ui.accordion", {
-	version: "1.11.2",
+	version: "1.11.4",
 	options: {
 		active: 0,
 		animate: {},
@@ -13296,7 +13317,10 @@ var accordion = $.widget( "ui.accordion", {
 		toHide.attr({
 			"aria-hidden": "true"
 		});
-		toHide.prev().attr( "aria-selected", "false" );
+		toHide.prev().attr({
+			"aria-selected": "false",
+			"aria-expanded": "false"
+		});
 		// if we're switching panels, remove the old header from the tab order
 		// if we're opening from collapsed state, remove the previous header from the tab order
 		// if we're collapsing, then keep the collapsing header in the tab order
@@ -13307,7 +13331,7 @@ var accordion = $.widget( "ui.accordion", {
 			});
 		} else if ( toShow.length ) {
 			this.headers.filter(function() {
-				return $( this ).attr( "tabIndex" ) === 0;
+				return parseInt( $( this ).attr( "tabIndex" ), 10 ) === 0;
 			})
 			.attr( "tabIndex", -1 );
 		}
@@ -13317,8 +13341,8 @@ var accordion = $.widget( "ui.accordion", {
 			.prev()
 				.attr({
 					"aria-selected": "true",
-					tabIndex: 0,
-					"aria-expanded": "true"
+					"aria-expanded": "true",
+					tabIndex: 0
 				});
 	},
 
@@ -13326,6 +13350,7 @@ var accordion = $.widget( "ui.accordion", {
 		var total, easing, duration,
 			that = this,
 			adjust = 0,
+			boxSizing = toShow.css( "box-sizing" ),
 			down = toShow.length &&
 				( !toHide.length || ( toShow.index() < toHide.index() ) ),
 			animate = this.options.animate || {},
@@ -13368,7 +13393,9 @@ var accordion = $.widget( "ui.accordion", {
 				step: function( now, fx ) {
 					fx.now = Math.round( now );
 					if ( fx.prop !== "height" ) {
-						adjust += fx.now;
+						if ( boxSizing === "content-box" ) {
+							adjust += fx.now;
+						}
 					} else if ( that.options.heightStyle !== "content" ) {
 						fx.now = Math.round( total - toHide.outerHeight() - adjust );
 						adjust = 0;
@@ -13396,10 +13423,10 @@ var accordion = $.widget( "ui.accordion", {
 
 
 /*!
- * jQuery UI Menu 1.11.2
+ * jQuery UI Menu 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -13408,7 +13435,7 @@ var accordion = $.widget( "ui.accordion", {
 
 
 var menu = $.widget( "ui.menu", {
-	version: "1.11.2",
+	version: "1.11.4",
 	defaultElement: "<ul>",
 	delay: 300,
 	options: {
@@ -14027,10 +14054,10 @@ var menu = $.widget( "ui.menu", {
 
 
 /*!
- * jQuery UI Autocomplete 1.11.2
+ * jQuery UI Autocomplete 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -14039,7 +14066,7 @@ var menu = $.widget( "ui.menu", {
 
 
 $.widget( "ui.autocomplete", {
-	version: "1.11.2",
+	version: "1.11.4",
 	defaultElement: "<input>",
 	options: {
 		appendTo: null,
@@ -14639,10 +14666,10 @@ var autocomplete = $.ui.autocomplete;
 
 
 /*!
- * jQuery UI Button 1.11.2
+ * jQuery UI Button 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -14678,7 +14705,7 @@ var lastActive,
 	};
 
 $.widget( "ui.button", {
-	version: "1.11.2",
+	version: "1.11.4",
 	defaultElement: "<button>",
 	options: {
 		disabled: null,
@@ -14974,7 +15001,7 @@ $.widget( "ui.button", {
 });
 
 $.widget( "ui.buttonset", {
-	version: "1.11.2",
+	version: "1.11.4",
 	options: {
 		items: "button, input[type=button], input[type=submit], input[type=reset], input[type=checkbox], input[type=radio], a, :data(ui-button)"
 	},
@@ -15036,10 +15063,10 @@ var button = $.ui.button;
 
 
 /*!
- * jQuery UI Datepicker 1.11.2
+ * jQuery UI Datepicker 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -15047,7 +15074,7 @@ var button = $.ui.button;
  */
 
 
-$.extend($.ui, { datepicker: { version: "1.11.2" } });
+$.extend($.ui, { datepicker: { version: "1.11.4" } });
 
 var datepicker_instActive;
 
@@ -15412,6 +15439,10 @@ $.extend(Datepicker.prototype, {
 				unbind("keyup", this._doKeyUp);
 		} else if (nodeName === "div" || nodeName === "span") {
 			$target.removeClass(this.markerClassName).empty();
+		}
+
+		if ( datepicker_instActive === inst ) {
+			datepicker_instActive = null;
 		}
 	},
 
@@ -17097,16 +17128,16 @@ $.fn.datepicker = function(options){
 $.datepicker = new Datepicker(); // singleton instance
 $.datepicker.initialized = false;
 $.datepicker.uuid = new Date().getTime();
-$.datepicker.version = "1.11.2";
+$.datepicker.version = "1.11.4";
 
 var datepicker = $.datepicker;
 
 
 /*!
- * jQuery UI Draggable 1.11.2
+ * jQuery UI Draggable 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -17115,7 +17146,7 @@ var datepicker = $.datepicker;
 
 
 $.widget("ui.draggable", $.ui.mouse, {
-	version: "1.11.2",
+	version: "1.11.4",
 	widgetEventPrefix: "drag",
 	options: {
 		addClasses: true,
@@ -17889,6 +17920,9 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 				if ( !sortable.isOver ) {
 					sortable.isOver = 1;
 
+					// Store draggable's parent in case we need to reappend to it later.
+					draggable._parent = ui.helper.parent();
+
 					sortable.currentItem = ui.helper
 						.appendTo( sortable.element )
 						.data( "ui-sortable-item", true );
@@ -17965,8 +17999,9 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 						sortable.placeholder.remove();
 					}
 
-					// Recalculate the draggable's offset considering the sortable
-					// may have modified them in unexpected ways (#8809)
+					// Restore and recalculate the draggable's offset considering the sortable
+					// may have modified them in unexpected ways. (#8809, #10669)
+					ui.helper.appendTo( draggable._parent );
 					draggable._refreshOffsets( event );
 					ui.position = draggable._generatePosition( event, true );
 
@@ -18216,10 +18251,10 @@ var draggable = $.ui.draggable;
 
 
 /*!
- * jQuery UI Resizable 1.11.2
+ * jQuery UI Resizable 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -18228,7 +18263,7 @@ var draggable = $.ui.draggable;
 
 
 $.widget("ui.resizable", $.ui.mouse, {
-	version: "1.11.2",
+	version: "1.11.4",
 	widgetEventPrefix: "resize",
 	options: {
 		alsoResize: false,
@@ -18301,7 +18336,7 @@ $.widget("ui.resizable", $.ui.mouse, {
 		});
 
 		// Wrap the element if it cannot hold child nodes
-		if (this.element[0].nodeName.match(/canvas|textarea|input|select|button|img/i)) {
+		if (this.element[0].nodeName.match(/^(canvas|textarea|input|select|button|img)$/i)) {
 
 			this.element.wrap(
 				$("<div class='ui-wrapper' style='overflow: hidden;'></div>").css({
@@ -18362,7 +18397,8 @@ $.widget("ui.resizable", $.ui.mouse, {
 					nw: ".ui-resizable-nw"
 				} );
 
-		if (this.handles.constructor === String) {
+		this._handles = $();
+		if ( this.handles.constructor === String ) {
 
 			if ( this.handles === "all") {
 				this.handles = "n,e,s,w,se,sw,ne,nw";
@@ -18400,9 +18436,12 @@ $.widget("ui.resizable", $.ui.mouse, {
 
 				if (this.handles[i].constructor === String) {
 					this.handles[i] = this.element.children( this.handles[ i ] ).first().show();
+				} else if ( this.handles[ i ].jquery || this.handles[ i ].nodeType ) {
+					this.handles[ i ] = $( this.handles[ i ] );
+					this._on( this.handles[ i ], { "mousedown": that._mouseDown });
 				}
 
-				if (this.elementIsWrapper && this.originalElement[0].nodeName.match(/textarea|input|select|button/i)) {
+				if (this.elementIsWrapper && this.originalElement[0].nodeName.match(/^(textarea|input|select|button)$/i)) {
 
 					axis = $(this.handles[i], this.element);
 
@@ -18416,21 +18455,17 @@ $.widget("ui.resizable", $.ui.mouse, {
 					target.css(padPos, padWrapper);
 
 					this._proportionallyResize();
-
 				}
 
-				// TODO: What's that good for? There's not anything to be executed left
-				if (!$(this.handles[i]).length) {
-					continue;
-				}
+				this._handles = this._handles.add( this.handles[ i ] );
 			}
 		};
 
 		// TODO: make renderAxis a prototype function
 		this._renderAxis(this.element);
 
-		this._handles = $(".ui-resizable-handle", this.element)
-			.disableSelection();
+		this._handles = this._handles.add( this.element.find( ".ui-resizable-handle" ) );
+		this._handles.disableSelection();
 
 		this._handles.mouseover(function() {
 			if (!that.resizing) {
@@ -18464,7 +18499,6 @@ $.widget("ui.resizable", $.ui.mouse, {
 		}
 
 		this._mouseInit();
-
 	},
 
 	_destroy: function() {
@@ -19145,7 +19179,7 @@ $.ui.plugin.add( "resizable", "containment", {
 			}
 		}
 
-		if ( !continueResize ){
+		if ( !continueResize ) {
 			that.position.left = that.prevPosition.left;
 			that.position.top = that.prevPosition.top;
 			that.size.width = that.prevSize.width;
@@ -19186,29 +19220,15 @@ $.ui.plugin.add("resizable", "alsoResize", {
 
 	start: function() {
 		var that = $(this).resizable( "instance" ),
-			o = that.options,
-			_store = function(exp) {
-				$(exp).each(function() {
-					var el = $(this);
-					el.data("ui-resizable-alsoresize", {
-						width: parseInt(el.width(), 10), height: parseInt(el.height(), 10),
-						left: parseInt(el.css("left"), 10), top: parseInt(el.css("top"), 10)
-					});
-				});
-			};
+			o = that.options;
 
-		if (typeof(o.alsoResize) === "object" && !o.alsoResize.parentNode) {
-			if (o.alsoResize.length) {
-				o.alsoResize = o.alsoResize[0];
-				_store(o.alsoResize);
-			} else {
-				$.each(o.alsoResize, function(exp) {
-					_store(exp);
-				});
-			}
-		} else {
-			_store(o.alsoResize);
-		}
+		$(o.alsoResize).each(function() {
+			var el = $(this);
+			el.data("ui-resizable-alsoresize", {
+				width: parseInt(el.width(), 10), height: parseInt(el.height(), 10),
+				left: parseInt(el.css("left"), 10), top: parseInt(el.css("top"), 10)
+			});
+		});
 	},
 
 	resize: function(event, ui) {
@@ -19221,35 +19241,23 @@ $.ui.plugin.add("resizable", "alsoResize", {
 				width: (that.size.width - os.width) || 0,
 				top: (that.position.top - op.top) || 0,
 				left: (that.position.left - op.left) || 0
-			},
-
-			_alsoResize = function(exp, c) {
-				$(exp).each(function() {
-					var el = $(this), start = $(this).data("ui-resizable-alsoresize"), style = {},
-						css = c && c.length ?
-							c :
-							el.parents(ui.originalElement[0]).length ?
-								[ "width", "height" ] :
-								[ "width", "height", "top", "left" ];
-
-					$.each(css, function(i, prop) {
-						var sum = (start[prop] || 0) + (delta[prop] || 0);
-						if (sum && sum >= 0) {
-							style[prop] = sum || null;
-						}
-					});
-
-					el.css(style);
-				});
 			};
 
-		if (typeof(o.alsoResize) === "object" && !o.alsoResize.nodeType) {
-			$.each(o.alsoResize, function(exp, c) {
-				_alsoResize(exp, c);
+			$(o.alsoResize).each(function() {
+				var el = $(this), start = $(this).data("ui-resizable-alsoresize"), style = {},
+					css = el.parents(ui.originalElement[0]).length ?
+							[ "width", "height" ] :
+							[ "width", "height", "top", "left" ];
+
+				$.each(css, function(i, prop) {
+					var sum = (start[prop] || 0) + (delta[prop] || 0);
+					if (sum && sum >= 0) {
+						style[prop] = sum || null;
+					}
+				});
+
+				el.css(style);
 			});
-		} else {
-			_alsoResize(o.alsoResize);
-		}
 	},
 
 	stop: function() {
@@ -19367,7 +19375,7 @@ $.ui.plugin.add("resizable", "grid", {
 				that.size.width = newWidth;
 				that.position.left = op.left - ox;
 			} else {
-				newWidth = gridY - outerDimensions.height;
+				newWidth = gridX - outerDimensions.width;
 				that.size.width = newWidth;
 				that.position.left = op.left + os.width - newWidth;
 			}
@@ -19380,10 +19388,10 @@ var resizable = $.ui.resizable;
 
 
 /*!
- * jQuery UI Dialog 1.11.2
+ * jQuery UI Dialog 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -19392,7 +19400,7 @@ var resizable = $.ui.resizable;
 
 
 var dialog = $.widget( "ui.dialog", {
-	version: "1.11.2",
+	version: "1.11.4",
 	options: {
 		appendTo: "body",
 		autoOpen: true,
@@ -19512,6 +19520,7 @@ var dialog = $.widget( "ui.dialog", {
 		var next,
 			originalPosition = this.originalPosition;
 
+		this._untrackInstance();
 		this._destroyOverlay();
 
 		this.element
@@ -19590,10 +19599,10 @@ var dialog = $.widget( "ui.dialog", {
 
 	_moveToTop: function( event, silent ) {
 		var moved = false,
-			zIndicies = this.uiDialog.siblings( ".ui-front:visible" ).map(function() {
+			zIndices = this.uiDialog.siblings( ".ui-front:visible" ).map(function() {
 				return +$( this ).css( "z-index" );
 			}).get(),
-			zIndexMax = Math.max.apply( null, zIndicies );
+			zIndexMax = Math.max.apply( null, zIndices );
 
 		if ( zIndexMax >= +this.uiDialog.css( "z-index" ) ) {
 			this.uiDialog.css( "z-index", zIndexMax + 1 );
@@ -20236,10 +20245,10 @@ var dialog = $.widget( "ui.dialog", {
 
 
 /*!
- * jQuery UI Droppable 1.11.2
+ * jQuery UI Droppable 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -20248,7 +20257,7 @@ var dialog = $.widget( "ui.dialog", {
 
 
 $.widget( "ui.droppable", {
-	version: "1.11.2",
+	version: "1.11.4",
 	widgetEventPrefix: "drop",
 	options: {
 		accept: "*",
@@ -20633,10 +20642,10 @@ var droppable = $.ui.droppable;
 
 
 /*!
- * jQuery UI Effects 1.11.2
+ * jQuery UI Effects 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -21528,7 +21537,7 @@ $.fn.extend({
 (function() {
 
 $.extend( $.effects, {
-	version: "1.11.2",
+	version: "1.11.4",
 
 	// Saves a set of properties in a data storage
 	save: function( element, set ) {
@@ -21924,10 +21933,10 @@ var effect = $.effects;
 
 
 /*!
- * jQuery UI Effects Blind 1.11.2
+ * jQuery UI Effects Blind 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22001,10 +22010,10 @@ var effectBlind = $.effects.effect.blind = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Bounce 1.11.2
+ * jQuery UI Effects Bounce 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22111,10 +22120,10 @@ var effectBounce = $.effects.effect.bounce = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Clip 1.11.2
+ * jQuery UI Effects Clip 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22175,10 +22184,10 @@ var effectClip = $.effects.effect.clip = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Drop 1.11.2
+ * jQuery UI Effects Drop 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22237,10 +22246,10 @@ var effectDrop = $.effects.effect.drop = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Explode 1.11.2
+ * jQuery UI Effects Explode 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22331,10 +22340,10 @@ var effectExplode = $.effects.effect.explode = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Fade 1.11.2
+ * jQuery UI Effects Fade 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22358,10 +22367,10 @@ var effectFade = $.effects.effect.fade = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Fold 1.11.2
+ * jQuery UI Effects Fold 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22431,10 +22440,10 @@ var effectFold = $.effects.effect.fold = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Highlight 1.11.2
+ * jQuery UI Effects Highlight 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22478,10 +22487,10 @@ var effectHighlight = $.effects.effect.highlight = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Size 1.11.2
+ * jQuery UI Effects Size 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22698,10 +22707,10 @@ var effectSize = $.effects.effect.size = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Scale 1.11.2
+ * jQuery UI Effects Scale 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22773,10 +22782,10 @@ var effectScale = $.effects.effect.scale = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Puff 1.11.2
+ * jQuery UI Effects Puff 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22819,10 +22828,10 @@ var effectPuff = $.effects.effect.puff = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Pulsate 1.11.2
+ * jQuery UI Effects Pulsate 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22879,10 +22888,10 @@ var effectPulsate = $.effects.effect.pulsate = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Shake 1.11.2
+ * jQuery UI Effects Shake 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -22950,10 +22959,10 @@ var effectShake = $.effects.effect.shake = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Slide 1.11.2
+ * jQuery UI Effects Slide 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -23011,10 +23020,10 @@ var effectSlide = $.effects.effect.slide = function( o, done ) {
 
 
 /*!
- * jQuery UI Effects Transfer 1.11.2
+ * jQuery UI Effects Transfer 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -23055,10 +23064,10 @@ var effectTransfer = $.effects.effect.transfer = function( o, done ) {
 
 
 /*!
- * jQuery UI Progressbar 1.11.2
+ * jQuery UI Progressbar 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -23067,7 +23076,7 @@ var effectTransfer = $.effects.effect.transfer = function( o, done ) {
 
 
 var progressbar = $.widget( "ui.progressbar", {
-	version: "1.11.2",
+	version: "1.11.4",
 	options: {
 		max: 100,
 		value: 0,
@@ -23200,10 +23209,10 @@ var progressbar = $.widget( "ui.progressbar", {
 
 
 /*!
- * jQuery UI Selectable 1.11.2
+ * jQuery UI Selectable 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -23212,7 +23221,7 @@ var progressbar = $.widget( "ui.progressbar", {
 
 
 var selectable = $.widget("ui.selectable", $.ui.mouse, {
-	version: "1.11.2",
+	version: "1.11.4",
 	options: {
 		appendTo: "body",
 		autoRefresh: true,
@@ -23472,10 +23481,10 @@ var selectable = $.widget("ui.selectable", $.ui.mouse, {
 
 
 /*!
- * jQuery UI Selectmenu 1.11.2
+ * jQuery UI Selectmenu 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -23484,7 +23493,7 @@ var selectable = $.widget("ui.selectable", $.ui.mouse, {
 
 
 var selectmenu = $.widget( "ui.selectmenu", {
-	version: "1.11.2",
+	version: "1.11.4",
 	defaultElement: "<select>",
 	options: {
 		appendTo: null,
@@ -23524,8 +23533,7 @@ var selectmenu = $.widget( "ui.selectmenu", {
 	},
 
 	_drawButton: function() {
-		var that = this,
-			tabindex = this.element.attr( "tabindex" );
+		var that = this;
 
 		// Associate existing label with the new button
 		this.label = $( "label[for='" + this.ids.element + "']" ).attr( "for", this.ids.button );
@@ -23542,7 +23550,7 @@ var selectmenu = $.widget( "ui.selectmenu", {
 		// Create button
 		this.button = $( "<span>", {
 			"class": "ui-selectmenu-button ui-widget ui-state-default ui-corner-all",
-			tabindex: tabindex || this.options.disabled ? -1 : 0,
+			tabindex: this.options.disabled ? -1 : 0,
 			id: this.ids.button,
 			role: "combobox",
 			"aria-expanded": "false",
@@ -24052,7 +24060,7 @@ var selectmenu = $.widget( "ui.selectmenu", {
 			data.push({
 				element: option,
 				index: index,
-				value: option.attr( "value" ),
+				value: option.val(),
 				label: option.text(),
 				optgroup: optgroup.attr( "label" ) || "",
 				disabled: optgroup.prop( "disabled" ) || option.prop( "disabled" )
@@ -24072,10 +24080,10 @@ var selectmenu = $.widget( "ui.selectmenu", {
 
 
 /*!
- * jQuery UI Slider 1.11.2
+ * jQuery UI Slider 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -24084,7 +24092,7 @@ var selectmenu = $.widget( "ui.selectmenu", {
 
 
 var slider = $.widget( "ui.slider", $.ui.mouse, {
-	version: "1.11.2",
+	version: "1.11.4",
 	widgetEventPrefix: "slide",
 
 	options: {
@@ -24605,8 +24613,26 @@ var slider = $.widget( "ui.slider", $.ui.mouse, {
 	},
 
 	_calculateNewMax: function() {
-		var remainder = ( this.options.max - this._valueMin() ) % this.options.step;
-		this.max = this.options.max - remainder;
+		var max = this.options.max,
+			min = this._valueMin(),
+			step = this.options.step,
+			aboveMin = Math.floor( ( +( max - min ).toFixed( this._precision() ) ) / step ) * step;
+		max = aboveMin + min;
+		this.max = parseFloat( max.toFixed( this._precision() ) );
+	},
+
+	_precision: function() {
+		var precision = this._precisionOf( this.options.step );
+		if ( this.options.min !== null ) {
+			precision = Math.max( precision, this._precisionOf( this.options.min ) );
+		}
+		return precision;
+	},
+
+	_precisionOf: function( num ) {
+		var str = num.toString(),
+			decimal = str.indexOf( "." );
+		return decimal === -1 ? 0 : str.length - decimal - 1;
 	},
 
 	_valueMin: function() {
@@ -24756,10 +24782,10 @@ var slider = $.widget( "ui.slider", $.ui.mouse, {
 
 
 /*!
- * jQuery UI Sortable 1.11.2
+ * jQuery UI Sortable 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -24768,7 +24794,7 @@ var slider = $.widget( "ui.slider", $.ui.mouse, {
 
 
 var sortable = $.widget("ui.sortable", $.ui.mouse, {
-	version: "1.11.2",
+	version: "1.11.4",
 	widgetEventPrefix: "sort",
 	ready: false,
 	options: {
@@ -24819,16 +24845,11 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 	},
 
 	_create: function() {
-
-		var o = this.options;
 		this.containerCache = {};
 		this.element.addClass("ui-sortable");
 
 		//Get the items
 		this.refresh();
-
-		//Let's determine if the items are being displayed horizontally
-		this.floating = this.items.length ? o.axis === "x" || this._isFloating(this.items[0].item) : false;
 
 		//Let's determine the parent's offset
 		this.offset = this.element.offset();
@@ -25018,7 +25039,7 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 		}
 
 		//Prepare scrolling
-		if(this.scrollParent[0] !== document && this.scrollParent[0].tagName !== "HTML") {
+		if(this.scrollParent[0] !== this.document[0] && this.scrollParent[0].tagName !== "HTML") {
 			this.overflowOffset = this.scrollParent.offset();
 		}
 
@@ -25070,7 +25091,7 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 
 		//Do scrolling
 		if(this.options.scroll) {
-			if(this.scrollParent[0] !== document && this.scrollParent[0].tagName !== "HTML") {
+			if(this.scrollParent[0] !== this.document[0] && this.scrollParent[0].tagName !== "HTML") {
 
 				if((this.overflowOffset.top + this.scrollParent[0].offsetHeight) - event.pageY < o.scrollSensitivity) {
 					this.scrollParent[0].scrollTop = scrolled = this.scrollParent[0].scrollTop + o.scrollSpeed;
@@ -25086,16 +25107,16 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 
 			} else {
 
-				if(event.pageY - $(document).scrollTop() < o.scrollSensitivity) {
-					scrolled = $(document).scrollTop($(document).scrollTop() - o.scrollSpeed);
-				} else if($(window).height() - (event.pageY - $(document).scrollTop()) < o.scrollSensitivity) {
-					scrolled = $(document).scrollTop($(document).scrollTop() + o.scrollSpeed);
+				if(event.pageY - this.document.scrollTop() < o.scrollSensitivity) {
+					scrolled = this.document.scrollTop(this.document.scrollTop() - o.scrollSpeed);
+				} else if(this.window.height() - (event.pageY - this.document.scrollTop()) < o.scrollSensitivity) {
+					scrolled = this.document.scrollTop(this.document.scrollTop() + o.scrollSpeed);
 				}
 
-				if(event.pageX - $(document).scrollLeft() < o.scrollSensitivity) {
-					scrolled = $(document).scrollLeft($(document).scrollLeft() - o.scrollSpeed);
-				} else if($(window).width() - (event.pageX - $(document).scrollLeft()) < o.scrollSensitivity) {
-					scrolled = $(document).scrollLeft($(document).scrollLeft() + o.scrollSpeed);
+				if(event.pageX - this.document.scrollLeft() < o.scrollSensitivity) {
+					scrolled = this.document.scrollLeft(this.document.scrollLeft() - o.scrollSpeed);
+				} else if(this.window.width() - (event.pageX - this.document.scrollLeft()) < o.scrollSensitivity) {
+					scrolled = this.document.scrollLeft(this.document.scrollLeft() + o.scrollSpeed);
 				}
 
 			}
@@ -25194,10 +25215,10 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 				animation = {};
 
 			if ( !axis || axis === "x" ) {
-				animation.left = cur.left - this.offset.parent.left - this.margins.left + (this.offsetParent[0] === document.body ? 0 : this.offsetParent[0].scrollLeft);
+				animation.left = cur.left - this.offset.parent.left - this.margins.left + (this.offsetParent[0] === this.document[0].body ? 0 : this.offsetParent[0].scrollLeft);
 			}
 			if ( !axis || axis === "y" ) {
-				animation.top = cur.top - this.offset.parent.top - this.margins.top + (this.offsetParent[0] === document.body ? 0 : this.offsetParent[0].scrollTop);
+				animation.top = cur.top - this.offset.parent.top - this.margins.top + (this.offsetParent[0] === this.document[0].body ? 0 : this.offsetParent[0].scrollTop);
 			}
 			this.reverting = true;
 			$(this.helper).animate( animation, parseInt(this.options.revert, 10) || 500, function() {
@@ -25390,7 +25411,7 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 
 		if(connectWith && connected) {
 			for (i = connectWith.length - 1; i >= 0; i--){
-				cur = $(connectWith[i]);
+				cur = $(connectWith[i], this.document[0]);
 				for ( j = cur.length - 1; j >= 0; j--){
 					inst = $.data(cur[j], this.widgetFullName);
 					if(inst && inst !== this && !inst.options.disabled) {
@@ -25440,7 +25461,7 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 
 		if(connectWith && this.ready) { //Shouldn't be run the first time through due to massive slow-down
 			for (i = connectWith.length - 1; i >= 0; i--){
-				cur = $(connectWith[i]);
+				cur = $(connectWith[i], this.document[0]);
 				for (j = cur.length - 1; j >= 0; j--){
 					inst = $.data(cur[j], this.widgetFullName);
 					if(inst && inst !== this && !inst.options.disabled) {
@@ -25472,6 +25493,11 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 	},
 
 	refreshPositions: function(fast) {
+
+		// Determine whether items are being displayed horizontally
+		this.floating = this.items.length ?
+			this.options.axis === "x" || this._isFloating( this.items[ 0 ].item ) :
+			false;
 
 		//This has to be redone because due to the item being moved out/into the offsetParent, the offsetParent's position will change
 		if(this.offsetParent && this.helper) {
@@ -25530,12 +25556,13 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 							.addClass(className || that.currentItem[0].className+" ui-sortable-placeholder")
 							.removeClass("ui-sortable-helper");
 
-					if ( nodeName === "tr" ) {
-						that.currentItem.children().each(function() {
-							$( "<td>&#160;</td>", that.document[0] )
-								.attr( "colspan", $( this ).attr( "colspan" ) || 1 )
-								.appendTo( element );
-						});
+					if ( nodeName === "tbody" ) {
+						that._createTrPlaceholder(
+							that.currentItem.find( "tr" ).eq( 0 ),
+							$( "<tr>", that.document[ 0 ] ).appendTo( element )
+						);
+					} else if ( nodeName === "tr" ) {
+						that._createTrPlaceholder( that.currentItem, element );
 					} else if ( nodeName === "img" ) {
 						element.attr( "src", that.currentItem.attr( "src" ) );
 					}
@@ -25570,6 +25597,16 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 		//Update the size of the placeholder (TODO: Logic to fuzzy, see line 316/317)
 		o.placeholder.update(that, that.placeholder);
 
+	},
+
+	_createTrPlaceholder: function( sourceTr, targetTr ) {
+		var that = this;
+
+		sourceTr.children().each(function() {
+			$( "<td>&#160;</td>", that.document[ 0 ] )
+				.attr( "colspan", $( this ).attr( "colspan" ) || 1 )
+				.appendTo( targetTr );
+		});
 	},
 
 	_contactContainers: function(event) {
@@ -25732,14 +25769,14 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 		// 1. The position of the helper is absolute, so it's position is calculated based on the next positioned parent
 		// 2. The actual offset parent is a child of the scroll parent, and the scroll parent isn't the document, which means that
 		//    the scroll is included in the initial calculation of the offset of the parent, and never recalculated upon drag
-		if(this.cssPosition === "absolute" && this.scrollParent[0] !== document && $.contains(this.scrollParent[0], this.offsetParent[0])) {
+		if(this.cssPosition === "absolute" && this.scrollParent[0] !== this.document[0] && $.contains(this.scrollParent[0], this.offsetParent[0])) {
 			po.left += this.scrollParent.scrollLeft();
 			po.top += this.scrollParent.scrollTop();
 		}
 
 		// This needs to be actually done for all browsers, since pageX/pageY includes this information
 		// with an ugly IE fix
-		if( this.offsetParent[0] === document.body || (this.offsetParent[0].tagName && this.offsetParent[0].tagName.toLowerCase() === "html" && $.ui.ie)) {
+		if( this.offsetParent[0] === this.document[0].body || (this.offsetParent[0].tagName && this.offsetParent[0].tagName.toLowerCase() === "html" && $.ui.ie)) {
 			po = { top: 0, left: 0 };
 		}
 
@@ -25789,8 +25826,8 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 			this.containment = [
 				0 - this.offset.relative.left - this.offset.parent.left,
 				0 - this.offset.relative.top - this.offset.parent.top,
-				$(o.containment === "document" ? document : window).width() - this.helperProportions.width - this.margins.left,
-				($(o.containment === "document" ? document : window).height() || document.body.parentNode.scrollHeight) - this.helperProportions.height - this.margins.top
+				o.containment === "document" ? this.document.width() : this.window.width() - this.helperProportions.width - this.margins.left,
+				(o.containment === "document" ? this.document.width() : this.window.height() || this.document[0].body.parentNode.scrollHeight) - this.helperProportions.height - this.margins.top
 			];
 		}
 
@@ -25815,7 +25852,7 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 			pos = this.position;
 		}
 		var mod = d === "absolute" ? 1 : -1,
-			scroll = this.cssPosition === "absolute" && !(this.scrollParent[0] !== document && $.contains(this.scrollParent[0], this.offsetParent[0])) ? this.offsetParent : this.scrollParent,
+			scroll = this.cssPosition === "absolute" && !(this.scrollParent[0] !== this.document[0] && $.contains(this.scrollParent[0], this.offsetParent[0])) ? this.offsetParent : this.scrollParent,
 			scrollIsRootNode = (/(html|body)/i).test(scroll[0].tagName);
 
 		return {
@@ -25841,13 +25878,13 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 			o = this.options,
 			pageX = event.pageX,
 			pageY = event.pageY,
-			scroll = this.cssPosition === "absolute" && !(this.scrollParent[0] !== document && $.contains(this.scrollParent[0], this.offsetParent[0])) ? this.offsetParent : this.scrollParent, scrollIsRootNode = (/(html|body)/i).test(scroll[0].tagName);
+			scroll = this.cssPosition === "absolute" && !(this.scrollParent[0] !== this.document[0] && $.contains(this.scrollParent[0], this.offsetParent[0])) ? this.offsetParent : this.scrollParent, scrollIsRootNode = (/(html|body)/i).test(scroll[0].tagName);
 
 		// This is another very weird special case that only happens for relative elements:
 		// 1. If the css position is relative
 		// 2. and the scroll parent is the document or similar to the offset parent
 		// we have to refresh the relative offset during the scroll so there are no jumps
-		if(this.cssPosition === "relative" && !(this.scrollParent[0] !== document && this.scrollParent[0] !== this.offsetParent[0])) {
+		if(this.cssPosition === "relative" && !(this.scrollParent[0] !== this.document[0] && this.scrollParent[0] !== this.offsetParent[0])) {
 			this.offset.relative = this._getRelativeOffset();
 		}
 
@@ -26045,10 +26082,10 @@ var sortable = $.widget("ui.sortable", $.ui.mouse, {
 
 
 /*!
- * jQuery UI Spinner 1.11.2
+ * jQuery UI Spinner 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -26068,7 +26105,7 @@ function spinner_modifier( fn ) {
 }
 
 var spinner = $.widget( "ui.spinner", {
-	version: "1.11.2",
+	version: "1.11.4",
 	defaultElement: "<input>",
 	widgetEventPrefix: "spin",
 	options: {
@@ -26544,10 +26581,10 @@ var spinner = $.widget( "ui.spinner", {
 
 
 /*!
- * jQuery UI Tabs 1.11.2
+ * jQuery UI Tabs 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -26556,7 +26593,7 @@ var spinner = $.widget( "ui.spinner", {
 
 
 var tabs = $.widget( "ui.tabs", {
-	version: "1.11.2",
+	version: "1.11.4",
 	delay: 300,
 	options: {
 		active: null,
@@ -26732,8 +26769,9 @@ var tabs = $.widget( "ui.tabs", {
 		clearTimeout( this.activating );
 		selectedIndex = this._focusNextTab( selectedIndex, goingForward );
 
-		// Navigating with control key will prevent automatic activation
-		if ( !event.ctrlKey ) {
+		// Navigating with control/command key will prevent automatic activation
+		if ( !event.ctrlKey && !event.metaKey ) {
+
 			// Update aria-selected immediately so that AT think the tab is already selected.
 			// Otherwise AT may confuse the user by stating that they need to activate the tab,
 			// but the tab will already be activated by the time the announcement finishes.
@@ -27347,6 +27385,18 @@ var tabs = $.widget( "ui.tabs", {
 			eventData = {
 				tab: tab,
 				panel: panel
+			},
+			complete = function( jqXHR, status ) {
+				if ( status === "abort" ) {
+					that.panels.stop( false, true );
+				}
+
+				tab.removeClass( "ui-tabs-loading" );
+				panel.removeAttr( "aria-busy" );
+
+				if ( jqXHR === that.xhr ) {
+					delete that.xhr;
+				}
 			};
 
 		// not remote
@@ -27364,28 +27414,21 @@ var tabs = $.widget( "ui.tabs", {
 			panel.attr( "aria-busy", "true" );
 
 			this.xhr
-				.success(function( response ) {
+				.done(function( response, status, jqXHR ) {
 					// support: jQuery <1.8
 					// http://bugs.jquery.com/ticket/11778
 					setTimeout(function() {
 						panel.html( response );
 						that._trigger( "load", event, eventData );
+
+						complete( jqXHR, status );
 					}, 1 );
 				})
-				.complete(function( jqXHR, status ) {
+				.fail(function( jqXHR, status ) {
 					// support: jQuery <1.8
 					// http://bugs.jquery.com/ticket/11778
 					setTimeout(function() {
-						if ( status === "abort" ) {
-							that.panels.stop( false, true );
-						}
-
-						tab.removeClass( "ui-tabs-loading" );
-						panel.removeAttr( "aria-busy" );
-
-						if ( jqXHR === that.xhr ) {
-							delete that.xhr;
-						}
+						complete( jqXHR, status );
 					}, 1 );
 				});
 		}
@@ -27410,10 +27453,10 @@ var tabs = $.widget( "ui.tabs", {
 
 
 /*!
- * jQuery UI Tooltip 1.11.2
+ * jQuery UI Tooltip 1.11.4
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  *
@@ -27422,7 +27465,7 @@ var tabs = $.widget( "ui.tabs", {
 
 
 var tooltip = $.widget( "ui.tooltip", {
-	version: "1.11.2",
+	version: "1.11.4",
 	options: {
 		content: function() {
 			// support: IE<9, Opera in jQuery <1.7
@@ -27590,6 +27633,7 @@ var tooltip = $.widget( "ui.tooltip", {
 			});
 		}
 
+		this._registerCloseHandlers( event, target );
 		this._updateContent( target, event );
 	},
 
@@ -27604,13 +27648,16 @@ var tooltip = $.widget( "ui.tooltip", {
 		}
 
 		content = contentOption.call( target[0], function( response ) {
-			// ignore async response if tooltip was closed already
-			if ( !target.data( "ui-tooltip-open" ) ) {
-				return;
-			}
+
 			// IE may instantly serve a cached response for ajax requests
 			// delay this call to _open so the other call to _open runs first
 			that._delay(function() {
+
+				// Ignore async response if tooltip was closed already
+				if ( !target.data( "ui-tooltip-open" ) ) {
+					return;
+				}
+
 				// jQuery creates a special event for focusin when it doesn't
 				// exist natively. To improve performance, the native event
 				// object is reused and the type is changed. Therefore, we can't
@@ -27628,7 +27675,7 @@ var tooltip = $.widget( "ui.tooltip", {
 	},
 
 	_open: function( event, target, content ) {
-		var tooltipData, tooltip, events, delayedShow, a11yContent,
+		var tooltipData, tooltip, delayedShow, a11yContent,
 			positionOption = $.extend( {}, this.options.position );
 
 		if ( !content ) {
@@ -27710,8 +27757,10 @@ var tooltip = $.widget( "ui.tooltip", {
 		}
 
 		this._trigger( "open", event, { tooltip: tooltip } );
+	},
 
-		events = {
+	_registerCloseHandlers: function( event, target ) {
+		var events = {
 			keyup: function( event ) {
 				if ( event.keyCode === $.ui.keyCode.ESCAPE ) {
 					var fakeEvent = $.Event(event);
@@ -27725,7 +27774,7 @@ var tooltip = $.widget( "ui.tooltip", {
 		// tooltips will handle this in destroy.
 		if ( target[ 0 ] !== this.element[ 0 ] ) {
 			events.remove = function() {
-				this._removeTooltip( tooltip );
+				this._removeTooltip( this._find( target ).tooltip );
 			};
 		}
 
@@ -27746,6 +27795,12 @@ var tooltip = $.widget( "ui.tooltip", {
 
 		// The tooltip may already be closed
 		if ( !tooltipData ) {
+
+			// We set ui-tooltip-open immediately upon open (in open()), but only set the
+			// additional data once there's actually content to show (in _open()). So even if the
+			// tooltip doesn't have full data, we always remove ui-tooltip-open in case we're in
+			// the period between open() and _open().
+			target.removeData( "ui-tooltip-open" );
 			return;
 		}
 
@@ -31411,4 +31466,14 @@ define('x-editable', function (require, exports, module) {
 * Copyright (c) 2013 Vitaliy Potapov; Licensed MIT */
 !function(a){"use strict";var b=function(b,c){this.options=a.extend({},a.fn.editableform.defaults,c),this.$div=a(b),this.options.scope||(this.options.scope=this)};b.prototype={constructor:b,initInput:function(){this.input=this.options.input,this.value=this.input.str2value(this.options.value),this.input.prerender()},initTemplate:function(){this.$form=a(a.fn.editableform.template)},initButtons:function(){var b=this.$form.find(".editable-buttons");b.append(a.fn.editableform.buttons),"bottom"===this.options.showbuttons&&b.addClass("editable-buttons-bottom")},render:function(){this.$loading=a(a.fn.editableform.loading),this.$div.empty().append(this.$loading),this.initTemplate(),this.options.showbuttons?this.initButtons():this.$form.find(".editable-buttons").remove(),this.showLoading(),this.isSaving=!1,this.$div.triggerHandler("rendering"),this.initInput(),this.$form.find("div.editable-input").append(this.input.$tpl),this.$div.append(this.$form),a.when(this.input.render()).then(a.proxy(function(){if(this.options.showbuttons||this.input.autosubmit(),this.$form.find(".editable-cancel").click(a.proxy(this.cancel,this)),this.input.error)this.error(this.input.error),this.$form.find(".editable-submit").attr("disabled",!0),this.input.$input.attr("disabled",!0),this.$form.submit(function(a){a.preventDefault()});else{this.error(!1),this.input.$input.removeAttr("disabled"),this.$form.find(".editable-submit").removeAttr("disabled");var b=null===this.value||void 0===this.value||""===this.value?this.options.defaultValue:this.value;this.input.value2input(b),this.$form.submit(a.proxy(this.submit,this))}this.$div.triggerHandler("rendered"),this.showForm(),this.input.postrender&&this.input.postrender()},this))},cancel:function(){this.$div.triggerHandler("cancel")},showLoading:function(){var a,b;this.$form?(a=this.$form.outerWidth(),b=this.$form.outerHeight(),a&&this.$loading.width(a),b&&this.$loading.height(b),this.$form.hide()):(a=this.$loading.parent().width(),a&&this.$loading.width(a)),this.$loading.show()},showForm:function(a){this.$loading.hide(),this.$form.show(),a!==!1&&this.input.activate(),this.$div.triggerHandler("show")},error:function(b){var c,d=this.$form.find(".control-group"),e=this.$form.find(".editable-error-block");if(b===!1)d.removeClass(a.fn.editableform.errorGroupClass),e.removeClass(a.fn.editableform.errorBlockClass).empty().hide();else{if(b){c=(""+b).split("\n");for(var f=0;f<c.length;f++)c[f]=a("<div>").text(c[f]).html();b=c.join("<br>")}d.addClass(a.fn.editableform.errorGroupClass),e.addClass(a.fn.editableform.errorBlockClass).html(b).show()}},submit:function(b){b.stopPropagation(),b.preventDefault();var c=this.input.input2value(),d=this.validate(c);if("object"===a.type(d)&&void 0!==d.newValue){if(c=d.newValue,this.input.value2input(c),"string"==typeof d.msg)return this.error(d.msg),this.showForm(),void 0}else if(d)return this.error(d),this.showForm(),void 0;if(!this.options.savenochange&&this.input.value2str(c)==this.input.value2str(this.value))return this.$div.triggerHandler("nochange"),void 0;var e=this.input.value2submit(c);this.isSaving=!0,a.when(this.save(e)).done(a.proxy(function(a){this.isSaving=!1;var b="function"==typeof this.options.success?this.options.success.call(this.options.scope,a,c):null;return b===!1?(this.error(!1),this.showForm(!1),void 0):"string"==typeof b?(this.error(b),this.showForm(),void 0):(b&&"object"==typeof b&&b.hasOwnProperty("newValue")&&(c=b.newValue),this.error(!1),this.value=c,this.$div.triggerHandler("save",{newValue:c,submitValue:e,response:a}),void 0)},this)).fail(a.proxy(function(a){this.isSaving=!1;var b;b="function"==typeof this.options.error?this.options.error.call(this.options.scope,a,c):"string"==typeof a?a:a.responseText||a.statusText||"Unknown error!",this.error(b),this.showForm()},this))},save:function(b){this.options.pk=a.fn.editableutils.tryParseJson(this.options.pk,!0);var c,d="function"==typeof this.options.pk?this.options.pk.call(this.options.scope):this.options.pk,e=!!("function"==typeof this.options.url||this.options.url&&("always"===this.options.send||"auto"===this.options.send&&null!==d&&void 0!==d));return e?(this.showLoading(),c={name:this.options.name||"",value:b,pk:d},"function"==typeof this.options.params?c=this.options.params.call(this.options.scope,c):(this.options.params=a.fn.editableutils.tryParseJson(this.options.params,!0),a.extend(c,this.options.params)),"function"==typeof this.options.url?this.options.url.call(this.options.scope,c):a.ajax(a.extend({url:this.options.url,data:c,type:"POST"},this.options.ajaxOptions))):void 0},validate:function(a){return void 0===a&&(a=this.value),"function"==typeof this.options.validate?this.options.validate.call(this.options.scope,a):void 0},option:function(a,b){a in this.options&&(this.options[a]=b),"value"===a&&this.setValue(b)},setValue:function(a,b){this.value=b?this.input.str2value(a):a,this.$form&&this.$form.is(":visible")&&this.input.value2input(this.value)}},a.fn.editableform=function(c){var d=arguments;return this.each(function(){var e=a(this),f=e.data("editableform"),g="object"==typeof c&&c;f||e.data("editableform",f=new b(this,g)),"string"==typeof c&&f[c].apply(f,Array.prototype.slice.call(d,1))})},a.fn.editableform.Constructor=b,a.fn.editableform.defaults={type:"text",url:null,params:null,name:null,pk:null,value:null,defaultValue:null,send:"auto",validate:null,success:null,error:null,ajaxOptions:null,showbuttons:!0,scope:null,savenochange:!1},a.fn.editableform.template='<form class="form-inline editableform"><div class="control-group"><div><div class="editable-input"></div><div class="editable-buttons"></div></div><div class="editable-error-block"></div></div></form>',a.fn.editableform.loading='<div class="editableform-loading"></div>',a.fn.editableform.buttons='<button type="submit" class="editable-submit">ok</button><button type="button" class="editable-cancel">cancel</button>',a.fn.editableform.errorGroupClass=null,a.fn.editableform.errorBlockClass="editable-error",a.fn.editableform.engine="jquery"}(window.jQuery),function(a){"use strict";a.fn.editableutils={inherit:function(a,b){var c=function(){};c.prototype=b.prototype,a.prototype=new c,a.prototype.constructor=a,a.superclass=b.prototype},setCursorPosition:function(a,b){if(a.setSelectionRange)a.setSelectionRange(b,b);else if(a.createTextRange){var c=a.createTextRange();c.collapse(!0),c.moveEnd("character",b),c.moveStart("character",b),c.select()}},tryParseJson:function(a,b){if("string"==typeof a&&a.length&&a.match(/^[\{\[].*[\}\]]$/))if(b)try{a=new Function("return "+a)()}catch(c){}finally{return a}else a=new Function("return "+a)();return a},sliceObj:function(b,c,d){var e,f,g={};if(!a.isArray(c)||!c.length)return g;for(var h=0;h<c.length;h++)e=c[h],b.hasOwnProperty(e)&&(g[e]=b[e]),d!==!0&&(f=e.toLowerCase(),b.hasOwnProperty(f)&&(g[e]=b[f]));return g},getConfigData:function(b){var c={};return a.each(b.data(),function(a,b){("object"!=typeof b||b&&"object"==typeof b&&(b.constructor===Object||b.constructor===Array))&&(c[a]=b)}),c},objectKeys:function(a){if(Object.keys)return Object.keys(a);if(a!==Object(a))throw new TypeError("Object.keys called on a non-object");var b,c=[];for(b in a)Object.prototype.hasOwnProperty.call(a,b)&&c.push(b);return c},escape:function(b){return a("<div>").text(b).html()},itemsByValue:function(b,c,d){if(!c||null===b)return[];if("function"!=typeof d){var e=d||"value";d=function(a){return a[e]}}var f=a.isArray(b),g=[],h=this;return a.each(c,function(c,e){if(e.children)g=g.concat(h.itemsByValue(b,e.children,d));else if(f)a.grep(b,function(a){return a==(e&&"object"==typeof e?d(e):e)}).length&&g.push(e);else{var i=e&&"object"==typeof e?d(e):e;b==i&&g.push(e)}}),g},createInput:function(b){var c,d,e,f=b.type;return"date"===f&&("inline"===b.mode?a.fn.editabletypes.datefield?f="datefield":a.fn.editabletypes.dateuifield&&(f="dateuifield"):a.fn.editabletypes.date?f="date":a.fn.editabletypes.dateui&&(f="dateui"),"date"!==f||a.fn.editabletypes.date||(f="combodate")),"datetime"===f&&"inline"===b.mode&&(f="datetimefield"),"wysihtml5"!==f||a.fn.editabletypes[f]||(f="textarea"),"function"==typeof a.fn.editabletypes[f]?(c=a.fn.editabletypes[f],d=this.sliceObj(b,this.objectKeys(c.defaults)),e=new c(d)):(a.error("Unknown type: "+f),!1)},supportsTransitions:function(){var a=document.body||document.documentElement,b=a.style,c="transition",d=["Moz","Webkit","Khtml","O","ms"];if("string"==typeof b[c])return!0;c=c.charAt(0).toUpperCase()+c.substr(1);for(var e=0;e<d.length;e++)if("string"==typeof b[d[e]+c])return!0;return!1}}}(window.jQuery),function(a){"use strict";var b=function(a,b){this.init(a,b)},c=function(a,b){this.init(a,b)};b.prototype={containerName:null,containerDataName:null,innerCss:null,containerClass:"editable-container editable-popup",defaults:{},init:function(c,d){this.$element=a(c),this.options=a.extend({},a.fn.editableContainer.defaults,d),this.splitOptions(),this.formOptions.scope=this.$element[0],this.initContainer(),this.delayedHide=!1,this.$element.on("destroyed",a.proxy(function(){this.destroy()},this)),a(document).data("editable-handlers-attached")||(a(document).on("keyup.editable",function(b){27===b.which&&a(".editable-open").editableContainer("hide")}),a(document).on("click.editable",function(c){var d,e=a(c.target),f=[".editable-container",".ui-datepicker-header",".datepicker",".modal-backdrop",".bootstrap-wysihtml5-insert-image-modal",".bootstrap-wysihtml5-insert-link-modal"];if(a.contains(document.documentElement,c.target)&&!e.is(document)){for(d=0;d<f.length;d++)if(e.is(f[d])||e.parents(f[d]).length)return;b.prototype.closeOthers(c.target)}}),a(document).data("editable-handlers-attached",!0))},splitOptions:function(){if(this.containerOptions={},this.formOptions={},!a.fn[this.containerName])throw new Error(this.containerName+" not found. Have you included corresponding js file?");for(var b in this.options)b in this.defaults?this.containerOptions[b]=this.options[b]:this.formOptions[b]=this.options[b]},tip:function(){return this.container()?this.container().$tip:null},container:function(){var a;return this.containerDataName&&(a=this.$element.data(this.containerDataName))?a:a=this.$element.data(this.containerName)},call:function(){this.$element[this.containerName].apply(this.$element,arguments)},initContainer:function(){this.call(this.containerOptions)},renderForm:function(){this.$form.editableform(this.formOptions).on({save:a.proxy(this.save,this),nochange:a.proxy(function(){this.hide("nochange")},this),cancel:a.proxy(function(){this.hide("cancel")},this),show:a.proxy(function(){this.delayedHide?(this.hide(this.delayedHide.reason),this.delayedHide=!1):this.setPosition()},this),rendering:a.proxy(this.setPosition,this),resize:a.proxy(this.setPosition,this),rendered:a.proxy(function(){this.$element.triggerHandler("shown",a(this.options.scope).data("editable"))},this)}).editableform("render")},show:function(b){this.$element.addClass("editable-open"),b!==!1&&this.closeOthers(this.$element[0]),this.innerShow(),this.tip().addClass(this.containerClass),this.$form,this.$form=a("<div>"),this.tip().is(this.innerCss)?this.tip().append(this.$form):this.tip().find(this.innerCss).append(this.$form),this.renderForm()},hide:function(a){if(this.tip()&&this.tip().is(":visible")&&this.$element.hasClass("editable-open")){if(this.$form.data("editableform").isSaving)return this.delayedHide={reason:a},void 0;this.delayedHide=!1,this.$element.removeClass("editable-open"),this.innerHide(),this.$element.triggerHandler("hidden",a||"manual")}},innerShow:function(){},innerHide:function(){},toggle:function(a){this.container()&&this.tip()&&this.tip().is(":visible")?this.hide():this.show(a)},setPosition:function(){},save:function(a,b){this.$element.triggerHandler("save",b),this.hide("save")},option:function(a,b){this.options[a]=b,a in this.containerOptions?(this.containerOptions[a]=b,this.setContainerOption(a,b)):(this.formOptions[a]=b,this.$form&&this.$form.editableform("option",a,b))},setContainerOption:function(a,b){this.call("option",a,b)},destroy:function(){this.hide(),this.innerDestroy(),this.$element.off("destroyed"),this.$element.removeData("editableContainer")},innerDestroy:function(){},closeOthers:function(b){a(".editable-open").each(function(c,d){if(d!==b&&!a(d).find(b).length){var e=a(d),f=e.data("editableContainer");f&&("cancel"===f.options.onblur?e.data("editableContainer").hide("onblur"):"submit"===f.options.onblur&&e.data("editableContainer").tip().find("form").submit())}})},activate:function(){this.tip&&this.tip().is(":visible")&&this.$form&&this.$form.data("editableform").input.activate()}},a.fn.editableContainer=function(d){var e=arguments;return this.each(function(){var f=a(this),g="editableContainer",h=f.data(g),i="object"==typeof d&&d,j="inline"===i.mode?c:b;h||f.data(g,h=new j(this,i)),"string"==typeof d&&h[d].apply(h,Array.prototype.slice.call(e,1))})},a.fn.editableContainer.Popup=b,a.fn.editableContainer.Inline=c,a.fn.editableContainer.defaults={value:null,placement:"top",autohide:!0,onblur:"cancel",anim:!1,mode:"popup"},jQuery.event.special.destroyed={remove:function(a){a.handler&&a.handler()}}}(window.jQuery),function(a){"use strict";a.extend(a.fn.editableContainer.Inline.prototype,a.fn.editableContainer.Popup.prototype,{containerName:"editableform",innerCss:".editable-inline",containerClass:"editable-container editable-inline",initContainer:function(){this.$tip=a("<span></span>"),this.options.anim||(this.options.anim=0)},splitOptions:function(){this.containerOptions={},this.formOptions=this.options},tip:function(){return this.$tip},innerShow:function(){this.$element.hide(),this.tip().insertAfter(this.$element).show()},innerHide:function(){this.$tip.hide(this.options.anim,a.proxy(function(){this.$element.show(),this.innerDestroy()},this))},innerDestroy:function(){this.tip()&&this.tip().empty().remove()}})}(window.jQuery),function(a){"use strict";var b=function(b,c){this.$element=a(b),this.options=a.extend({},a.fn.editable.defaults,c,a.fn.editableutils.getConfigData(this.$element)),this.options.selector?this.initLive():this.init(),this.options.highlight&&!a.fn.editableutils.supportsTransitions()&&(this.options.highlight=!1)};b.prototype={constructor:b,init:function(){var b,c=!1;if(this.options.name=this.options.name||this.$element.attr("id"),this.options.scope=this.$element[0],this.input=a.fn.editableutils.createInput(this.options),this.input){switch(void 0===this.options.value||null===this.options.value?(this.value=this.input.html2value(a.trim(this.$element.html())),c=!0):(this.options.value=a.fn.editableutils.tryParseJson(this.options.value,!0),this.value="string"==typeof this.options.value?this.input.str2value(this.options.value):this.options.value),this.$element.addClass("editable"),"textarea"===this.input.type&&this.$element.addClass("editable-pre-wrapped"),"manual"!==this.options.toggle?(this.$element.addClass("editable-click"),this.$element.on(this.options.toggle+".editable",a.proxy(function(a){if(this.options.disabled||a.preventDefault(),"mouseenter"===this.options.toggle)this.show();else{var b="click"!==this.options.toggle;this.toggle(b)}},this))):this.$element.attr("tabindex",-1),"function"==typeof this.options.display&&(this.options.autotext="always"),this.options.autotext){case"always":b=!0;break;case"auto":b=!a.trim(this.$element.text()).length&&null!==this.value&&void 0!==this.value&&!c;break;default:b=!1}a.when(b?this.render():!0).then(a.proxy(function(){this.options.disabled?this.disable():this.enable(),this.$element.triggerHandler("init",this)},this))}},initLive:function(){var b=this.options.selector;this.options.selector=!1,this.options.autotext="never",this.$element.on(this.options.toggle+".editable",b,a.proxy(function(b){var c=a(b.target);c.data("editable")||(c.hasClass(this.options.emptyclass)&&c.empty(),c.editable(this.options).trigger(b))},this))},render:function(a){return this.options.display!==!1?this.input.value2htmlFinal?this.input.value2html(this.value,this.$element[0],this.options.display,a):"function"==typeof this.options.display?this.options.display.call(this.$element[0],this.value,a):this.input.value2html(this.value,this.$element[0]):void 0},enable:function(){this.options.disabled=!1,this.$element.removeClass("editable-disabled"),this.handleEmpty(this.isEmpty),"manual"!==this.options.toggle&&"-1"===this.$element.attr("tabindex")&&this.$element.removeAttr("tabindex")},disable:function(){this.options.disabled=!0,this.hide(),this.$element.addClass("editable-disabled"),this.handleEmpty(this.isEmpty),this.$element.attr("tabindex",-1)},toggleDisabled:function(){this.options.disabled?this.enable():this.disable()},option:function(b,c){return b&&"object"==typeof b?(a.each(b,a.proxy(function(b,c){this.option(a.trim(b),c)},this)),void 0):(this.options[b]=c,"disabled"===b?c?this.disable():this.enable():("value"===b&&this.setValue(c),this.container&&this.container.option(b,c),this.input.option&&this.input.option(b,c),void 0))},handleEmpty:function(b){this.options.display!==!1&&(this.isEmpty=void 0!==b?b:"function"==typeof this.input.isEmpty?this.input.isEmpty(this.$element):""===a.trim(this.$element.html()),this.options.disabled?this.isEmpty&&(this.$element.empty(),this.options.emptyclass&&this.$element.removeClass(this.options.emptyclass)):this.isEmpty?(this.$element.html(this.options.emptytext),this.options.emptyclass&&this.$element.addClass(this.options.emptyclass)):this.options.emptyclass&&this.$element.removeClass(this.options.emptyclass))},show:function(b){if(!this.options.disabled){if(this.container){if(this.container.tip().is(":visible"))return}else{var c=a.extend({},this.options,{value:this.value,input:this.input});this.$element.editableContainer(c),this.$element.on("save.internal",a.proxy(this.save,this)),this.container=this.$element.data("editableContainer")}this.container.show(b)}},hide:function(){this.container&&this.container.hide()},toggle:function(a){this.container&&this.container.tip().is(":visible")?this.hide():this.show(a)},save:function(a,b){if(this.options.unsavedclass){var c=!1;c=c||"function"==typeof this.options.url,c=c||this.options.display===!1,c=c||void 0!==b.response,c=c||this.options.savenochange&&this.input.value2str(this.value)!==this.input.value2str(b.newValue),c?this.$element.removeClass(this.options.unsavedclass):this.$element.addClass(this.options.unsavedclass)}if(this.options.highlight){var d=this.$element,e=d.css("background-color");d.css("background-color",this.options.highlight),setTimeout(function(){"transparent"===e&&(e=""),d.css("background-color",e),d.addClass("editable-bg-transition"),setTimeout(function(){d.removeClass("editable-bg-transition")},1700)},10)}this.setValue(b.newValue,!1,b.response)},validate:function(){return"function"==typeof this.options.validate?this.options.validate.call(this,this.value):void 0},setValue:function(b,c,d){this.value=c?this.input.str2value(b):b,this.container&&this.container.option("value",this.value),a.when(this.render(d)).then(a.proxy(function(){this.handleEmpty()},this))},activate:function(){this.container&&this.container.activate()},destroy:function(){this.disable(),this.container&&this.container.destroy(),this.input.destroy(),"manual"!==this.options.toggle&&(this.$element.removeClass("editable-click"),this.$element.off(this.options.toggle+".editable")),this.$element.off("save.internal"),this.$element.removeClass("editable editable-open editable-disabled"),this.$element.removeData("editable")}},a.fn.editable=function(c){var d={},e=arguments,f="editable";switch(c){case"validate":return this.each(function(){var b,c=a(this),e=c.data(f);e&&(b=e.validate())&&(d[e.options.name]=b)}),d;case"getValue":return 2===arguments.length&&arguments[1]===!0?d=this.eq(0).data(f).value:this.each(function(){var b=a(this),c=b.data(f);c&&void 0!==c.value&&null!==c.value&&(d[c.options.name]=c.input.value2submit(c.value))}),d;case"submit":var g=arguments[1]||{},h=this,i=this.editable("validate");if(a.isEmptyObject(i)){var j={};if(1===h.length){var k=h.data("editable"),l={name:k.options.name||"",value:k.input.value2submit(k.value),pk:"function"==typeof k.options.pk?k.options.pk.call(k.options.scope):k.options.pk};"function"==typeof k.options.params?l=k.options.params.call(k.options.scope,l):(k.options.params=a.fn.editableutils.tryParseJson(k.options.params,!0),a.extend(l,k.options.params)),j={url:k.options.url,data:l,type:"POST"},g.success=g.success||k.options.success,g.error=g.error||k.options.error}else{var m=this.editable("getValue");j={url:g.url,data:m,type:"POST"}}j.success="function"==typeof g.success?function(a){g.success.call(h,a,g)}:a.noop,j.error="function"==typeof g.error?function(){g.error.apply(h,arguments)}:a.noop,g.ajaxOptions&&a.extend(j,g.ajaxOptions),g.data&&a.extend(j.data,g.data),a.ajax(j)}else"function"==typeof g.error&&g.error.call(h,i);return this}return this.each(function(){var d=a(this),g=d.data(f),h="object"==typeof c&&c;return h&&h.selector?(g=new b(this,h),void 0):(g||d.data(f,g=new b(this,h)),"string"==typeof c&&g[c].apply(g,Array.prototype.slice.call(e,1)),void 0)})},a.fn.editable.defaults={type:"text",disabled:!1,toggle:"click",emptytext:"Empty",autotext:"auto",value:null,display:null,emptyclass:"editable-empty",unsavedclass:"editable-unsaved",selector:null,highlight:"#FFFF80"}}(window.jQuery),function(a){"use strict";a.fn.editabletypes={};var b=function(){};b.prototype={init:function(b,c,d){this.type=b,this.options=a.extend({},d,c)},prerender:function(){this.$tpl=a(this.options.tpl),this.$input=this.$tpl,this.$clear=null,this.error=null},render:function(){},value2html:function(b,c){a(c)[this.options.escape?"text":"html"](a.trim(b))},html2value:function(b){return a("<div>").html(b).text()},value2str:function(a){return a},str2value:function(a){return a},value2submit:function(a){return a},value2input:function(a){this.$input.val(a)},input2value:function(){return this.$input.val()},activate:function(){this.$input.is(":visible")&&this.$input.focus()},clear:function(){this.$input.val(null)},escape:function(b){return a("<div>").text(b).html()},autosubmit:function(){},destroy:function(){},setClass:function(){this.options.inputclass&&this.$input.addClass(this.options.inputclass)},setAttr:function(a){void 0!==this.options[a]&&null!==this.options[a]&&this.$input.attr(a,this.options[a])},option:function(a,b){this.options[a]=b}},b.defaults={tpl:"",inputclass:null,escape:!0,scope:null,showbuttons:!0},a.extend(a.fn.editabletypes,{abstractinput:b})}(window.jQuery),function(a){"use strict";var b=function(){};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){var b=a.Deferred();return this.error=null,this.onSourceReady(function(){this.renderList(),b.resolve()},function(){this.error=this.options.sourceError,b.resolve()}),b.promise()},html2value:function(){return null},value2html:function(b,c,d,e){var f=a.Deferred(),g=function(){"function"==typeof d?d.call(c,b,this.sourceData,e):this.value2htmlFinal(b,c),f.resolve()};return null===b?g.call(this):this.onSourceReady(g,function(){f.resolve()}),f.promise()},onSourceReady:function(b,c){var d;if(a.isFunction(this.options.source)?(d=this.options.source.call(this.options.scope),this.sourceData=null):d=this.options.source,this.options.sourceCache&&a.isArray(this.sourceData))return b.call(this),void 0;try{d=a.fn.editableutils.tryParseJson(d,!1)}catch(e){return c.call(this),void 0}if("string"==typeof d){if(this.options.sourceCache){var f,g=d;if(a(document).data(g)||a(document).data(g,{}),f=a(document).data(g),f.loading===!1&&f.sourceData)return this.sourceData=f.sourceData,this.doPrepend(),b.call(this),void 0;if(f.loading===!0)return f.callbacks.push(a.proxy(function(){this.sourceData=f.sourceData,this.doPrepend(),b.call(this)},this)),f.err_callbacks.push(a.proxy(c,this)),void 0;f.loading=!0,f.callbacks=[],f.err_callbacks=[]}var h=a.extend({url:d,type:"get",cache:!1,dataType:"json",success:a.proxy(function(d){f&&(f.loading=!1),this.sourceData=this.makeArray(d),a.isArray(this.sourceData)?(f&&(f.sourceData=this.sourceData,a.each(f.callbacks,function(){this.call()})),this.doPrepend(),b.call(this)):(c.call(this),f&&a.each(f.err_callbacks,function(){this.call()}))},this),error:a.proxy(function(){c.call(this),f&&(f.loading=!1,a.each(f.err_callbacks,function(){this.call()}))},this)},this.options.sourceOptions);a.ajax(h)}else this.sourceData=this.makeArray(d),a.isArray(this.sourceData)?(this.doPrepend(),b.call(this)):c.call(this)},doPrepend:function(){null!==this.options.prepend&&void 0!==this.options.prepend&&(a.isArray(this.prependData)||(a.isFunction(this.options.prepend)&&(this.options.prepend=this.options.prepend.call(this.options.scope)),this.options.prepend=a.fn.editableutils.tryParseJson(this.options.prepend,!0),"string"==typeof this.options.prepend&&(this.options.prepend={"":this.options.prepend}),this.prependData=this.makeArray(this.options.prepend)),a.isArray(this.prependData)&&a.isArray(this.sourceData)&&(this.sourceData=this.prependData.concat(this.sourceData)))},renderList:function(){},value2htmlFinal:function(){},makeArray:function(b){var c,d,e,f,g=[];if(!b||"string"==typeof b)return null;if(a.isArray(b)){f=function(a,b){return d={value:a,text:b},c++>=2?!1:void 0};for(var h=0;h<b.length;h++)e=b[h],"object"==typeof e?(c=0,a.each(e,f),1===c?g.push(d):c>1&&(e.children&&(e.children=this.makeArray(e.children)),g.push(e))):g.push({value:e,text:e})}else a.each(b,function(a,b){g.push({value:a,text:b})});return g},option:function(a,b){this.options[a]=b,"source"===a&&(this.sourceData=null),"prepend"===a&&(this.prependData=null)}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{source:null,prepend:!1,sourceError:"Error when loading list",sourceCache:!0,sourceOptions:null}),a.fn.editabletypes.list=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("text",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.renderClear(),this.setClass(),this.setAttr("placeholder")},activate:function(){this.$input.is(":visible")&&(this.$input.focus(),a.fn.editableutils.setCursorPosition(this.$input.get(0),this.$input.val().length),this.toggleClear&&this.toggleClear())},renderClear:function(){this.options.clear&&(this.$clear=a('<span class="editable-clear-x"></span>'),this.$input.after(this.$clear).css("padding-right",24).keyup(a.proxy(function(b){if(!~a.inArray(b.keyCode,[40,38,9,13,27])){clearTimeout(this.t);var c=this;this.t=setTimeout(function(){c.toggleClear(b)},100)}},this)).parent().css("position","relative"),this.$clear.click(a.proxy(this.clear,this)))},postrender:function(){},toggleClear:function(){if(this.$clear){var a=this.$input.val().length,b=this.$clear.is(":visible");a&&!b&&this.$clear.show(),!a&&b&&this.$clear.hide()}},clear:function(){this.$clear.hide(),this.$input.val("").focus()}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<input type="text">',placeholder:null,clear:!0}),a.fn.editabletypes.text=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("textarea",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.setClass(),this.setAttr("placeholder"),this.setAttr("rows"),this.$input.keydown(function(b){b.ctrlKey&&13===b.which&&a(this).closest("form").submit()})},activate:function(){a.fn.editabletypes.text.prototype.activate.call(this)}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:"<textarea></textarea>",inputclass:"input-large",placeholder:null,rows:7}),a.fn.editabletypes.textarea=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("select",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.list),a.extend(b.prototype,{renderList:function(){this.$input.empty();var b=function(c,d){var e;if(a.isArray(d))for(var f=0;f<d.length;f++)e={},d[f].children?(e.label=d[f].text,c.append(b(a("<optgroup>",e),d[f].children))):(e.value=d[f].value,d[f].disabled&&(e.disabled=!0),c.append(a("<option>",e).text(d[f].text)));return c};b(this.$input,this.sourceData),this.setClass(),this.$input.on("keydown.editable",function(b){13===b.which&&a(this).closest("form").submit()})},value2htmlFinal:function(b,c){var d="",e=a.fn.editableutils.itemsByValue(b,this.sourceData);e.length&&(d=e[0].text),a.fn.editabletypes.abstractinput.prototype.value2html.call(this,d,c)},autosubmit:function(){this.$input.off("keydown.editable").on("change.editable",function(){a(this).closest("form").submit()})}}),b.defaults=a.extend({},a.fn.editabletypes.list.defaults,{tpl:"<select></select>"}),a.fn.editabletypes.select=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("checklist",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.list),a.extend(b.prototype,{renderList:function(){var b;if(this.$tpl.empty(),a.isArray(this.sourceData)){for(var c=0;c<this.sourceData.length;c++)b=a("<label>").append(a("<input>",{type:"checkbox",value:this.sourceData[c].value})).append(a("<span>").text(" "+this.sourceData[c].text)),a("<div>").append(b).appendTo(this.$tpl);this.$input=this.$tpl.find('input[type="checkbox"]'),this.setClass()}},value2str:function(b){return a.isArray(b)?b.sort().join(a.trim(this.options.separator)):""},str2value:function(b){var c,d=null;return"string"==typeof b&&b.length?(c=new RegExp("\\s*"+a.trim(this.options.separator)+"\\s*"),d=b.split(c)):d=a.isArray(b)?b:[b],d},value2input:function(b){this.$input.prop("checked",!1),a.isArray(b)&&b.length&&this.$input.each(function(c,d){var e=a(d);a.each(b,function(a,b){e.val()==b&&e.prop("checked",!0)})})},input2value:function(){var b=[];return this.$input.filter(":checked").each(function(c,d){b.push(a(d).val())}),b},value2htmlFinal:function(b,c){var d=[],e=a.fn.editableutils.itemsByValue(b,this.sourceData),f=this.options.escape;e.length?(a.each(e,function(b,c){var e=f?a.fn.editableutils.escape(c.text):c.text;d.push(e)}),a(c).html(d.join("<br>"))):a(c).empty()},activate:function(){this.$input.first().focus()},autosubmit:function(){this.$input.on("keydown",function(b){13===b.which&&a(this).closest("form").submit()})}}),b.defaults=a.extend({},a.fn.editabletypes.list.defaults,{tpl:'<div class="editable-checklist"></div>',inputclass:null,separator:","}),a.fn.editabletypes.checklist=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("password",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),a.extend(b.prototype,{value2html:function(b,c){b?a(c).text("[hidden]"):a(c).empty()},html2value:function(){return null}}),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="password">'}),a.fn.editabletypes.password=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("email",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="email">'}),a.fn.editabletypes.email=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("url",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="url">'}),a.fn.editabletypes.url=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("tel",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="tel">'}),a.fn.editabletypes.tel=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("number",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.text),a.extend(b.prototype,{render:function(){b.superclass.render.call(this),this.setAttr("min"),this.setAttr("max"),this.setAttr("step")},postrender:function(){this.$clear&&this.$clear.css({right:24})}}),b.defaults=a.extend({},a.fn.editabletypes.text.defaults,{tpl:'<input type="number">',inputclass:"input-mini",min:null,max:null,step:null}),a.fn.editabletypes.number=b}(window.jQuery),function(a){"use strict";
 var b=function(a){this.init("range",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.number),a.extend(b.prototype,{render:function(){this.$input=this.$tpl.filter("input"),this.setClass(),this.setAttr("min"),this.setAttr("max"),this.setAttr("step"),this.$input.on("input",function(){a(this).siblings("output").text(a(this).val())})},activate:function(){this.$input.focus()}}),b.defaults=a.extend({},a.fn.editabletypes.number.defaults,{tpl:'<input type="range"><output style="width: 30px; display: inline-block"></output>',inputclass:"input-medium"}),a.fn.editabletypes.range=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("time",a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.setClass()}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<input type="time">'}),a.fn.editabletypes.time=b}(window.jQuery),function(a){"use strict";var b=function(c){if(this.init("select2",c,b.defaults),c.select2=c.select2||{},this.sourceData=null,c.placeholder&&(c.select2.placeholder=c.placeholder),!c.select2.tags&&c.source){var d=c.source;a.isFunction(c.source)&&(d=c.source.call(c.scope)),"string"==typeof d?(c.select2.ajax=c.select2.ajax||{},c.select2.ajax.data||(c.select2.ajax.data=function(a){return{query:a}}),c.select2.ajax.results||(c.select2.ajax.results=function(a){return{results:a}}),c.select2.ajax.url=d):(this.sourceData=this.convertSource(d),c.select2.data=this.sourceData)}if(this.options.select2=a.extend({},b.defaults.select2,c.select2),this.isMultiple=this.options.select2.tags||this.options.select2.multiple,this.isRemote="ajax"in this.options.select2,this.idFunc=this.options.select2.id,"function"!=typeof this.idFunc){var e=this.idFunc||"id";this.idFunc=function(a){return a[e]}}this.formatSelection=this.options.select2.formatSelection,"function"!=typeof this.formatSelection&&(this.formatSelection=function(a){return a.text})};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.setClass(),this.isRemote&&this.$input.on("select2-loaded",a.proxy(function(a){this.sourceData=a.items.results},this)),this.isMultiple&&this.$input.on("change",function(){a(this).closest("form").parent().triggerHandler("resize")})},value2html:function(c,d){var e,f="",g=this;this.options.select2.tags?e=c:this.sourceData&&(e=a.fn.editableutils.itemsByValue(c,this.sourceData,this.idFunc)),a.isArray(e)?(f=[],a.each(e,function(a,b){f.push(b&&"object"==typeof b?g.formatSelection(b):b)})):e&&(f=g.formatSelection(e)),f=a.isArray(f)?f.join(this.options.viewseparator):f,b.superclass.value2html.call(this,f,d)},html2value:function(a){return this.options.select2.tags?this.str2value(a,this.options.viewseparator):null},value2input:function(b){if(a.isArray(b)&&(b=b.join(this.getSeparator())),this.$input.data("select2")?this.$input.val(b).trigger("change",!0):(this.$input.val(b),this.$input.select2(this.options.select2)),this.isRemote&&!this.isMultiple&&!this.options.select2.initSelection){var c=this.options.select2.id,d=this.options.select2.formatSelection;if(!c&&!d){var e=a(this.options.scope);if(!e.data("editable").isEmpty){var f={id:b,text:e.text()};this.$input.select2("data",f)}}}},input2value:function(){return this.$input.select2("val")},str2value:function(b,c){if("string"!=typeof b||!this.isMultiple)return b;c=c||this.getSeparator();var d,e,f;if(null===b||b.length<1)return null;for(d=b.split(c),e=0,f=d.length;f>e;e+=1)d[e]=a.trim(d[e]);return d},autosubmit:function(){this.$input.on("change",function(b,c){c||a(this).closest("form").submit()})},getSeparator:function(){return this.options.select2.separator||a.fn.select2.defaults.separator},convertSource:function(b){if(a.isArray(b)&&b.length&&void 0!==b[0].value)for(var c=0;c<b.length;c++)void 0!==b[c].value&&(b[c].id=b[c].value,delete b[c].value);return b},destroy:function(){this.$input.data("select2")&&this.$input.select2("destroy")}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<input type="hidden">',select2:null,placeholder:null,source:null,viewseparator:", "}),a.fn.editabletypes.select2=b}(window.jQuery),function(a){var b=function(b,c){return this.$element=a(b),this.$element.is("input")?(this.options=a.extend({},a.fn.combodate.defaults,c,this.$element.data()),this.init(),void 0):(a.error("Combodate should be applied to INPUT element"),void 0)};b.prototype={constructor:b,init:function(){this.map={day:["D","date"],month:["M","month"],year:["Y","year"],hour:["[Hh]","hours"],minute:["m","minutes"],second:["s","seconds"],ampm:["[Aa]",""]},this.$widget=a('<span class="combodate"></span>').html(this.getTemplate()),this.initCombos(),this.$widget.on("change","select",a.proxy(function(b){this.$element.val(this.getValue()).change(),this.options.smartDays&&(a(b.target).is(".month")||a(b.target).is(".year"))&&this.fillCombo("day")},this)),this.$widget.find("select").css("width","auto"),this.$element.hide().after(this.$widget),this.setValue(this.$element.val()||this.options.value)},getTemplate:function(){var b=this.options.template;return a.each(this.map,function(a,c){c=c[0];var d=new RegExp(c+"+"),e=c.length>1?c.substring(1,2):c;b=b.replace(d,"{"+e+"}")}),b=b.replace(/ /g,"&nbsp;"),a.each(this.map,function(a,c){c=c[0];var d=c.length>1?c.substring(1,2):c;b=b.replace("{"+d+"}",'<select class="'+a+'"></select>')}),b},initCombos:function(){for(var a in this.map){var b=this.$widget.find("."+a);this["$"+a]=b.length?b:null,this.fillCombo(a)}},fillCombo:function(a){var b=this["$"+a];if(b){var c="fill"+a.charAt(0).toUpperCase()+a.slice(1),d=this[c](),e=b.val();b.empty();for(var f=0;f<d.length;f++)b.append('<option value="'+d[f][0]+'">'+d[f][1]+"</option>");b.val(e)}},fillCommon:function(a){var b,c=[];if("name"===this.options.firstItem){b=moment.relativeTime||moment.langData()._relativeTime;var d="function"==typeof b[a]?b[a](1,!0,a,!1):b[a];d=d.split(" ").reverse()[0],c.push(["",d])}else"empty"===this.options.firstItem&&c.push(["",""]);return c},fillDay:function(){var a,b,c=this.fillCommon("d"),d=-1!==this.options.template.indexOf("DD"),e=31;if(this.options.smartDays&&this.$month&&this.$year){var f=parseInt(this.$month.val(),10),g=parseInt(this.$year.val(),10);isNaN(f)||isNaN(g)||(e=moment([g,f]).daysInMonth())}for(b=1;e>=b;b++)a=d?this.leadZero(b):b,c.push([b,a]);return c},fillMonth:function(){var a,b,c=this.fillCommon("M"),d=-1!==this.options.template.indexOf("MMMM"),e=-1!==this.options.template.indexOf("MMM"),f=-1!==this.options.template.indexOf("MM");for(b=0;11>=b;b++)a=d?moment().date(1).month(b).format("MMMM"):e?moment().date(1).month(b).format("MMM"):f?this.leadZero(b+1):b+1,c.push([b,a]);return c},fillYear:function(){var a,b,c=[],d=-1!==this.options.template.indexOf("YYYY");for(b=this.options.maxYear;b>=this.options.minYear;b--)a=d?b:(b+"").substring(2),c[this.options.yearDescending?"push":"unshift"]([b,a]);return c=this.fillCommon("y").concat(c)},fillHour:function(){var a,b,c=this.fillCommon("h"),d=-1!==this.options.template.indexOf("h"),e=(-1!==this.options.template.indexOf("H"),-1!==this.options.template.toLowerCase().indexOf("hh")),f=d?1:0,g=d?12:23;for(b=f;g>=b;b++)a=e?this.leadZero(b):b,c.push([b,a]);return c},fillMinute:function(){var a,b,c=this.fillCommon("m"),d=-1!==this.options.template.indexOf("mm");for(b=0;59>=b;b+=this.options.minuteStep)a=d?this.leadZero(b):b,c.push([b,a]);return c},fillSecond:function(){var a,b,c=this.fillCommon("s"),d=-1!==this.options.template.indexOf("ss");for(b=0;59>=b;b+=this.options.secondStep)a=d?this.leadZero(b):b,c.push([b,a]);return c},fillAmpm:function(){var a=-1!==this.options.template.indexOf("a"),b=(-1!==this.options.template.indexOf("A"),[["am",a?"am":"AM"],["pm",a?"pm":"PM"]]);return b},getValue:function(b){var c,d={},e=this,f=!1;return a.each(this.map,function(a){if("ampm"!==a){var b="day"===a?1:0;return d[a]=e["$"+a]?parseInt(e["$"+a].val(),10):b,isNaN(d[a])?(f=!0,!1):void 0}}),f?"":(this.$ampm&&(d.hour=12===d.hour?"am"===this.$ampm.val()?0:12:"am"===this.$ampm.val()?d.hour:d.hour+12),c=moment([d.year,d.month,d.day,d.hour,d.minute,d.second]),this.highlight(c),b=void 0===b?this.options.format:b,null===b?c.isValid()?c:null:c.isValid()?c.format(b):"")},setValue:function(b){function c(b,c){var d={};return b.children("option").each(function(b,e){var f,g=a(e).attr("value");""!==g&&(f=Math.abs(g-c),("undefined"==typeof d.distance||f<d.distance)&&(d={value:g,distance:f}))}),d.value}if(b){var d="string"==typeof b?moment(b,this.options.format):moment(b),e=this,f={};d.isValid()&&(a.each(this.map,function(a,b){"ampm"!==a&&(f[a]=d[b[1]]())}),this.$ampm&&(f.hour>=12?(f.ampm="pm",f.hour>12&&(f.hour-=12)):(f.ampm="am",0===f.hour&&(f.hour=12))),a.each(f,function(a,b){e["$"+a]&&("minute"===a&&e.options.minuteStep>1&&e.options.roundTime&&(b=c(e["$"+a],b)),"second"===a&&e.options.secondStep>1&&e.options.roundTime&&(b=c(e["$"+a],b)),e["$"+a].val(b))}),this.options.smartDays&&this.fillCombo("day"),this.$element.val(d.format(this.options.format)).change())}},highlight:function(a){a.isValid()?this.options.errorClass?this.$widget.removeClass(this.options.errorClass):this.$widget.find("select").css("border-color",this.borderColor):this.options.errorClass?this.$widget.addClass(this.options.errorClass):(this.borderColor||(this.borderColor=this.$widget.find("select").css("border-color")),this.$widget.find("select").css("border-color","red"))},leadZero:function(a){return 9>=a?"0"+a:a},destroy:function(){this.$widget.remove(),this.$element.removeData("combodate").show()}},a.fn.combodate=function(c){var d,e=Array.apply(null,arguments);return e.shift(),"getValue"===c&&this.length&&(d=this.eq(0).data("combodate"))?d.getValue.apply(d,e):this.each(function(){var d=a(this),f=d.data("combodate"),g="object"==typeof c&&c;f||d.data("combodate",f=new b(this,g)),"string"==typeof c&&"function"==typeof f[c]&&f[c].apply(f,e)})},a.fn.combodate.defaults={format:"DD-MM-YYYY HH:mm",template:"D / MMM / YYYY   H : mm",value:null,minYear:1970,maxYear:2015,yearDescending:!0,minuteStep:5,secondStep:1,firstItem:"empty",errorClass:null,roundTime:!0,smartDays:!1}}(window.jQuery),function(a){"use strict";var b=function(c){this.init("combodate",c,b.defaults),this.options.viewformat||(this.options.viewformat=this.options.format),c.combodate=a.fn.editableutils.tryParseJson(c.combodate,!0),this.options.combodate=a.extend({},b.defaults.combodate,c.combodate,{format:this.options.format,template:this.options.template})};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{render:function(){this.$input.combodate(this.options.combodate),"bs3"===a.fn.editableform.engine&&this.$input.siblings().find("select").addClass("form-control"),this.options.inputclass&&this.$input.siblings().find("select").addClass(this.options.inputclass)},value2html:function(a,c){var d=a?a.format(this.options.viewformat):"";b.superclass.value2html.call(this,d,c)},html2value:function(a){return a?moment(a,this.options.viewformat):null},value2str:function(a){return a?a.format(this.options.format):""},str2value:function(a){return a?moment(a,this.options.format):null},value2submit:function(a){return this.value2str(a)},value2input:function(a){this.$input.combodate("setValue",a)},input2value:function(){return this.$input.combodate("getValue",null)},activate:function(){this.$input.siblings(".combodate").find("select").eq(0).focus()},autosubmit:function(){}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<input type="text">',inputclass:null,format:"YYYY-MM-DD",viewformat:null,template:"D / MMM / YYYY",combodate:null}),a.fn.editabletypes.combodate=b}(window.jQuery),function(a){"use strict";a.extend(a.fn.editableform.Constructor.prototype,{initButtons:function(){var b=this.$form.find(".editable-buttons");b.append(a.fn.editableform.buttons),"bottom"===this.options.showbuttons&&b.addClass("editable-buttons-bottom"),this.$form.find(".editable-submit").button({icons:{primary:"ui-icon-check"},text:!1}).removeAttr("title"),this.$form.find(".editable-cancel").button({icons:{primary:"ui-icon-closethick"},text:!1}).removeAttr("title")}}),a.fn.editableform.errorGroupClass=null,a.fn.editableform.errorBlockClass="ui-state-error",a.fn.editableform.engine="jquery-ui"}(window.jQuery),function(a){"use strict";a.extend(a.fn.editableContainer.Popup.prototype,{containerName:"tooltip",containerDataName:"ui-tooltip",innerCss:".ui-tooltip-content",defaults:a.ui.tooltip.prototype.options,splitOptions:function(){if(this.containerOptions={},this.formOptions={},!a.ui[this.containerName])return a.error('Please use jQueryUI with "tooltip" widget! http://jqueryui.com/download'),void 0;for(var b in this.options)b in this.defaults?this.containerOptions[b]=this.options[b]:this.formOptions[b]=this.options[b]},initContainer:function(){this.handlePlacement(),a.extend(this.containerOptions,{items:"*",content:" ",track:!1,open:a.proxy(function(){this.container()._on(this.container().element,{mouseleave:function(a){a.stopImmediatePropagation()},focusout:function(a){a.stopImmediatePropagation()}})},this)}),this.call(this.containerOptions),this.container()._off(this.container().element,"mouseover focusin")},tip:function(){return this.container()?this.container()._find(this.container().element):null},innerShow:function(){this.call("open");var b=this.options.title||this.$element.data("ui-tooltip-title")||this.$element.data("originalTitle");this.tip().find(this.innerCss).empty().append(a("<label>").text(b))},innerHide:function(){this.call("close")},innerDestroy:function(){},setPosition:function(){this.tip().position(a.extend({of:this.$element},this.containerOptions.position))},handlePlacement:function(){var a;switch(this.options.placement){case"top":a={my:"center bottom-5",at:"center top",collision:"flipfit"};break;case"right":a={my:"left+5 center",at:"right center",collision:"flipfit"};break;case"bottom":a={my:"center top+5",at:"center bottom",collision:"flipfit"};break;case"left":a={my:"right-5 center",at:"left center",collision:"flipfit"}}this.containerOptions.position=a}})}(window.jQuery),function(a){"use strict";var b=function(a){this.init("dateui",a,b.defaults),this.initPicker(a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.abstractinput),a.extend(b.prototype,{initPicker:function(b,c){this.options.viewformat||(this.options.viewformat=this.options.format),this.options.viewformat=this.options.viewformat.replace("yyyy","yy"),this.options.format=this.options.format.replace("yyyy","yy"),this.options.datepicker=a.extend({},c.datepicker,b.datepicker,{dateFormat:this.options.viewformat})},render:function(){this.$input.datepicker(this.options.datepicker),this.options.clear&&(this.$clear=a('<a href="#"></a>').html(this.options.clear).click(a.proxy(function(a){a.preventDefault(),a.stopPropagation(),this.clear()},this)),this.$tpl.parent().append(a('<div class="editable-clear">').append(this.$clear)))},value2html:function(c,d){var e=a.datepicker.formatDate(this.options.viewformat,c);b.superclass.value2html.call(this,e,d)},html2value:function(b){if("string"!=typeof b)return b;var c;try{c=a.datepicker.parseDate(this.options.viewformat,b)}catch(d){}return c},value2str:function(b){return a.datepicker.formatDate(this.options.format,b)},str2value:function(b){if("string"!=typeof b)return b;var c;try{c=a.datepicker.parseDate(this.options.format,b)}catch(d){}return c},value2submit:function(a){return this.value2str(a)},value2input:function(a){this.$input.datepicker("setDate",a)},input2value:function(){return this.$input.datepicker("getDate")},activate:function(){},clear:function(){this.$input.datepicker("setDate",null),this.isAutosubmit&&this.submit()},autosubmit:function(){this.isAutosubmit=!0,this.$input.on("mouseup","table.ui-datepicker-calendar a.ui-state-default",a.proxy(this.submit,this))},submit:function(){var a=this.$input.closest("form");setTimeout(function(){a.submit()},200)}}),b.defaults=a.extend({},a.fn.editabletypes.abstractinput.defaults,{tpl:'<div class="editable-date"></div>',inputclass:null,format:"yyyy-mm-dd",viewformat:null,datepicker:{firstDay:0,changeYear:!0,changeMonth:!0,showOtherMonths:!0},clear:"&times; clear"}),a.fn.editabletypes.dateui=b}(window.jQuery),function(a){"use strict";var b=function(a){this.init("dateuifield",a,b.defaults),this.initPicker(a,b.defaults)};a.fn.editableutils.inherit(b,a.fn.editabletypes.dateui),a.extend(b.prototype,{render:function(){this.$input.datepicker(this.options.datepicker),a.fn.editabletypes.text.prototype.renderClear.call(this)},value2input:function(b){this.$input.val(a.datepicker.formatDate(this.options.viewformat,b))},input2value:function(){return this.html2value(this.$input.val())},activate:function(){a.fn.editabletypes.text.prototype.activate.call(this)},toggleClear:function(){a.fn.editabletypes.text.prototype.toggleClear.call(this)},autosubmit:function(){}}),b.defaults=a.extend({},a.fn.editabletypes.dateui.defaults,{tpl:'<input type="text"/>',inputclass:null,datepicker:{showOn:"button",buttonImage:"http://jqueryui.com/resources/demos/datepicker/images/calendar.gif",buttonImageOnly:!0,firstDay:0,changeYear:!0,changeMonth:!0,showOtherMonths:!0},clear:!1}),a.fn.editabletypes.dateuifield=b}(window.jQuery);
+});
+
+define('vue', function (require, exports, module) {
+/**
+ * Vue.js v0.11.5
+ * (c) 2015 Evan You
+ * Released under the MIT License.
+ */
+!function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):"object"==typeof exports?exports.Vue=e():t.Vue=e()}(this,function(){return function(t){function e(n){if(i[n])return i[n].exports;var r=i[n]={exports:{},id:n,loaded:!1};return t[n].call(r.exports,r,r.exports,e),r.loaded=!0,r.exports}var i={};return e.m=t,e.c=i,e.p="",e(0)}([function(t,e,i){function n(t){this._init(t)}var r=i(11),s=r.extend;s(n,i(1)),n.options={directives:i(12),filters:i(13),partials:{},transitions:{},components:{}};var o=n.prototype;Object.defineProperty(o,"$data",{get:function(){return this._data},set:function(t){this._setData(t)}}),s(o,i(2)),s(o,i(3)),s(o,i(4)),s(o,i(5)),s(o,i(6)),s(o,i(7)),s(o,i(8)),s(o,i(9)),s(o,i(10)),t.exports=r.Vue=n},function(t,e,i){function n(t){return new Function("return function "+s.camelize(t,!0)+" (options) { this._init(options) }")()}function r(t){c.forEach(function(e){t[e]=function(t,i){return i?void(this.options[e+"s"][t]=i):this.options[e+"s"][t]}}),t.component=function(t,e){return e?(s.isPlainObject(e)&&(e.name=t,e=s.Vue.extend(e)),void(this.options.components[t]=e)):this.options.components[t]}}var s=i(11),o=i(14);e.util=s,e.nextTick=s.nextTick,e.config=i(15),e.compiler={compile:i(16),transclude:i(17)},e.parsers={path:i(18),text:i(19),template:i(20),directive:i(21),expression:i(22)},e.cid=0;var a=1;e.extend=function(t){t=t||{};var e=this,i=n(t.name||"VueComponent");return i.prototype=Object.create(e.prototype),i.prototype.constructor=i,i.cid=a++,i.options=o(e.options,t),i["super"]=e,i.extend=e.extend,r(i),i},e.use=function(t){var e=s.toArray(arguments,1);return e.unshift(this),"function"==typeof t.install?t.install.apply(t,e):t.apply(null,e),this};var c=["directive","filter","partial","transition"];r(e)},function(t,e,i){var n=i(14);e._init=function(t){t=t||{},this.$el=null,this.$parent=t._parent,this.$root=t._root||this,this.$={},this.$$={},this._watcherList=[],this._watchers={},this._userWatchers={},this._directives=[],this._isVue=!0,this._events={},this._eventsCount={},this._eventCancelled=!1,this._isBlock=!1,this._blockStart=this._blockEnd=null,this._isCompiled=this._isDestroyed=this._isReady=this._isAttached=this._isBeingDestroyed=!1,this._children=[],this._childCtors={},this._transCpnts=null,t=this.$options=n(this.constructor.options,t,this),this._data=t.data||{},this._initScope(),this._initEvents(),this._callHook("created"),t.el&&this.$mount(t.el)}},function(t,e,i){function n(t,e,i){if(i){var n,s,o,a;for(s in i)if(n=i[s],h.isArray(n))for(o=0,a=n.length;a>o;o++)r(t,e,s,n[o]);else r(t,e,s,n)}}function r(t,e,i,n){var r=typeof n;if("function"===r)t[e](i,n);else if("string"===r){var s=t.$options.methods,o=s&&s[n];o&&t[e](i,o)}}function s(){this._isAttached=!0,this._children.forEach(o),this._transCpnts&&this._transCpnts.forEach(o)}function o(t){!t._isAttached&&l(t.$el)&&t._callHook("attached")}function a(){this._isAttached=!1,this._children.forEach(c),this._transCpnts&&this._transCpnts.forEach(c)}function c(t){t._isAttached&&!l(t.$el)&&t._callHook("detached")}var h=i(11),l=h.inDoc;e._initEvents=function(){var t=this.$options;n(this,"$on",t.events),n(this,"$watch",t.watch)},e._initDOMHooks=function(){this.$on("hook:attached",s),this.$on("hook:detached",a)},e._callHook=function(t){var e=this.$options[t];if(e)for(var i=0,n=e.length;n>i;i++)e[i].call(this);this.$emit("hook:"+t)}},function(t,e,i){function n(){}var r=i(11),s=i(49),o=i(23);e._initScope=function(){this._initData(),this._initComputed(),this._initMethods(),this._initMeta()},e._initData=function(){for(var t,e=this._data,i=Object.keys(e),n=i.length;n--;)t=i[n],r.isReserved(t)||this._proxy(t);s.create(e).addVm(this)},e._setData=function(t){t=t||{};var e=this._data;this._data=t;var i,n,o;for(i=Object.keys(e),o=i.length;o--;)n=i[o],r.isReserved(n)||n in t||this._unproxy(n);for(i=Object.keys(t),o=i.length;o--;)n=i[o],this.hasOwnProperty(n)||r.isReserved(n)||this._proxy(n);e.__ob__.removeVm(this),s.create(t).addVm(this),this._digest()},e._proxy=function(t){var e=this;Object.defineProperty(e,t,{configurable:!0,enumerable:!0,get:function(){return e._data[t]},set:function(i){e._data[t]=i}})},e._unproxy=function(t){delete this[t]},e._digest=function(){for(var t=this._watcherList.length;t--;)this._watcherList[t].update();var e=this._children;for(t=e.length;t--;){var i=e[t];i.$options.inherit&&i._digest()}},e._initComputed=function(){var t=this.$options.computed;if(t)for(var e in t){var i=t[e],s={enumerable:!0,configurable:!0};"function"==typeof i?(s.get=r.bind(i,this),s.set=n):(s.get=i.get?r.bind(i.get,this):n,s.set=i.set?r.bind(i.set,this):n),Object.defineProperty(this,e,s)}},e._initMethods=function(){var t=this.$options.methods;if(t)for(var e in t)this[e]=r.bind(t[e],this)},e._initMeta=function(){var t=this.$options._meta;if(t)for(var e in t)this._defineMeta(e,t[e])},e._defineMeta=function(t,e){var i=new o;Object.defineProperty(this,t,{enumerable:!0,configurable:!0,get:function(){return s.target&&s.target.addDep(i),e},set:function(t){t!==e&&(e=t,i.notify())}})}},function(t,e,i){var n=i(11),r=i(24),s=i(16),o=i(17);e._compile=function(t){var e=this.$options,i=e._parent;if(e._linkFn)this._initElement(t),e._linkFn(this,t);else{var r=t;if(e._asComponent){var a=e._content=n.extractContent(r),c=i.$options;c._skipAttrs=e.paramAttributes;var h=s(r,c,!0,!0);if(c._skipAttrs=null,a){var l=i._children.length,u=s(a,c,!0);this._contentUnlinkFn=u(i,a),this._transCpnts=i._children.slice(l)}t=o(t,e),this._initElement(t),this._containerUnlinkFn=h(i,t)}else t=o(t,e),this._initElement(t);var f=s(t,e);f(this,t),e.replace&&n.replace(r,t)}return t},e._initElement=function(t){t instanceof DocumentFragment?(this._isBlock=!0,this.$el=this._blockStart=t.firstChild,this._blockEnd=t.lastChild,this._blockFragment=t):this.$el=t,this.$el.__vue__=this,this._callHook("beforeCompile")},e._bindDir=function(t,e,i,n){this._directives.push(new r(t,e,this,i,n))},e._destroy=function(t,e){if(!this._isBeingDestroyed){this._callHook("beforeDestroy"),this._isBeingDestroyed=!0;var i,n=this.$parent;for(n&&!n._isBeingDestroyed&&(i=n._children.indexOf(this),n._children.splice(i,1)),i=this._children.length;i--;)this._children[i].$destroy();for(this._containerUnlinkFn&&this._containerUnlinkFn(),this._contentUnlinkFn&&this._contentUnlinkFn(),i=0;i<this._directives.length;i++)this._directives[i]._teardown();for(i in this._userWatchers)this._userWatchers[i].teardown();this.$el&&(this.$el.__vue__=null);var r=this;t&&this.$el?this.$remove(function(){r._cleanup()}):e||this._cleanup()}},e._cleanup=function(){this._data.__ob__.removeVm(this),this._data=this._watchers=this._userWatchers=this._watcherList=this.$el=this.$parent=this.$root=this._children=this._transCpnts=this._directives=null,this._isDestroyed=!0,this._callHook("destroyed"),this.$off()}},function(t,e,i){var n=i(11),r=i(25),s=i(18),o=i(19),a=i(21),c=i(22),h=/[^|]\|[^|]/;e.$get=function(t){var e=c.parse(t);return e?e.get.call(this,this):void 0},e.$set=function(t,e){var i=c.parse(t,!0);i&&i.set&&i.set.call(this,this,e)},e.$add=function(t,e){this._data.$add(t,e)},e.$delete=function(t){this._data.$delete(t)},e.$watch=function(t,e,i,n){var s=this,o=i?t+"**deep**":t,a=s._userWatchers[o],c=function(t,i){e.call(s,t,i)};return a?a.addCb(c):a=s._userWatchers[o]=new r(s,t,c,{deep:i,user:!0}),n&&c(a.value),function(){a.removeCb(c),a.active||(s._userWatchers[o]=null)}},e.$eval=function(t){if(h.test(t)){var e=a.parse(t)[0];return e.filters?n.applyFilters(this.$get(e.expression),n.resolveFilters(this,e.filters).read,this):this.$get(e.expression)}return this.$get(t)},e.$interpolate=function(t){var e=o.parse(t),i=this;return e?1===e.length?i.$eval(e[0].value):e.map(function(t){return t.tag?i.$eval(t.value):t.value}).join(""):t},e.$log=function(t){var e=t?s.get(this._data,t):this._data;e&&(e=JSON.parse(JSON.stringify(e))),console.log(e)}},function(t,e,i){function n(t,e,i,n,o,a){e=s(e);var c=!h.inDoc(e),l=n===!1||c?o:a,u=!c&&!t._isAttached&&!h.inDoc(t.$el);return t._isBlock?r(t,e,l,i):l(t.$el,e,t,i),u&&t._callHook("attached"),t}function r(t,e,i,n){for(var r,s=t._blockStart,o=t._blockEnd;r!==o;)r=s.nextSibling,i(s,e,t),s=r;i(o,e,t,n)}function s(t){return"string"==typeof t?document.querySelector(t):t}function o(t,e,i,n){e.appendChild(t),n&&n()}function a(t,e,i,n){h.before(t,e),n&&n()}function c(t,e,i){h.remove(t),i&&i()}var h=i(11),l=i(50);e.$appendTo=function(t,e,i){return n(this,t,e,i,o,l.append)},e.$prependTo=function(t,e,i){return t=s(t),t.hasChildNodes()?this.$before(t.firstChild,e,i):this.$appendTo(t,e,i),this},e.$before=function(t,e,i){return n(this,t,e,i,a,l.before)},e.$after=function(t,e,i){return t=s(t),t.nextSibling?this.$before(t.nextSibling,e,i):this.$appendTo(t.parentNode,e,i),this},e.$remove=function(t,e){var i=this._isAttached&&h.inDoc(this.$el);i||(e=!1);var n,s=this,a=function(){i&&s._callHook("detached"),t&&t()};return this._isBlock&&!this._blockFragment.hasChildNodes()?(n=e===!1?o:l.removeThenAppend,r(this,this._blockFragment,n,a)):(n=e===!1?c:l.remove)(this.$el,this,a),this}},function(t,e,i){function n(t,e,i){var n=t.$parent;if(n&&i&&!s.test(e))for(;n;)n._eventsCount[e]=(n._eventsCount[e]||0)+i,n=n.$parent}var r=i(11);e.$on=function(t,e){return(this._events[t]||(this._events[t]=[])).push(e),n(this,t,1),this},e.$once=function(t,e){function i(){n.$off(t,i),e.apply(this,arguments)}var n=this;return i.fn=e,this.$on(t,i),this},e.$off=function(t,e){var i;if(!arguments.length){if(this.$parent)for(t in this._events)i=this._events[t],i&&n(this,t,-i.length);return this._events={},this}if(i=this._events[t],!i)return this;if(1===arguments.length)return n(this,t,-i.length),this._events[t]=null,this;for(var r,s=i.length;s--;)if(r=i[s],r===e||r.fn===e){n(this,t,-1),i.splice(s,1);break}return this},e.$emit=function(t){this._eventCancelled=!1;var e=this._events[t];if(e){for(var i=arguments.length-1,n=new Array(i);i--;)n[i]=arguments[i+1];i=0,e=e.length>1?r.toArray(e):e;for(var s=e.length;s>i;i++)e[i].apply(this,n)===!1&&(this._eventCancelled=!0)}return this},e.$broadcast=function(t){if(this._eventsCount[t]){for(var e=this._children,i=0,n=e.length;n>i;i++){var r=e[i];r.$emit.apply(r,arguments),r._eventCancelled||r.$broadcast.apply(r,arguments)}return this}},e.$dispatch=function(){for(var t=this.$parent;t;)t.$emit.apply(t,arguments),t=t._eventCancelled?null:t.$parent;return this};var s=/^hook:/},function(t,e,i){var n=i(11);e.$addChild=function(t,e){e=e||n.Vue,t=t||{};var i,r=this,s=void 0!==t.inherit?t.inherit:e.options.inherit;if(s){var o=r._childCtors;if(i=o[e.cid],!i){var a=e.options.name,c=a?n.camelize(a,!0):"VueComponent";i=new Function("return function "+c+" (options) {this.constructor = "+c+";this._init(options) }")(),i.options=e.options,i.prototype=this,o[e.cid]=i}}else i=e;t._parent=r,t._root=r.$root;var h=new i(t);return this._children.push(h),h}},function(t,e,i){function n(){this._isAttached=!0,this._isReady=!0,this._callHook("ready")}var r=i(11),s=i(16);e.$mount=function(t){if(!this._isCompiled){if(t){if("string"==typeof t){if(t=document.querySelector(t),!t)return}}else t=document.createElement("div");return this._compile(t),this._isCompiled=!0,this._callHook("compiled"),r.inDoc(this.$el)?(this._callHook("attached"),this._initDOMHooks(),n.call(this)):(this._initDOMHooks(),this.$once("hook:attached",n)),this}},e.$destroy=function(t,e){this._destroy(t,e)},e.$compile=function(t){return s(t,this.$options,!0)(this,t)}},function(t,e,i){var n=i(26),r=n.extend;r(e,n),r(e,i(27)),r(e,i(28)),r(e,i(29)),r(e,i(30))},function(t,e,i){e.text=i(31),e.html=i(32),e.attr=i(33),e.show=i(34),e["class"]=i(35),e.el=i(36),e.ref=i(37),e.cloak=i(38),e.style=i(39),e.partial=i(40),e.transition=i(41),e.on=i(42),e.model=i(51),e.component=i(43),e.repeat=i(44),e["if"]=i(45),e["with"]=i(46),e.events=i(47)},function(t,e,i){var n=i(11);e.json={read:function(t,e){return"string"==typeof t?t:JSON.stringify(t,null,Number(e)||2)},write:function(t){try{return JSON.parse(t)}catch(e){return t}}},e.capitalize=function(t){return t||0===t?(t=t.toString(),t.charAt(0).toUpperCase()+t.slice(1)):""},e.uppercase=function(t){return t||0===t?t.toString().toUpperCase():""},e.lowercase=function(t){return t||0===t?t.toString().toLowerCase():""};var r=/(\d{3})(?=\d)/g;e.currency=function(t,e){if(t=parseFloat(t),!t&&0!==t)return"";e=e||"$";var i=Math.floor(Math.abs(t)).toString(),n=i.length%3,s=n>0?i.slice(0,n)+(i.length>3?",":""):"",o="."+t.toFixed(2).slice(-2);return(0>t?"-":"")+e+s+i.slice(n).replace(r,"$1,")+o},e.pluralize=function(t){var e=n.toArray(arguments,1);return e.length>1?e[t%10-1]||e[e.length-1]:e[0]+(1===t?"":"s")};var s={enter:13,tab:9,"delete":46,up:38,left:37,right:39,down:40,esc:27};e.key=function(t,e){if(t){var i=s[e];return i||(i=parseInt(e,10)),function(e){return e.keyCode===i?t.call(this,e):void 0}}},e.key.keyCodes=s,n.extend(e,i(48))},function(t,e,i){function n(t,e){var i,r,o;for(i in e)r=t[i],o=e[i],t.hasOwnProperty(i)?s.isObject(r)&&s.isObject(o)&&n(r,o):t.$add(i,o);return t}function r(t){if(t){var e;for(var i in t)e=t[i],s.isPlainObject(e)&&(e.name=i,t[i]=s.Vue.extend(e))}}var s=i(11),o=s.extend,a=Object.create(null);a.data=function(t,e,i){if(i){var r="function"==typeof e?e.call(i):e,s="function"==typeof t?t.call(i):void 0;return r?n(r,s):s}return e?"function"!=typeof e?t:t?function(){return n(e.call(this),t.call(this))}:e:t},a.el=function(t,e,i){if(i||!e||"function"==typeof e){var n=e||t;return i&&"function"==typeof n?n.call(i):n}},a.created=a.ready=a.attached=a.detached=a.beforeCompile=a.compiled=a.beforeDestroy=a.destroyed=a.paramAttributes=function(t,e){return e?t?t.concat(e):s.isArray(e)?e:[e]:t},a.directives=a.filters=a.partials=a.transitions=a.components=function(t,e,i,n){var r=Object.create(i&&i.$parent?i.$parent.$options[n]:s.Vue.options[n]);if(t)for(var a,c=Object.keys(t),h=c.length;h--;)a=c[h],r[a]=t[a];return e&&o(r,e),r},a.watch=a.events=function(t,e){if(!e)return t;if(!t)return e;var i={};o(i,t);for(var n in e){var r=i[n],a=e[n];r&&!s.isArray(r)&&(r=[r]),i[n]=r?r.concat(a):[a]}return i},a.methods=a.computed=function(t,e){if(!e)return t;if(!t)return e;var i=Object.create(t);return o(i,e),i};var c=function(t,e){return void 0===e?t:e};t.exports=function h(t,e,i){function n(n){var r=a[n]||c;o[n]=r(t[n],e[n],i,n)}r(e.components);var s,o={};if(e.mixins)for(var l=0,u=e.mixins.length;u>l;l++)t=h(t,e.mixins[l],i);for(s in t)n(s);for(s in e)t.hasOwnProperty(s)||n(s);return o}},function(t){t.exports={prefix:"v-",debug:!1,silent:!1,proto:!0,interpolate:!0,async:!0,warnExpressionErrors:!0,_delimitersChanged:!0};var e=["{{","}}"];Object.defineProperty(t.exports,"delimiters",{get:function(){return e},set:function(t){e=t,this._delimitersChanged=!0}})},function(t,e,i){function n(t,e,i){var n=t.nodeType;return 1===n&&"SCRIPT"!==t.tagName?r(t,e,i):3===n&&y.interpolate?o(t,e):void 0}function r(t,e,i){var n,r,o;if(i||t.__vue__||(r=t.tagName.toLowerCase(),o=r.indexOf("-")>0&&e.components[r],o&&t.setAttribute(y.prefix+"component",r)),(o||t.hasAttributes())&&(i||(n=p(t,e)),!n)){var a=m(t,e,i);n=a.length?s(a):null}if("TEXTAREA"===t.tagName){var c=n;n=function(t,e){e.value=t.$interpolate(e.value),c&&c(t,e)},n.terminal=!0}return n}function s(t){return function(e,i){for(var n,r,s,o=t.length;o--;)if(n=t[o],n._link)n._link(e,i);else for(s=n.descriptors.length,r=0;s>r;r++)e._bindDir(n.name,i,n.descriptors[r],n.def)}}function o(t,e){var i=w.parse(t.nodeValue);if(!i)return null;for(var n,r,s=document.createDocumentFragment(),o=0,h=i.length;h>o;o++)r=i[o],n=r.tag?a(r,e):document.createTextNode(r.value),s.appendChild(n);return c(i,s,e)}function a(t,e){function i(i){t.type=i,t.def=e.directives[i],t.descriptor=$.parse(t.value)[0]}var n;return t.oneTime?n=document.createTextNode(t.value):t.html?(n=document.createComment("v-html"),i("html")):t.partial?(n=document.createComment("v-partial"),i("partial")):(n=document.createTextNode(" "),i("text")),n}function c(t,e){return function(i,n){for(var r,s,o,a=e.cloneNode(!0),c=g.toArray(a.childNodes),h=0,l=t.length;l>h;h++)r=t[h],s=r.value,r.tag&&(o=c[h],r.oneTime?(s=i.$eval(s),r.html?g.replace(o,x.parse(s,!0)):o.nodeValue=s):i._bindDir(r.type,o,r.descriptor,r.def));g.replace(n,a)}}function h(t,e){for(var i,r,s,o=[],a=0,c=t.length;c>a;a++)s=t[a],i=n(s,e),r=i&&i.terminal||"SCRIPT"===s.tagName||!s.hasChildNodes()?null:h(s.childNodes,e),o.push(i,r);return o.length?l(o):null}function l(t){return function(e,i){for(var n,r,s,o=0,a=0,c=t.length;c>o;a++){n=i[a],r=t[o++],s=t[o++];var h=g.toArray(n.childNodes);r&&r(e,n),s&&s(e,h)}}}function u(t,e,i){for(var n,r,s,o=[],a=e.length;a--;)if(n=e[a],/[A-Z]/.test(n),r=t.getAttribute(n),null!==r){s={name:n,value:r};var c=w.parse(r);if(c){if(t.removeAttribute(n),c.length>1)continue;s.dynamic=!0,s.value=c[0].value}o.push(s)}return f(o,i)}function f(t,e){var i=e.directives["with"];return function(e,n){for(var r,s,o=t.length;o--;)r=t[o],s=g.camelize(r.name.replace(k,"")),r.dynamic?e._bindDir("with",n,{arg:s,expression:r.value},i):e.$set(s,r.value)}}function d(){}function p(t,e){if(null!==g.attr(t,"pre"))return d;for(var i,n,r=0;3>r;r++)if(n=C[r],i=g.attr(t,n))return v(t,n,i,e)}function v(t,e,i,n){var r=$.parse(i)[0],s=n.directives[e],o=function(t,i){t._bindDir(e,i,r,s)};return o.terminal=!0,o}function m(t,e,i){for(var n,r,s,o,a,c=g.toArray(t.attributes),h=c.length,l=[];h--;)if(n=c[h],r=n.name,0===r.indexOf(y.prefix)){if(o=r.slice(y.prefix.length),i&&("with"===o||"component"===o))continue;a=e.directives[o],a&&l.push({name:o,descriptors:$.parse(n.value),def:a})}else y.interpolate&&(s=_(t,r,n.value,e),s&&l.push(s));return l.sort(b),l}function _(t,e,i,n){if(!(n._skipAttrs&&n._skipAttrs.indexOf(e)>-1)){var r=w.parse(i);if(r){for(var s=n.directives.attr,o=r.length,a=!0;o--;){var c=r[o];c.tag&&!c.oneTime&&(a=!1)}return{def:s,_link:a?function(t,n){n.setAttribute(e,t.$interpolate(i))}:function(t,i){var n=w.tokensToExp(r,t),o=$.parse(e+":"+n)[0];t._bindDir("attr",i,o,s)}}}}}function b(t,e){return t=t.def.priority||0,e=e.def.priority||0,t>e?1:-1}var g=i(11),y=i(15),w=i(19),$=i(21),x=i(20);t.exports=function(t,e,i,r){var s=!i&&e.paramAttributes,o=s?u(t,s,e):null,a=t instanceof DocumentFragment?null:n(t,e,r),c=a&&a.terminal||"SCRIPT"===t.tagName||!t.hasChildNodes()?null:h(t.childNodes,e);return function(t,e){var n=t._directives.length;o&&o(t,e);var r=g.toArray(e.childNodes);if(a&&a(t,e),c&&c(t,r),i){var s=t._directives.slice(n);return function(){for(var e=s.length;e--;)s[e]._teardown();e=t._directives.indexOf(s[0]),t._directives.splice(e,s.length)}}}};var k=/^data-/,C=["repeat","if","component"];d.terminal=!0},function(t,e,i){function n(t,e){var i=e.template,n=c.parse(i,!0);if(n){var s=e._content||a.extractContent(t);if(e.replace){if(n.childNodes.length>1)return r(n,s),n;var o=n.firstChild;return a.copyAttributes(t,o),r(o,s),o}return t.appendChild(n),r(t,s),t}}function r(t,e){var i=s(t),n=i.length;if(n){for(var r,c,h,l,u;n--;)r=i[n],e?(c=r.getAttribute("select"),c?(h=e.querySelectorAll(c),r.content=a.toArray(h.length?h:r.childNodes)):u=r):r.content=a.toArray(r.childNodes);for(n=0,l=i.length;l>n;n++)r=i[n],r!==u&&o(r,r.content);u&&o(u,a.toArray(e.childNodes))}}function s(t){return a.isArray(t)?h.apply([],t.map(s)):t.querySelectorAll?a.toArray(t.querySelectorAll("content")):[]}function o(t,e){for(var i=t.parentNode,n=0,r=e.length;r>n;n++)i.insertBefore(e[n],t);i.removeChild(t)}var a=i(11),c=i(20);t.exports=function(t,e){return"TEMPLATE"===t.tagName&&(t=c.parse(t)),e&&e.template&&(t=n(t,e)),t instanceof DocumentFragment&&(a.prepend(document.createComment("v-start"),t),t.appendChild(document.createComment("v-end"))),t};var h=[].concat},function(t,e,i){function n(){}function r(t){if(void 0===t)return"eof";var e=t.charCodeAt(0);switch(e){case 91:case 93:case 46:case 34:case 39:case 48:return t;case 95:case 36:return"ident";case 32:case 9:case 10:case 13:case 160:case 65279:case 8232:case 8233:return"ws"}return e>=97&&122>=e||e>=65&&90>=e?"ident":e>=49&&57>=e?"number":"else"}function s(t){function e(){var e=t[d+1];return"inSingleQuote"===p&&"'"===e||"inDoubleQuote"===p&&'"'===e?(d++,s=e,v.append(),!0):void 0}for(var i,s,o,a,c,h,l,f=[],d=-1,p="beforePath",v={push:function(){void 0!==o&&(f.push(o),o=void 0)},append:function(){void 0===o?o=s:o+=s}};p;)if(d++,i=t[d],"\\"!==i||!e()){if(a=r(i),l=u[p],c=l[a]||l["else"]||"error","error"===c)return;if(p=c[0],h=v[c[1]]||n,s=void 0===c[2]?i:c[2],h(),"afterPath"===p)return f}}function o(t){return l.test(t)?"."+t:+t===t>>>0?"["+t+"]":'["'+t.replace(/"/g,'\\"')+'"]'}var a=i(11),c=i(52),h=new c(1e3),l=/^[$_a-zA-Z]+[\w$]*$/,u={beforePath:{ws:["beforePath"],ident:["inIdent","append"],"[":["beforeElement"],eof:["afterPath"]},inPath:{ws:["inPath"],".":["beforeIdent"],"[":["beforeElement"],eof:["afterPath"]},beforeIdent:{ws:["beforeIdent"],ident:["inIdent","append"]},inIdent:{ident:["inIdent","append"],0:["inIdent","append"],number:["inIdent","append"],ws:["inPath","push"],".":["beforeIdent","push"],"[":["beforeElement","push"],eof:["afterPath","push"]},beforeElement:{ws:["beforeElement"],0:["afterZero","append"],number:["inIndex","append"],"'":["inSingleQuote","append",""],'"':["inDoubleQuote","append",""]},afterZero:{ws:["afterElement","push"],"]":["inPath","push"]},inIndex:{0:["inIndex","append"],number:["inIndex","append"],ws:["afterElement"],"]":["inPath","push"]},inSingleQuote:{"'":["afterElement"],eof:"error","else":["inSingleQuote","append"]},inDoubleQuote:{'"':["afterElement"],eof:"error","else":["inDoubleQuote","append"]},afterElement:{ws:["afterElement"],"]":["inPath","push"]}};e.compileGetter=function(t){var e="return o"+t.map(o).join("");return new Function("o",e)},e.parse=function(t){var i=h.get(t);return i||(i=s(t),i&&(i.get=e.compileGetter(i),h.put(t,i))),i},e.get=function(t,i){return i=e.parse(i),i?i.get(t):void 0},e.set=function(t,i,n){if("string"==typeof i&&(i=e.parse(i)),!i||!a.isObject(t))return!1;for(var r,s,o=0,c=i.length-1;c>o;o++)r=t,s=i[o],t=t[s],a.isObject(t)||(t={},r.$add(s,t));return s=i[o],s in t?t[s]=n:t.$add(s,n),!0}},function(t,e,i){function n(t){return t.replace(v,"\\$&")}function r(){d._delimitersChanged=!1;var t=d.delimiters[0],e=d.delimiters[1];l=t.charAt(0),u=e.charAt(e.length-1);var i=n(l),r=n(u),s=n(t),o=n(e);c=new RegExp(i+"?"+s+"(.+?)"+o+r+"?","g"),h=new RegExp("^"+i+s+".*"+o+r+"$"),a=new f(1e3)}function s(t,e,i){return t.tag?e&&t.oneTime?'"'+e.$eval(t.value)+'"':i?t.value:o(t.value):'"'+t.value+'"'}function o(t){if(m.test(t)){var e=p.parse(t)[0];if(e.filters){t=e.expression;for(var i=0,n=e.filters.length;n>i;i++){var r=e.filters[i],s=r.args?',"'+r.args.join('","')+'"':"";t='this.$options.filters["'+r.name+'"].apply(this,['+t+s+"])"}return t}return"("+t+")"}return"("+t+")"}var a,c,h,l,u,f=i(52),d=i(15),p=i(21),v=/[-.*+?^${}()|[\]\/\\]/g;e.parse=function(t){d._delimitersChanged&&r();var e=a.get(t);if(e)return e;if(!c.test(t))return null;for(var i,n,s,o,l,u,f=[],p=c.lastIndex=0;i=c.exec(t);)n=i.index,n>p&&f.push({value:t.slice(p,n)}),o=i[1].charCodeAt(0),l=42===o,u=62===o,s=l||u?i[1].slice(1):i[1],f.push({tag:!0,value:s.trim(),html:h.test(i[0]),oneTime:l,partial:u}),p=n+i[0].length;return p<t.length&&f.push({value:t.slice(p)}),a.put(t,f),f},e.tokensToExp=function(t,e){return t.length>1?t.map(function(t){return s(t,e)}).join("+"):s(t[0],e,!0)};var m=/[^|]\|[^|]/},function(t,e,i){function n(t){var e=a.get(t);if(e)return e;var i=document.createDocumentFragment(),n=t.match(l),r=u.test(t);if(n||r){var s=n&&n[1],o=h[s]||h._default,c=o[0],f=o[1],d=o[2],p=document.createElement("div");for(p.innerHTML=f+t.trim()+d;c--;)p=p.lastChild;for(var v;v=p.firstChild;)i.appendChild(v)}else i.appendChild(document.createTextNode(t));return a.put(t,i),i}function r(t){var e=t.tagName;return"TEMPLATE"===e&&t.content instanceof DocumentFragment?t.content:n("SCRIPT"===e?t.textContent:t.innerHTML)}var s=i(11),o=i(52),a=new o(1e3),c=new o(1e3),h={_default:[0,"",""],legend:[1,"<fieldset>","</fieldset>"],tr:[2,"<table><tbody>","</tbody></table>"],col:[2,"<table><tbody></tbody><colgroup>","</colgroup></table>"]};h.td=h.th=[3,"<table><tbody><tr>","</tr></tbody></table>"],h.option=h.optgroup=[1,'<select multiple="multiple">',"</select>"],h.thead=h.tbody=h.colgroup=h.caption=h.tfoot=[1,"<table>","</table>"],h.g=h.defs=h.symbol=h.use=h.image=h.text=h.circle=h.ellipse=h.line=h.path=h.polygon=h.polyline=h.rect=[1,'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events"version="1.1">',"</svg>"];var l=/<([\w:]+)/,u=/&\w+;/,f=s.inBrowser?function(){var t=document.createElement("div");return t.innerHTML="<template>1</template>",!t.cloneNode(!0).firstChild.innerHTML}():!1,d=s.inBrowser?function(){var t=document.createElement("textarea");return t.placeholder="t","t"===t.cloneNode(!0).value}():!1;e.clone=function(t){var e,i,n,r=t.cloneNode(!0);if(f&&(i=t.querySelectorAll("template"),i.length))for(n=r.querySelectorAll("template"),e=n.length;e--;)n[e].parentNode.replaceChild(i[e].cloneNode(!0),n[e]);if(d)if("TEXTAREA"===t.tagName)r.value=t.value;else if(i=t.querySelectorAll("textarea"),i.length)for(n=r.querySelectorAll("textarea"),e=n.length;e--;)n[e].value=i[e].value;return r},e.parse=function(t,i,s){var o,a;return t instanceof DocumentFragment?i?t.cloneNode(!0):t:("string"==typeof t?s||"#"!==t.charAt(0)?a=n(t):(a=c.get(t),a||(o=document.getElementById(t.slice(1)),o&&(a=r(o),c.put(t,a)))):t.nodeType&&(a=r(t)),a&&i?e.clone(a):a)}},function(t,e,i){function n(){_.raw=s.slice(p,a).trim(),void 0===_.expression?_.expression=s.slice(v,a).trim():b!==p&&r(),(0===a||_.expression)&&m.push(_)}function r(){var t,e=s.slice(b,a).trim();if(e){t={};var i=e.match(k);t.name=i[0],t.args=i.length>1?i.slice(1):null}t&&(_.filters=_.filters||[]).push(t),b=a+1}var s,o,a,c,h,l,u,f,d,p,v,m,_,b,g,y=i(11),w=i(52),$=new w(1e3),x=/^[^\{\?]+$|^'[^']*'$|^"[^"]*"$/,k=/[^\s'"]+|'[^']+'|"[^"]+"/g;e.parse=function(t){var e=$.get(t);if(e)return e;for(s=t,h=l=!1,u=f=d=p=v=0,b=0,m=[],_={},g=null,a=0,c=s.length;c>a;a++)if(o=s.charCodeAt(a),h)39===o&&(h=!h);else if(l)34===o&&(l=!l);else if(44!==o||d||u||f)if(58!==o||_.expression||_.arg)if(124===o&&124!==s.charCodeAt(a+1)&&124!==s.charCodeAt(a-1))void 0===_.expression?(b=a+1,_.expression=s.slice(v,a).trim()):r();else switch(o){case 34:l=!0;break;case 39:h=!0;break;case 40:d++;break;case 41:d--;break;case 91:f++;break;case 93:f--;break;case 123:u++;break;case 125:u--}else g=s.slice(p,a).trim(),x.test(g)&&(v=a+1,_.arg=y.stripQuotes(g)||g);else n(),_={},p=v=b=a+1;return(0===a||p!==a)&&n(),$.put(t,m),m}},function(t,e,i){function n(t){var e=$.length;return $[e]=t.replace(m,"\\n"),'"'+e+'"'}function r(t){var e=t.charAt(0),i=t.slice(1);return w.test(i)?t:(i=i.indexOf('"')>-1?i.replace(b,s):i,e+"scope."+i)}function s(t,e){return $[e]}function o(t,e){$.length=0;var i=t.replace(_,n).replace(v,"");i=(" "+i).replace(y,r).replace(b,s);var o=c(i);return o?{get:o,body:i,set:e?h(i):null}:void 0}function a(t){var e,i;return t.indexOf("[")<0?(i=t.split("."),e=u.compileGetter(i)):(i=u.parse(t),e=i.get),{get:e,set:function(t,e){u.set(t,i,e)}}}function c(t){try{return new Function("scope","return "+t+";")}catch(e){}}function h(t){try{return new Function("scope","value",t+"=value;")}catch(e){}}function l(t){t.set||(t.set=h(t.body))}var u=(i(11),i(18)),f=i(52),d=new f(1e3),p="Math,break,case,catch,continue,debugger,default,delete,do,else,false,finally,for,function,if,in,instanceof,new,null,return,switch,this,throw,true,try,typeof,var,void,while,with,undefined,abstract,boolean,byte,char,class,const,double,enum,export,extends,final,float,goto,implements,import,int,interface,long,native,package,private,protected,public,short,static,super,synchronized,throws,transient,volatile,arguments,let,yield",v=/\s/g,m=/\n/g,_=/[\{,]\s*[\w\$_]+\s*:|'[^']*'|"[^"]*"/g,b=/"(\d+)"/g,g=/^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*|\['.*?'\]|\[".*?"\]|\[\d+\])*$/,y=/[^\w$\.]([A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*|\['.*?'\]|\[".*?"\])*)/g,w=new RegExp("^("+p.replace(/,/g,"\\b|")+"\\b)"),$=[];e.parse=function(t,e){t=t.trim();var i=d.get(t);if(i)return e&&l(i),i;var n=g.test(t)&&"Math."!==t.slice(0,5)?a(t):o(t,e);return d.put(t,n),n},e.pathTestRE=g},function(t){function e(){this.id=++i,this.subs=[]}var i=0,n=e.prototype;n.addSub=function(t){this.subs.push(t)},n.removeSub=function(t){if(this.subs.length){var e=this.subs.indexOf(t);e>-1&&this.subs.splice(e,1)}},n.notify=function(){for(var t=0,e=this.subs;t<e.length;t++)e[t].update()},t.exports=e},function(t,e,i){function n(t,e,i,n,s){this.name=t,this.el=e,this.vm=i,this.raw=n.raw,this.expression=n.expression,this.arg=n.arg,this.filters=r.resolveFilters(i,n.filters),this._locked=!1,this._bound=!1,this._bind(s)}var r=i(11),s=i(15),o=i(25),a=i(19),c=i(22),h=n.prototype;h._bind=function(t){if("cloak"!==this.name&&this.el.removeAttribute&&this.el.removeAttribute(s.prefix+this.name),"function"==typeof t?this.update=t:r.extend(this,t),this._watcherExp=this.expression,this._checkDynamicLiteral(),this.bind&&this.bind(),this._watcherExp&&(this.update||this.twoWay)&&(!this.isLiteral||this._isDynamicLiteral)&&!this._checkStatement()){var e=this,i=this._update=this.update?function(t,i){e._locked||e.update(t,i)}:function(){},n=this.vm._watchers[this.raw];n&&"repeat"!==this.name?n.addCb(i):n=this.vm._watchers[this.raw]=new o(this.vm,this._watcherExp,i,{filters:this.filters,twoWay:this.twoWay,deep:this.deep}),this._watcher=n,null!=this._initValue?n.set(this._initValue):this.update&&this.update(n.value)}this._bound=!0},h._checkDynamicLiteral=function(){var t=this.expression;if(t&&this.isLiteral){var e=a.parse(t);if(e){var i=a.tokensToExp(e);this.expression=this.vm.$get(i),this._watcherExp=i,this._isDynamicLiteral=!0}}},h._checkStatement=function(){var t=this.expression;if(t&&this.acceptStatement&&!c.pathTestRE.test(t)){var e=c.parse(t).get,i=this.vm,n=function(){e.call(i,i)};return this.filters&&(n=r.applyFilters(n,this.filters.read,i)),this.update(n),!0}},h._checkParam=function(t){var e=this.el.getAttribute(t);return null!==e&&this.el.removeAttribute(t),e},h._teardown=function(){if(this._bound){this.unbind&&this.unbind();var t=this._watcher;t&&t.active&&(t.removeCb(this._update),t.active||(this.vm._watchers[this.raw]=null)),this._bound=!1,this.vm=this.el=this._watcher=null}},h.set=function(t,e){if(this.twoWay&&(e&&(this._locked=!0),this._watcher.set(t),e)){var i=this;r.nextTick(function(){i._locked=!1})}},t.exports=n},function(t,e,i){function n(t,e,i,n){this.vm=t,t._watcherList.push(this),this.expression=e,this.cbs=[i],this.id=++l,this.active=!0,n=n||{},this.deep=n.deep,this.user=n.user,this.deps=Object.create(null),n.filters&&(this.readFilters=n.filters.read,this.writeFilters=n.filters.write);var r=c.parse(e,n.twoWay);this.getter=r.get,this.setter=r.set,this.value=this.get()}function r(t){var e,i,n;for(e in t)if(i=t[e],s.isArray(i))for(n=i.length;n--;)r(i[n]);else s.isObject(i)&&r(i)}var s=i(11),o=i(15),a=i(49),c=i(22),h=i(53),l=0,u=n.prototype;u.addDep=function(t){var e=t.id;this.newDeps[e]||(this.newDeps[e]=t,this.deps[e]||(this.deps[e]=t,t.addSub(this)))},u.get=function(){this.beforeGet();var t,e=this.vm;try{t=this.getter.call(e,e)}catch(i){o.warnExpressionErrors}return this.deep&&r(t),t=s.applyFilters(t,this.readFilters,e),this.afterGet(),t},u.set=function(t){var e=this.vm;t=s.applyFilters(t,this.writeFilters,e,this.value);try{this.setter.call(e,e,t)}catch(i){o.warnExpressionErrors}},u.beforeGet=function(){a.target=this,this.newDeps={}},u.afterGet=function(){a.target=null;for(var t in this.deps)this.newDeps[t]||this.deps[t].removeSub(this);this.deps=this.newDeps},u.update=function(){!o.async||o.debug?this.run():h.push(this)},u.run=function(){if(this.active){var t=this.get();if(t!==this.value||Array.isArray(t)||this.deep){var e=this.value;this.value=t;for(var i=this.cbs,n=0,r=i.length;r>n;n++){i[n](t,e);var s=r-i.length;s&&(n-=s,r-=s)}}}},u.addCb=function(t){this.cbs.push(t)},u.removeCb=function(t){var e=this.cbs;if(e.length>1){var i=e.indexOf(t);i>-1&&e.splice(i,1)}else t===e[0]&&this.teardown()
+},u.teardown=function(){if(this.active){if(!this.vm._isBeingDestroyed){var t=this.vm._watcherList;t.splice(t.indexOf(this))}for(var e in this.deps)this.deps[e].removeSub(this);this.active=!1,this.vm=this.cbs=this.value=null}},t.exports=n},function(t,e){e.isReserved=function(t){var e=t.charCodeAt(0);return 36===e||95===e},e.toString=function(t){return null==t?"":t.toString()},e.toNumber=function(t){return isNaN(t)||null===t||"boolean"==typeof t?t:Number(t)},e.stripQuotes=function(t){var e=t.charCodeAt(0),i=t.charCodeAt(t.length-1);return e!==i||34!==e&&39!==e?!1:t.slice(1,-1)};var i=/[-_](\w)/g,n=/(?:^|[-_])(\w)/g;e.camelize=function(t,e){var r=e?n:i;return t.replace(r,function(t,e){return e?e.toUpperCase():""})},e.bind=function(t,e){return function(){return t.apply(e,arguments)}},e.toArray=function(t,e){e=e||0;for(var i=t.length-e,n=new Array(i);i--;)n[i]=t[i+e];return n},e.extend=function(t,e){for(var i in e)t[i]=e[i];return t},e.isObject=function(t){return t&&"object"==typeof t};var r=Object.prototype.toString;e.isPlainObject=function(t){return"[object Object]"===r.call(t)},e.isArray=function(t){return Array.isArray(t)},e.define=function(t,e,i,n){Object.defineProperty(t,e,{value:i,enumerable:!!n,writable:!0,configurable:!0})}},function(t,e){function i(t){var e=[],i=document.createTextNode("0"),n=0;return new t(function(){for(var t=e.length,i=0;t>i;i++)e[i]();e=e.slice(t)}).observe(i,{characterData:!0}),function(t){e.push(t),i.nodeValue=n=++n%2}}e.hasProto="__proto__"in{};var n,r=Object.prototype.toString,s=e.inBrowser="undefined"!=typeof window&&"[object Object]"!==r.call(window);if(n="undefined"!=typeof MutationObserver?i(MutationObserver):"undefined"!=typeof WebkitMutationObserver?i(WebkitMutationObserver):setTimeout,e.nextTick=function(t,e){e?n(function(){t.call(e)},0):n(t,0)},e.isIE9=s&&navigator.userAgent.indexOf("MSIE 9.0")>0,s&&!e.isIE9){var o=void 0===window.ontransitionend&&void 0!==window.onwebkittransitionend,a=void 0===window.onanimationend&&void 0!==window.onwebkitanimationend;e.transitionProp=o?"WebkitTransition":"transition",e.transitionEndEvent=o?"webkitTransitionEnd":"transitionend",e.animationProp=a?"WebkitAnimation":"animation",e.animationEndEvent=a?"webkitAnimationEnd":"animationend"}},function(t,e,i){var n=i(15),r="undefined"!=typeof document&&document.documentElement;e.inDoc=function(t){return r&&r.contains(t)},e.attr=function(t,e){e=n.prefix+e;var i=t.getAttribute(e);return null!==i&&t.removeAttribute(e),i},e.before=function(t,e){e.parentNode.insertBefore(t,e)},e.after=function(t,i){i.nextSibling?e.before(t,i.nextSibling):i.parentNode.appendChild(t)},e.remove=function(t){t.parentNode.removeChild(t)},e.prepend=function(t,i){i.firstChild?e.before(t,i.firstChild):i.appendChild(t)},e.replace=function(t,e){var i=t.parentNode;i&&i.replaceChild(e,t)},e.copyAttributes=function(t,e){if(t.hasAttributes())for(var i=t.attributes,n=0,r=i.length;r>n;n++){var s=i[n];e.setAttribute(s.name,s.value)}},e.on=function(t,e,i){t.addEventListener(e,i)},e.off=function(t,e,i){t.removeEventListener(e,i)},e.addClass=function(t,e){if(t.classList)t.classList.add(e);else{var i=" "+(t.getAttribute("class")||"")+" ";i.indexOf(" "+e+" ")<0&&t.setAttribute("class",(i+e).trim())}},e.removeClass=function(t,e){if(t.classList)t.classList.remove(e);else{for(var i=" "+(t.getAttribute("class")||"")+" ",n=" "+e+" ";i.indexOf(n)>=0;)i=i.replace(n," ");t.setAttribute("class",i.trim())}},e.extractContent=function(t){var e,i;if(t.hasChildNodes())for(i=document.createElement("div");e=t.firstChild;)i.appendChild(e);return i}},function(t,e,i){i(30);e.resolveFilters=function(t,e,i){if(e){var n=i||{};return e.forEach(function(e){var i=t.$options.filters[e.name];if(i){var r,s,o=e.args;"function"==typeof i?r=i:(r=i.read,s=i.write),r&&(n.read||(n.read=[]),n.read.push(function(e){return o?r.apply(t,[e].concat(o)):r.call(t,e)})),s&&(n.write||(n.write=[]),n.write.push(function(e,i){return o?s.apply(t,[e,i].concat(o)):s.call(t,e,i)}))}}),n}},e.applyFilters=function(t,e,i,n){if(!e)return t;for(var r=0,s=e.length;s>r;r++)t=e[r].call(i,t,n);return t}},function(t,e,i){i(15)},function(t,e,i){var n=i(11);t.exports={bind:function(){this.attr=3===this.el.nodeType?"nodeValue":"textContent"},update:function(t){this.el[this.attr]=n.toString(t)}}},function(t,e,i){var n=i(11),r=i(20);t.exports={bind:function(){8===this.el.nodeType&&(this.nodes=[])},update:function(t){t=n.toString(t),this.nodes?this.swap(t):this.el.innerHTML=t},swap:function(t){for(var e=this.nodes.length;e--;)n.remove(this.nodes[e]);var i=r.parse(t,!0,!0);this.nodes=n.toArray(i.childNodes),n.before(i,this.el)}}},function(t){function e(t){t||0===t?this.el.setAttribute(this.arg,t):this.el.removeAttribute(this.arg)}function i(t){null!=t?this.el.setAttributeNS(n,this.arg,t):this.el.removeAttributeNS(n,"href")}var n="http://www.w3.org/1999/xlink",r=/^xlink:/;t.exports={priority:850,bind:function(){var t=this.arg;this.update=r.test(t)?i:e}}},function(t,e,i){var n=i(50);t.exports=function(t){var e=this.el;n.apply(e,t?1:-1,function(){e.style.display=t?"":"none"},this.vm)}},function(t,e,i){var n=i(11),r=n.addClass,s=n.removeClass;t.exports=function(t){if(this.arg){var e=t?r:s;e(this.el,this.arg)}else this.lastVal&&s(this.el,this.lastVal),t&&(r(this.el,t),this.lastVal=t)}},function(t){t.exports={isLiteral:!0,bind:function(){this.vm.$$[this.expression]=this.el},unbind:function(){delete this.vm.$$[this.expression]}}},function(t,e,i){i(11);t.exports={isLiteral:!0,bind:function(){var t=this.el.__vue__;t&&(t._refID=this.expression)}}},function(t,e,i){var n=i(15);t.exports={bind:function(){var t=this.el;this.vm.$once("hook:compiled",function(){t.removeAttribute(n.prefix+"cloak")})}}},function(t,e,i){function n(t){if(u[t])return u[t];var e=r(t);return u[t]=u[e]=e,e}function r(t){t=t.replace(h,"$1-$2").toLowerCase();var e=s.camelize(t),i=e.charAt(0).toUpperCase()+e.slice(1);if(l||(l=document.createElement("div")),e in l.style)return t;for(var n,r=o.length;r--;)if(n=a[r]+i,n in l.style)return o[r]+t}var s=i(11),o=["-webkit-","-moz-","-ms-"],a=["Webkit","Moz","ms"],c=/!important;?$/,h=/([a-z])([A-Z])/g,l=null,u={};t.exports={deep:!0,update:function(t){if(this.arg)this.setProp(this.arg,t);else if("object"==typeof t){this.cache||(this.cache={});for(var e in t)this.setProp(e,t[e]),t[e]!=this.cache[e]&&(this.cache[e]=t[e],this.setProp(e,t[e]))}else this.el.style.cssText=t},setProp:function(t,e){if(t=n(t))if(null!=e&&(e+=""),e){var i=c.test(e)?"important":"";i&&(e=e.replace(c,"").trim()),this.el.style.setProperty(t,e,i)}else this.el.style.removeProperty(t)}}},function(t,e,i){var n=i(11),r=i(20),s=i(45);t.exports={isLiteral:!0,compile:s.compile,teardown:s.teardown,bind:function(){var t=this.el;this.start=document.createComment("v-partial-start"),this.end=document.createComment("v-partial-end"),8!==t.nodeType&&(t.innerHTML=""),"TEMPLATE"===t.tagName||8===t.nodeType?n.replace(t,this.end):t.appendChild(this.end),n.before(this.start,this.end),this._isDynamicLiteral||this.insert(this.expression)},update:function(t){this.teardown(),this.insert(t)},insert:function(t){var e=this.vm.$options.partials[t];e&&this.compile(r.parse(e))}}},function(t){t.exports={priority:1e3,isLiteral:!0,bind:function(){this.el.__v_trans={id:this.expression,fns:this.vm.$options.transitions[this.expression]}}}},function(t,e,i){var n=i(11);t.exports={acceptStatement:!0,priority:700,bind:function(){if("IFRAME"===this.el.tagName&&"load"!==this.arg){var t=this;this.iframeBind=function(){n.on(t.el.contentWindow,t.arg,t.handler)},n.on(this.el,"load",this.iframeBind)}},update:function(t){if("function"==typeof t){this.reset();var e=this.vm;this.handler=function(i){i.targetVM=e,e.$event=i;var n=t(i);return e.$event=null,n},this.iframeBind?this.iframeBind():n.on(this.el,this.arg,this.handler)}},reset:function(){var t=this.iframeBind?this.el.contentWindow:this.el;this.handler&&n.off(t,this.arg,this.handler)},unbind:function(){this.reset(),n.off(this.el,"load",this.iframeBind)}}},function(t,e,i){var n=i(11),r=i(20);t.exports={isLiteral:!0,bind:function(){if(!this.el.__vue__)if(this.ref=document.createComment("v-component"),n.replace(this.el,this.ref),this.keepAlive=null!=this._checkParam("keep-alive"),this.refID=n.attr(this.el,"ref"),this.keepAlive&&(this.cache={}),this._isDynamicLiteral)this.readyEvent=this._checkParam("wait-for"),this.transMode=this._checkParam("transition-mode");else{this.resolveCtor(this.expression);var t=this.build();t.$before(this.ref),this.setCurrent(t)}},resolveCtor:function(t){this.ctorId=t,this.Ctor=this.vm.$options.components[t]},build:function(){if(this.keepAlive){var t=this.cache[this.ctorId];if(t)return t}var e=this.vm,i=r.clone(this.el);if(this.Ctor){var n=e.$addChild({el:i,_asComponent:!0},this.Ctor);return this.keepAlive&&(this.cache[this.ctorId]=n),n}},unbuild:function(){var t=this.childVM;t&&!this.keepAlive&&t.$destroy(!1,!0)},remove:function(t,e){var i=this.keepAlive;t?t.$remove(function(){i||t._cleanup(),e&&e()}):e&&e()},update:function(t){if(t){this.resolveCtor(t),this.unbuild();var e=this.build(),i=this;this.readyEvent?e.$once(this.readyEvent,function(){i.swapTo(e)}):this.swapTo(e)}else this.unbuild(),this.remove(this.childVM),this.unsetCurrent()},swapTo:function(t){var e=this,i=this.childVM;switch(this.unsetCurrent(),this.setCurrent(t),e.transMode){case"in-out":t.$before(e.ref,function(){e.remove(i)});break;case"out-in":e.remove(i,function(){t.$before(e.ref)});break;default:e.remove(i),t.$before(e.ref)}},setCurrent:function(t){this.childVM=t;var e=t._refID||this.refID;e&&(this.vm.$[e]=t)},unsetCurrent:function(){var t=this.childVM;this.childVM=null;var e=t&&t._refID||this.refID;e&&(this.vm.$[e]=null)},unbind:function(){if(this.unbuild(),this.cache){for(var t in this.cache)this.cache[t].$destroy();this.cache=null}}}},function(t,e,i){function n(t,e){for(var i=(t._blockEnd||t.$el).nextSibling;!i.__vue__&&i!==e;)i=i.nextSibling;return i.__vue__}function r(t){if(!c(t))return t;for(var e,i=Object.keys(t),n=i.length,r=new Array(n);n--;)e=i[n],r[n]={key:e,value:t[e]};return this.converted=!0,r}function s(t){for(var e=-1,i=new Array(t);++e<t;)i[e]=e;return i}var o=i(11),a=o.isObject,c=o.isPlainObject,h=i(19),l=i(22),u=i(20),f=i(16),d=i(17),p=i(14),v=0;t.exports={bind:function(){this.id="__v_repeat_"+ ++v,this.filters||(this.filters={});var t=o.bind(r,this);this.filters.read?this.filters.read.unshift(t):this.filters.read=[t],this.ref=document.createComment("v-repeat"),o.replace(this.el,this.ref),this.template="TEMPLATE"===this.el.tagName?u.parse(this.el,!0):this.el,this.checkIf(),this.checkRef(),this.checkComponent(),this.idKey=this._checkParam("track-by")||this._checkParam("trackby"),this.cache=Object.create(null)},checkIf:function(){null!==o.attr(this.el,"if")},checkRef:function(){var t=o.attr(this.el,"ref");this.refID=t?this.vm.$interpolate(t):null;var e=o.attr(this.el,"el");this.elId=e?this.vm.$interpolate(e):null},checkComponent:function(){var t=o.attr(this.el,"component"),e=this.vm.$options;if(t){this._asComponent=!0;var i=h.parse(t);if(i){var n=h.tokensToExp(i);this.ctorGetter=l.parse(n).get}else{var r=this.Ctor=e.components[t];if(!this.el.hasChildNodes()&&!this.el.hasAttributes()){var s=p(r.options,{},{$parent:this.vm});this.template=d(this.template,s),this._linkFn=f(this.template,s,!1,!0)}}}else this.Ctor=o.Vue,this.inherit=!0,this.template=d(this.template),this._linkFn=f(this.template,e)},update:function(t){"number"==typeof t&&(t=s(t)),this.vms=this.diff(t||[],this.vms),this.refID&&(this.vm.$[this.refID]=this.vms),this.elId&&(this.vm.$$[this.elId]=this.vms.map(function(t){return t.$el}))},diff:function(t,e){var i,r,s,o,a,c=this.idKey,h=this.converted,l=this.ref,u=this.arg,f=!e,d=new Array(t.length);for(o=0,a=t.length;a>o;o++)i=t[o],r=h?i.value:i,s=!f&&this.getVm(r),s?(s._reused=!0,s.$index=o,h&&(s.$key=i.key),c&&(u?s[u]=r:s._setData(r))):(s=this.build(i,o),s._new=!0),d[o]=s,f&&s.$before(l);if(f)return d;for(o=0,a=e.length;a>o;o++)s=e[o],s._reused||(this.uncacheVm(s),s.$destroy(!0));var p,v;for(o=d.length;o--;)s=d[o],p=d[o+1],p?s._reused?(v=n(s,l),v!==p&&s.$before(p.$el,null,!1)):s.$before(p.$el):s._reused||s.$before(l),s._new=!1,s._reused=!1;return d},build:function(t,e){var i=t,n={$index:e};this.converted&&(n.$key=i.key);var r=this.converted?t.value:t,s=this.arg,o=!c(r)||s;t=o?{}:r,s?t[s]=r:o&&(n.$value=r);var a=this.Ctor||this.resolveCtor(t,n),h=this.vm.$addChild({el:u.clone(this.template),_asComponent:this._asComponent,_linkFn:this._linkFn,_meta:n,data:t,inherit:this.inherit},a);return this.cacheVm(r,h),h},resolveCtor:function(t,e){var i,n=Object.create(this.vm);for(i in t)o.define(n,i,t[i]);for(i in e)o.define(n,i,e[i]);var r=this.ctorGetter.call(n,n),s=this.vm.$options.components[r];return s},unbind:function(){if(this.refID&&(this.vm.$[this.refID]=null),this.vms)for(var t,e=this.vms.length;e--;)t=this.vms[e],this.uncacheVm(t),t.$destroy()},cacheVm:function(t,e){var i,n=this.idKey,r=this.cache;n?(i=t[n],r[i]||(r[i]=e)):a(t)?(i=this.id,t.hasOwnProperty(i)?null===t[i]&&(t[i]=e):o.define(t,this.id,e)):r[t]?r[t].push(e):r[t]=[e],e._raw=t},getVm:function(t){if(this.idKey)return this.cache[t[this.idKey]];if(a(t))return t[this.id];var e=this.cache[t];if(e){for(var i=0,n=e[i];n&&(n._reused||n._new);)n=e[++i];return n}},uncacheVm:function(t){var e=t._raw;this.idKey?this.cache[e[this.idKey]]=null:a(e)?(e[this.id]=null,t._raw=null):this.cache[e].pop()}}},function(t,e,i){var n=i(11),r=i(16),s=i(20),o=i(50);t.exports={bind:function(){var t=this.el;t.__vue__?this.invalid=!0:(this.start=document.createComment("v-if-start"),this.end=document.createComment("v-if-end"),n.replace(t,this.end),n.before(this.start,this.end),"TEMPLATE"===t.tagName?this.template=s.parse(t,!0):(this.template=document.createDocumentFragment(),this.template.appendChild(t)),this.linker=r(this.template,this.vm.$options,!0))},update:function(t){this.invalid||(t?this.insert():this.teardown())},insert:function(){this.unlink||this.compile(this.template)},compile:function(t){var e=this.vm,i=s.clone(t),r=e._children.length;this.unlink=this.linker?this.linker(e,i):e.$compile(i),o.blockAppend(i,this.end,e),this.children=e._children.slice(r),this.children.length&&n.inDoc(e.$el)&&this.children.forEach(function(t){t._callHook("attached")})},teardown:function(){this.unlink&&(o.blockRemove(this.start,this.end,this.vm),this.children&&n.inDoc(this.vm.$el)&&this.children.forEach(function(t){t._isDestroyed||t._callHook("detached")}),this.unlink(),this.unlink=null)}}},function(t,e,i){var n=i(11),r=i(25);t.exports={priority:900,bind:function(){var t=this.vm,e=t.$parent,i=this.arg||"$data",s=this.expression;if(this.el!==t.$el);else if(e){var o=!1,a=function(){o=!0,n.nextTick(c)},c=function(){o=!1};this.parentWatcher=new r(e,s,function(e){o||(a(),t.$set(i,e))}),t.$set(i,this.parentWatcher.value),this.childWatcher=new r(t,i,function(t){o||(a(),e.$set(s,t))})}else;},unbind:function(){this.parentWatcher&&(this.parentWatcher.teardown(),this.childWatcher.teardown())}}},function(t,e,i){i(11);t.exports={bind:function(){var t=this.el.__vue__;if(t&&this.vm===t.$parent){var e=this.vm[this.expression];t.$on(this.arg,e)}}}},function(t,e,i){function n(t,e){if(r.isObject(t)){for(var i in t)if(n(t[i],e))return!0}else if(null!=t)return t.toString().toLowerCase().indexOf(e)>-1}var r=i(11),s=i(18);e.filterBy=function(t,e,i,o){i&&"in"!==i&&(o=i);var a=r.stripQuotes(e)||this.$get(e);return a?(a=(""+a).toLowerCase(),o=o&&(r.stripQuotes(o)||this.$get(o)),t.filter(function(t){return o?n(s.get(t,o),a):n(t,a)})):t},e.orderBy=function(t,e,i){var n=r.stripQuotes(e)||this.$get(e);if(!n)return t;var o=1;return i&&("-1"===i?o=-1:33===i.charCodeAt(0)?(i=i.slice(1),o=this.$get(i)?1:-1):o=this.$get(i)?-1:1),t.slice().sort(function(t,e){return t=s.get(t,n),e=s.get(e,n),t===e?0:t>e?o:-o})}},function(t,e,i){function n(t,e){t.__proto__=e}function r(t,e,i){for(var n,r=i.length;r--;)n=i[r],o.define(t,n,e[n])}function s(t,e){if(this.id=++u,this.value=t,this.active=!0,this.deps=[],o.define(t,"__ob__",this),e===f){var i=a.proto&&o.hasProto?n:r;i(t,h,l),this.observeArray(t)}else e===d&&this.walk(t)}var o=i(11),a=i(15),c=i(23),h=i(54),l=Object.getOwnPropertyNames(h);i(55);var u=0,f=0,d=1;s.target=null;var p=s.prototype;s.create=function(t){return t&&t.hasOwnProperty("__ob__")&&t.__ob__ instanceof s?t.__ob__:o.isArray(t)?new s(t,f):o.isPlainObject(t)&&!t._isVue?new s(t,d):void 0},p.walk=function(t){for(var e,i,n=Object.keys(t),r=n.length;r--;)e=n[r],i=e.charCodeAt(0),36!==i&&95!==i&&this.convert(e,t[e])},p.observe=function(t){return s.create(t)},p.observeArray=function(t){for(var e=t.length;e--;)this.observe(t[e])},p.convert=function(t,e){var i=this,n=i.observe(e),r=new c;n&&n.deps.push(r),Object.defineProperty(i.value,t,{enumerable:!0,configurable:!0,get:function(){return i.active&&s.target&&s.target.addDep(r),e},set:function(t){if(t!==e){var n=e&&e.__ob__;if(n){var s=n.deps;s.splice(s.indexOf(r),1)}e=t;var o=i.observe(t);o&&o.deps.push(r),r.notify()}}})},p.notify=function(){for(var t=this.deps,e=0,i=t.length;i>e;e++)t[e].notify()},p.addVm=function(t){(this.vms=this.vms||[]).push(t)},p.removeVm=function(t){this.vms.splice(this.vms.indexOf(t),1)},t.exports=s},function(t,e,i){var n=i(11),r=i(56),s=i(57);e.append=function(t,e,i,n){o(t,1,function(){e.appendChild(t)},i,n)},e.before=function(t,e,i,r){o(t,1,function(){n.before(t,e)},i,r)},e.remove=function(t,e,i){o(t,-1,function(){n.remove(t)},e,i)},e.removeThenAppend=function(t,e,i,n){o(t,-1,function(){e.appendChild(t)},i,n)},e.blockAppend=function(t,i,r){for(var s=n.toArray(t.childNodes),o=0,a=s.length;a>o;o++)e.before(s[o],i,r)},e.blockRemove=function(t,i,n){for(var r,s=t.nextSibling;s!==i;)r=s.nextSibling,e.remove(s,n),s=r};var o=e.apply=function(t,e,i,o,a){var c=t.__v_trans;if(!c||!o._isCompiled||o.$parent&&!o.$parent._isCompiled)return i(),void(a&&a());var h=c.fns;h?s(t,e,i,c,h,o,a):n.transitionEndEvent?r(t,e,i,c,a):(i(),a&&a())}},function(t,e,i){var n=(i(11),{_default:i(58),radio:i(59),select:i(60),checkbox:i(61)});t.exports={priority:800,twoWay:!0,handlers:n,bind:function(){var t=this.filters;t&&t.read&&!t.write;var e,i=this.el,r=i.tagName;if("INPUT"===r)e=n[i.type]||n._default;else if("SELECT"===r)e=n.select;else{if("TEXTAREA"!==r)return;e=n._default}e.bind.call(this),this.update=e.update,this.unbind=e.unbind}}},function(t){function e(t){this.size=0,this.limit=t,this.head=this.tail=void 0,this._keymap={}}var i=e.prototype;i.put=function(t,e){var i={key:t,value:e};return this._keymap[t]=i,this.tail?(this.tail.newer=i,i.older=this.tail):this.head=i,this.tail=i,this.size===this.limit?this.shift():void this.size++},i.shift=function(){var t=this.head;return t&&(this.head=this.head.newer,this.head.older=void 0,t.newer=t.older=void 0,this._keymap[t.key]=void 0),t},i.get=function(t,e){var i=this._keymap[t];if(void 0!==i)return i===this.tail?e?i:i.value:(i.newer&&(i===this.head&&(this.head=i.newer),i.newer.older=i.older),i.older&&(i.older.newer=i.newer),i.newer=void 0,i.older=this.tail,this.tail&&(this.tail.newer=i),this.tail=i,e?i:i.value)},t.exports=e},function(t,e,i){function n(){c=[],h=[],l={},u=!1,f=!1}function r(){f=!0,s(c),s(h),n()}function s(t){for(var e=0;e<t.length;e++)t[e].run()}var o=i(11),a=10,c=[],h=[],l={},u=!1,f=!1;e.push=function(t){var e=t.id;if(!e||!l[e]||f){if(l[e]){if(l[e]++,l[e]>a)return}else l[e]=1;if(f&&!t.user)return void t.run();(t.user?h:c).push(t),u||(u=!0,o.nextTick(r))}}},function(t,e,i){var n=i(11),r=Array.prototype,s=Object.create(r);["push","pop","shift","unshift","splice","sort","reverse"].forEach(function(t){var e=r[t];n.define(s,t,function(){for(var i=arguments.length,n=new Array(i);i--;)n[i]=arguments[i];var r,s=e.apply(this,n),o=this.__ob__;switch(t){case"push":r=n;break;case"unshift":r=n;break;case"splice":r=n.slice(2)}return r&&o.observeArray(r),o.notify(),s})}),n.define(r,"$set",function(t,e){return t>=this.length&&(this.length=t+1),this.splice(t,1,e)[0]}),n.define(r,"$remove",function(t){return"number"!=typeof t&&(t=this.indexOf(t)),t>-1?this.splice(t,1)[0]:void 0}),t.exports=s},function(t,e,i){var n=i(11),r=Object.prototype;n.define(r,"$add",function(t,e){if(!this.hasOwnProperty(t)){var i=this.__ob__;if(!i||n.isReserved(t))return void(this[t]=e);if(i.convert(t,e),i.vms)for(var r=i.vms.length;r--;){var s=i.vms[r];s._proxy(t),s._digest()}else i.notify()}}),n.define(r,"$delete",function(t){if(this.hasOwnProperty(t)){delete this[t];var e=this.__ob__;if(e&&!n.isReserved(t))if(e.vms)for(var i=e.vms.length;i--;){var r=e.vms[i];r._unproxy(t),r._digest()}else e.notify()}})},function(t,e,i){function n(t,e,i,n,s){f.push({el:t,dir:e,cb:s,cls:n,op:i}),d||(d=!0,a.nextTick(r))}function r(){document.documentElement.offsetHeight;f.forEach(s),f=[],d=!1}function s(t){function e(t,e){n.event=t;var r=n.callback=function(o){o.target===i&&(a.off(i,t,r),n.event=n.callback=null,e&&e(),s&&s())};a.on(i,t,r)}var i=t.el,n=i.__v_trans,r=t.cls,s=t.cb,c=t.op,l=o(i,n,r);if(t.dir>0)1===l?(h(i,r),s&&e(a.transitionEndEvent)):2===l?e(a.animationEndEvent,function(){h(i,r)}):(h(i,r),s&&s());else if(l){var u=1===l?a.transitionEndEvent:a.animationEndEvent;e(u,function(){c(),h(i,r)})}else c(),h(i,r),s&&s()}function o(t,e,i){var n=e.cache&&e.cache[i];if(n)return n;var r=t.style,s=window.getComputedStyle(t),o=r[l]||s[l];if(o&&"0s"!==o)n=1;else{var a=r[u]||s[u];a&&"0s"!==a&&(n=2)}return n&&(e.cache||(e.cache={}),e.cache[i]=n),n}var a=i(11),c=a.addClass,h=a.removeClass,l=a.transitionProp+"Duration",u=a.animationProp+"Duration",f=[],d=!1;t.exports=function(t,e,i,r,s){var o=r.id||"v",l=o+"-enter",u=o+"-leave";r.callback&&(a.off(t,r.event,r.callback),h(t,l),h(t,u),r.event=r.callback=null),e>0?(c(t,l),i(),n(t,e,null,l,s)):(c(t,u),n(t,e,i,u,s))}},function(t){t.exports=function(t,e,i,n,r,s,o){n.cancel&&(n.cancel(),n.cancel=null),e>0?(r.beforeEnter&&r.beforeEnter.call(s,t),i(),r.enter?n.cancel=r.enter.call(s,t,function(){n.cancel=null,o&&o()}):o&&o()):r.leave?n.cancel=r.leave.call(s,t,function(){n.cancel=null,i(),o&&o()}):(i(),o&&o())}},function(t,e,i){var n=i(11);t.exports={bind:function(){function t(){e.set(s?n.toNumber(i.value):i.value,!0)}var e=this,i=this.el,r=null!=this._checkParam("lazy"),s=null!=this._checkParam("number"),o=!1;this.cpLock=function(){o=!0},this.cpUnlock=function(){o=!1,t()},n.on(i,"compositionstart",this.cpLock),n.on(i,"compositionend",this.cpUnlock),this.listener=this.filters||"range"===i.type?function(){if(!o){var r;try{r=i.value.length-i.selectionStart}catch(s){}0>r||(t(),n.nextTick(function(){var t=e._watcher.value;if(e.update(t),null!=r){var s=n.toString(t).length-r;i.setSelectionRange(s,s)}}))}}:function(){o||t()},this.event=r?"change":"input",n.on(i,this.event,this.listener),!r&&n.isIE9&&(this.onCut=function(){n.nextTick(e.listener)},this.onDel=function(t){(46===t.keyCode||8===t.keyCode)&&e.listener()},n.on(i,"cut",this.onCut),n.on(i,"keyup",this.onDel)),(i.hasAttribute("value")||"TEXTAREA"===i.tagName&&i.value.trim())&&(this._initValue=s?n.toNumber(i.value):i.value)},update:function(t){this.el.value=n.toString(t)},unbind:function(){var t=this.el;n.off(t,this.event,this.listener),n.off(t,"compositionstart",this.cpLock),n.off(t,"compositionend",this.cpUnlock),this.onCut&&(n.off(t,"cut",this.onCut),n.off(t,"keyup",this.onDel))}}},function(t,e,i){var n=i(11);t.exports={bind:function(){var t=this,e=this.el;this.listener=function(){t.set(e.value,!0)},n.on(e,"change",this.listener),e.checked&&(this._initValue=e.value)},update:function(t){this.el.checked=t==this.el.value},unbind:function(){n.off(this.el,"change",this.listener)}}},function(t,e,i){function n(t){function e(t){l.isArray(t)&&(i.el.innerHTML="",r(i.el,t),i._watcher&&i.update(i._watcher.value))}var i=this;this.optionWatcher=new u(this.vm,t,e,{deep:!0}),e(this.optionWatcher.value)}function r(t,e){for(var i,n,s=0,o=e.length;o>s;s++)i=e[s],i.options?(n=document.createElement("optgroup"),n.label=i.label,r(n,i.options)):(n=document.createElement("option"),"string"==typeof i?n.text=n.value=i:(n.text=i.text,n.value=i.value)),t.appendChild(n)}function s(){for(var t,e=this.el.options,i=0,n=e.length;n>i;i++)e[i].hasAttribute("selected")&&(this.multiple?(t||(t=[])).push(e[i].value):t=e[i].value);t&&(this._initValue=this.number?l.toNumber(t):t)}function o(t){return Array.prototype.filter.call(t.options,a).map(c)}function a(t){return t.selected}function c(t){return t.value||t.text}function h(t,e){for(var i=t.length;i--;)if(t[i]==e)return i;return-1}var l=i(11),u=i(25);t.exports={bind:function(){var t=this,e=this.el,i=this._checkParam("options");i&&n.call(this,i),this.number=null!=this._checkParam("number"),this.multiple=e.hasAttribute("multiple"),this.listener=function(){var i=t.multiple?o(e):e.value;i=t.number?l.toNumber(i):i,t.set(i,!0)},l.on(e,"change",this.listener),s.call(this)},update:function(t){var e=this.el;e.selectedIndex=-1;for(var i,n=this.multiple&&l.isArray(t),r=e.options,s=r.length;s--;)i=r[s],i.selected=n?h(t,i.value)>-1:t==i.value},unbind:function(){l.off(this.el,"change",this.listener),this.optionWatcher&&this.optionWatcher.teardown()}}},function(t,e,i){var n=i(11);t.exports={bind:function(){var t=this,e=this.el;this.listener=function(){t.set(e.checked,!0)},n.on(e,"change",this.listener),e.checked&&(this._initValue=e.checked)},update:function(t){this.el.checked=!!t},unbind:function(){n.off(this.el,"change",this.listener)}}}])});
 });

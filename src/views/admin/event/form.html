@@ -69,6 +69,7 @@ Dodaj nowe wydarzenie
                         <li>{{ price|format_price }}</li>
                         <li>{{ price_family|format_price }}</li>
                         <li>{{ (price + price_family)|format_price }}</li>
+                        <li>{{ room_type_name }}</li>
                     </ul>
                     {% endverbatim %}
                 </td>
@@ -80,6 +81,9 @@ Dodaj nowe wydarzenie
 
                         Kwota do zapłaty to:
                         {{ (price + price_family)|format_price }} PLN
+
+                        Wybrany typ pokoju:
+                        {{ room_type_name }}
                     {% endverbatim %}
                     </pre>
                 </td>

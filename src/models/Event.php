@@ -135,7 +135,7 @@ class Event extends \Resform\Lib\Model {
         SELECT re.*,
             (
                 SELECT SUM(free_space_count) FROM {$this->db->prefix}resform_rooms_space_count
-                WHERE event_id = event_id GROUP BY event_id
+                WHERE event_id = re.event_id GROUP BY event_id
             ) AS free_space_count
         FROM {$this->db->prefix}resform_events AS re
         LEFT JOIN {$this->db->prefix}resform_room_types AS rrt USING (event_id)

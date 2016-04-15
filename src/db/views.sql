@@ -1,4 +1,20 @@
 
+DROP VIEW IF EXISTS _prefix_persons_family;
+CREATE VIEW _prefix_persons_family AS
+    SELECT p.*, GROUP_CONCAT(CONCAT_WS(' ', pc.first_name, pc.last_name)) AS children
+    FROM _prefix_persons AS p
+    LEFT JOIN _prefix_persons AS pc ON (p.person_id = pc.family_person_id)
+    WHERE p.is_family_guardian = true
+    GROUP BY p.person_id;
+
+DROP VIEW IF EXISTS _prefix_persons_with_age;
+CREATE VIEW _prefix_persons_with_age AS
+    SELECT
+        p.*,
+        TIMESTAMPDIFF( YEAR, p.birth_date, CURDATE() ) AS age
+    FROM _prefix_persons AS p;
+
+
 DROP VIEW IF EXISTS _prefix_rooms_space_count;
 CREATE VIEW _prefix_rooms_space_count AS
     SELECT
@@ -26,22 +42,6 @@ CREATE VIEW _prefix_room_types_space_count AS
         SUM(occupied_space_count) AS occupied_space_count,
         SUM(free_space_count) AS free_space_count
     FROM _prefix_rooms_space_count GROUP BY room_type_id;
-
-
-DROP VIEW IF EXISTS _prefix_persons_family;
-CREATE VIEW _prefix_persons_family AS
-    SELECT p.*, GROUP_CONCAT(CONCAT_WS(' ', pc.first_name, pc.last_name)) AS children
-    FROM _prefix_persons AS p
-    LEFT JOIN _prefix_persons AS pc ON (p.person_id = pc.family_person_id)
-    WHERE p.is_family_guardian = true
-    GROUP BY p.person_id;
-
-DROP VIEW IF EXISTS _prefix_persons_with_age;
-CREATE VIEW _prefix_persons_with_age AS
-    SELECT
-        p.*,
-        TIMESTAMPDIFF( YEAR, p.birth_date, CURDATE() ) AS age
-    FROM _prefix_persons AS p;
 
 
 DROP VIEW IF EXISTS _prefix_persons_with_price;

@@ -45,9 +45,9 @@
     }
 
     function populate() {
-        // if (! window.resform_family_data) {
-        //     return;
-        // }
+        if (! window.resform_family_data) {
+            return;
+        }
         var data = window.resform_family_data,
             first_names = data.first_names || [],
             last_names  = data.last_names || [],

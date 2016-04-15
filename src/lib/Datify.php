@@ -22,9 +22,9 @@ class Datify extends \Sirius\Filtration\Filter\AbstractFilter
         $tmp = explode("-", $filtered);
 
         $filtered = array(
-            $this->pad($tmp[0], 2),
+            $this->pad($tmp[0], 4),
             $this->pad($tmp[1], 2),
-            $this->pad($tmp[2], 4)
+            $this->pad($tmp[2], 2)
         );
 
         return join("-", $filtered);

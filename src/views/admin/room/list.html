@@ -46,6 +46,7 @@
                 {% set class = 'family_member' %}
                 {% endif %}
                 <div class="person {{ class }}"
+                data-person
                 {% if person.color_1 %}style="background-color: {{ person.color_1 }}"{% endif %}
                 {% if not person.family_person_id %} data-draggable{% endif %}>
                     {% if not person.family_person_id %}
@@ -53,10 +54,16 @@
                     {% endif%}
 
                     <input type="hidden" name="person_id[{{ person.person_id }}]" value="{{ room.room_id }}" />
-                    <span data-tooltip title="{{ macros.details(person, 'notes_3') }}">{{ person.first_name }} {{ person.last_name }}</span>
+                    <span data-tooltip title="{{ macros.details(person, 'notes_3') }}">{{ person.age }} | {{ person.first_name }} {{ person.last_name }}</span>
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{ person.person_id }}">
                         <i class="fa fa-external-link"></i>
                     </a>
+                    <resform-color
+                        data-name="color_1"
+                        data-url="{{ ''|ajaxurl }}"
+                        data-params='{"action": "resform_person_inline_update"}'
+                        data-emptytext="Kolor"
+                        data-pk="{{ person.person_id }}">{{ person.color_1 }}</resform-color>
                 </div>
                 {% endfor %}
             </div>

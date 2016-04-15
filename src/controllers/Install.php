@@ -5,15 +5,20 @@ namespace Resform\Controller;
 
 class Install {
 
-    function __construct($db) {
-        $this->db = $db;
+    function __construct($log, $db) {
+        $this->log = $log;
+        $this->db  = $db;
     }
 
     function uninstall() {
+        $this->log->info('uninstall');
         remove_role( 'resform_admin' );
     }
 
     function install() {
+
+        $this->log->info('install');
+
         add_role(
             'resform_admin',
             __( 'Administrator Zapisów' ),

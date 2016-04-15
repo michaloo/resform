@@ -5,7 +5,10 @@ namespace Resform\Controller;
 
 class Front {
 
-    function __construct($view, $event, $transport, $room_type, $person, $Mail) {
+    public $salt = 'as123cxzv12';
+
+    function __construct($log, $view, $event, $transport, $room_type, $person, $Mail) {
+        $this->log  = $log;
         $this->view = $view;
 
         $this->event     = $event;
@@ -46,7 +49,24 @@ class Front {
         $room_types = array();
         $transports = array();
 
-        if (count($events) === 0) {
+        $errors = $values = $event = null;
+
+        if (isset($_GET['z'])) {
+
+            $id = str_replace(' ', '+', $_GET['z']);
+
+            $person_id = mcrypt_decrypt(
+                MCRYPT_BLOWFISH,
+                $this->salt,
+                base64_decode($id),
+                MCRYPT_MODE_ECB
+                );
+
+            $values = $this->person->getPriceForId((int) $person_id);
+
+            $template = 'done.html';
+
+        } elseif (count($events) === 0) {
             $template = 'none.html';
         } else {
 
@@ -77,6 +97,11 @@ class Front {
                         $step--;
                     }
 
+                    $this->log->info('front.show_form.step', array(
+                        'post'   => $_POST,
+                        'errors' => $errors
+                    ));
+
                     $values   = array_merge($values, $filtered);
                     $_SESSION = $values;
                 }
@@ -93,6 +118,7 @@ class Front {
                         break;
 
                     case 2:
+
                         $room_types = $this->room_type->getFree(
                             $event['event_id'],
                             $values["sex"],
@@ -125,6 +151,26 @@ class Front {
                         } else {
                             $_SESSION = array();
                             $this->sendMail($person_id, $values, $event);
+
+                            $urlPart = base64_encode(mcrypt_encrypt(
+                                MCRYPT_BLOWFISH,
+                                $this->salt,
+                                $person_id,
+                                MCRYPT_MODE_ECB
+                            ));
+
+                            $this->log->info('front.show_form.register', array(
+                                'person_id' => $person_id,
+                                'urlPart'   => $urlPart
+                            ));
+
+                            $url = '/?z=' . $urlPart;
+                            $string = '<script type="text/javascript">';
+                            $string .= 'window.location = "' . $url . '"';
+                            $string .= '</script>';
+
+                            echo $string;
+                            exit;
                         }
 
                         $template = 'done.html';

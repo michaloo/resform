@@ -120,3 +120,8 @@
 .resform .family_member .field.date {
     width: 53%;
 }
+
+
+.tj_post_footer_meta {
+    display: none !important;
+}

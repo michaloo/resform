@@ -31,7 +31,7 @@
         </thead>
         <tbody>
             {% for person in persons.data %}
-            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_1 %}style="background-color: {{ person.color_1 }}"{% endif %}>
+            <tr{% if loop.index is odd %} class="alternate"{% endif %} {% if person.color_1 %}style="background-color: {{ person.color_1 }}"{% endif %} data-person>
 
                 {#<td>
                 {% if person.family_guardian %}
@@ -77,19 +77,15 @@
                         data-emptytext="Notatki"
                         data-params='{"action": "resform_person_inline_update"}'
                         data-title="Notatki">{{ person.notes_1 }}</a>
-                    <a
-                        href="#"
-                        data-name="color_1"
-                        data-pk="{{ person.person_id }}"
-                        data-url="{{ ''|ajaxurl }}"
-                        data-editable
-                        data-savenochange="true"
-                        data-emptytext="Kolor"
-                        data-tpl='<input type="color">'
-                        data-params='{"action": "resform_person_inline_update"}'
-                        data-type="tel">{{ person.color_1 }}</a>
                 </td>
                 <td>
+                    <resform-color
+                        data-name="color_1"
+                        data-url="{{ ''|ajaxurl }}"
+                        data-params='{"action": "resform_person_inline_update"}'
+                        data-emptytext="Kolor"
+                        data-pk="{{ person.person_id }}">{{ person.color_1 }}</resform-color>
+
                     <a href="/wp-admin/admin.php?page=resform_person_edit&person_id={{person.person_id}}">Edytuj</a>
                     <a
                         data-delete

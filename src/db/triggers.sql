@@ -27,11 +27,10 @@ CREATE TRIGGER `_prefix_room_types_after_insert`
     FOR EACH ROW BEGIN
 
         SET @i = 0;
-        REPEAT
+        WHILE @i < NEW.room_count DO
             SET @i = @i + 1;
             INSERT INTO _prefix_rooms(room_type_id) VALUES(NEW.room_type_id);
-        UNTIL @i >= NEW.room_count
-        END REPEAT;
+        END WHILE;
 
         INSERT INTO _prefix_audit_logs(object_id, log, user) VALUES(NEW.room_type_id, "INSERT room_type", @user);
     END$$
@@ -54,17 +53,15 @@ CREATE TRIGGER `_prefix_room_types_after_update`
         SET @i = 0;
         SET @m = NEW.room_count - @existing_rooms;
         IF @m > 0 THEN
-            REPEAT
+            WHILE @i < @m DO
                 SET @i = @i + 1;
                 INSERT INTO _prefix_rooms(room_type_id) VALUES(NEW.room_type_id);
-            UNTIL @i >= @m
-            END REPEAT;
+            END WHILE;
         ELSEIF @m < 0 THEN
-            REPEAT
+            WHILE @i < ( - @m) DO
                 SET @i = @i + 1;
                 DELETE FROM _prefix_rooms WHERE room_type_id = NEW.room_type_id ORDER BY room_id DESC LIMIT 1;
-            UNTIL @i >= ( - @m)
-            END REPEAT;
+            END WHILE;
         END IF;
 
     END$$

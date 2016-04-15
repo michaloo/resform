@@ -43,8 +43,8 @@
                 </td>
             </tr>
 
-            {{ forms.input('text', 'birth_date', 'Data urodzenia*',
-                person.birth_date is empty ? "" : person.birth_date|date('d-m-Y'), 'dd-mm-rrrr') }}
+            {{ forms.input('date', 'birth_date', 'Data urodzenia*',
+                person.birth_date is empty ? "" : person.birth_date|date('Y-m-d'), 'rrrr-mm-dd') }}
 
             {{ forms.input('text', 'email', 'Adres e-mail*', person.email, 'adres e-mail') }}
             {{ forms.input('text', 'phone', 'Telefon*', person.phone, 'numer telefonu') }}

@@ -5,9 +5,10 @@ namespace Resform\Controller;
 
 class Admin {
 
-    function __construct($view, $db, $event, $transport, $room_type, $room, $person, $user, $audit_log) {
-        $this->view   = $view;
-        $this->db     = $db;
+    function __construct($log, $view, $db, $event, $transport, $room_type, $room, $person, $user, $audit_log) {
+        $this->log  = $log;
+        $this->view = $view;
+        $this->db   = $db;
 
         $this->event     = $event;
         $this->transport = $transport;
@@ -41,6 +42,8 @@ class Admin {
         add_action( 'wp_ajax_resform_person_search', array($this, "person_search") );
 
         add_action( 'wp_ajax_resform_person_export', array($this, "person_export") );
+
+        add_action('wp_login', array($this, 'wpLogin') );
     }
 
     function person_export() {
@@ -249,9 +252,18 @@ class Admin {
         wp_register_style( 'resform-select2', $this->assetsUrl . 'vendor/select2/select2.css');
         wp_enqueue_style( 'resform-select2' );
 
+        wp_register_style( 'resform-jquery-ui-selectmenu', $this->assetsUrl . 'vendor/jquery-ui/themes/base/selectmenu.css');
+        wp_enqueue_style( 'resform-jquery-ui-selectmenu' );
+
         wp_enqueue_script('resform-tooltipsy', $this->assetsUrl . 'vendor/tooltipsy/tooltipsy.min.js', array('jquery-fallback'), true);
 
+        wp_enqueue_script('swig', $this->assetsUrl . 'vendor/swig/swig.min.js', array(), true);
+
+        wp_enqueue_script('resform-color', $this->assetsUrl . 'js/resform-color.js', array('jquery-fallback', 'swig'), 2, true);
+
         wp_enqueue_script('resform-admin', $this->assetsUrl . 'js/admin.js', array('jquery-fallback'), true);
+
+
 
         wp_register_style( 'resform-fontawesome', $this->assetsUrl . 'vendor/font-awesome/css/font-awesome.min.css');
         wp_enqueue_style( 'resform-fontawesome' );
@@ -310,6 +322,10 @@ class Admin {
             if (count($errors) === 0) {
                 $to_save = $this->event->output_filter($filtered);
                 $this->event->update($to_save);
+
+                if (function_exists('wp_cache_clear_cache')) {
+                    wp_cache_clear_cache();
+                }
             } else {
                 var_dump($errors);
             }
@@ -565,10 +581,13 @@ class Admin {
 
             if (count($errors) === 0) {
                 $to_save = $this->person->output_filter($filtered);
-                var_dump($to_save);
+
+                $this->log->info('person.edit.to_save', $to_save);
+
                 $this->person->update($to_save);
             } else {
-                var_dump($errors);
+
+                $this->log->info('person.edit.errors', $errors);
             }
         }
 
@@ -612,4 +631,12 @@ class Admin {
         return array_merge($defaults, $get);
     }
 
+    function wpLogin() {
+
+        $user = wp_get_current_user();
+
+        $this->log->info('admin.login', array(
+            'login' => $user->user_login
+        ));
+    }
 }

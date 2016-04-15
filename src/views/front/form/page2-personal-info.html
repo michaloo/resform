@@ -8,12 +8,18 @@
 
         {{ forms.start("Płeć:", errors.sex, '', '') }}
             <label class="choice">
-                <span>Kobieta:</span>
+
+                <select name="sex">
+                    <option value="">wybierz</option>
+                    <option value="female" {% if values.sex == 'female' %} selected{% endif %}>Kobieta</option>
+                    <option value="male" {% if values.sex == 'male' %} selected{% endif %}>Mężczyzna</option>
+                </select>
+                {#<span>Kobieta:</span>
                 <input type="radio" name="sex" value="female"{% if values.sex == 'female' %} checked{% endif %}>
             </label>
             <label class="choice">
                 <span>Mężczyzna:</span>
-                <input type="radio" name="sex" value="male"{% if values.sex == 'male' %} checked{% endif %}>
+            <input type="radio" name="sex" value="male"{% if values.sex == 'male' %} checked{% endif %}>#}
             </label>
         {{ forms.end() }}
 
@@ -21,7 +27,7 @@
 
         {{ forms.label_input('Nazwisko:', 'text', 'last_name', values.last_name, errors.last_name) }}
 
-        {{ forms.label_input('Data urodzenia:', 'text', 'birth_date', values.birth_date, errors.birth_date, 'dd-mm-rrrr') }}
+        {{ forms.label_input('Data urodzenia:', 'date', 'birth_date', values.birth_date, errors.birth_date, 'rrrr-mm-dd') }}
 
         {{ forms.label_input('Adres e-mail:', 'text', 'email', values.email, errors.email, 'twoj@adres.com') }}
 
@@ -135,7 +141,7 @@
                 </label>
                 <label class="field" data-name="birth_date">
                     <span class="name">Data urodzenia:</span>
-                    <input type="text" name="family_birth_date[]" value="">
+                    <input type="date" name="family_birth_date[]" value="" placeholder="rrrr-mm-dd">
                 </label>
                 <label data-family-remove class="button">Usuń tę osobę</label>
             </fieldset>

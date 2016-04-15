@@ -27,7 +27,7 @@ class Filters {
     static function translate($string) {
         return str_replace(array(
             'This field is required',
-            'This input must be a date having the format d-m-Y',
+            'This input must be a date having the format Y-m-d',
             'This input must be a valid email address',
             'This input is not one of the accepted values',
             'female',
@@ -37,7 +37,7 @@ class Filters {
             'with_guardian'
         ), array(
             'To pole jest wymagane',
-            'Data powinna mieć format dd-mm-rrrr',
+            'Data powinna mieć format rrrr-mm-dd',
             'Niepoprawny adres e-mail',
             'Akceptacja jest wymagana',
             'żeński',
