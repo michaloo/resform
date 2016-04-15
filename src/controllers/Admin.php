@@ -502,14 +502,16 @@ class Admin {
 
         $persons = $this->person->get($pager, $event['event_id'], $filter);
 
+        $rooms_list = $this->room->get($event['event_id'], $filter);
+
         if (count($_POST) > 0) {
-            $persons_to_edit = $this->person->getPersonsToEdit($_POST["person_id"], $persons);
+            $persons_to_edit = $this->person->getPersonsToEdit($_POST["person_id"], $persons, $rooms_list);
 
             $this->person->updateRoomId($persons_to_edit);
             $persons = $this->person->get($pager, $event['event_id'], $filter);
         }
 
-        $rooms_list = $this->room->get($event['event_id'], $filter);
+
         $rooms = $this->person->getGroupedByRooms($persons, $rooms_list);
 
         $room_types = $this->room_type->get($event['event_id']);

@@ -25,6 +25,7 @@
         {% for room in rooms %}
         <div class="room" data-room_id="{{ room.room_id }}">
             <div class="description">
+                {% if room.room_id != 0 %}
                 <span class="name">Typ: {{ room.room_type_name }}</span>
                 <a
                 href="#"
@@ -39,6 +40,9 @@
 
                 <span class="sex">Płeć: {{ room.sex|translate }}</span>
                 <span class="space_counts">{{ room.occupied_space_count }} / {{ room.space_count }}</span>
+                {% else %}
+                    <span class="name">Lista rezerwowa</span>
+                {% endif %}
             </div>
             <div class="persons_list" data-droppable>
                 {% for person in room.persons %}

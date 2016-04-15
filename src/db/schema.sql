@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS _prefix_persons (
   person_id MEDIUMINT(9) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   family_person_id MEDIUMINT(9),
   event_id MEDIUMINT(9),
-  room_type_id MEDIUMINT(9), -- make nullable
-  room_id MEDIUMINT(9), -- make nullable
+  room_type_id MEDIUMINT(9) NULL, -- make nullable
+  room_id MEDIUMINT(9) NULL, -- make nullable
   transport_id MEDIUMINT(9) NOT NULL,
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255) NOT NULL,

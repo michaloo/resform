@@ -517,7 +517,9 @@ SQL;
 
             $query = <<<SQL
             UPDATE {$this->db->prefix}resform_persons
-                SET room_id = {$sql_values["room_id"]}
+                SET room_id = {$sql_values["room_id"]},
+                    room_type_id = {$sql_values["room_type_id"]},
+                    is_reservation = {$sql_values["is_reservation"]}
                 WHERE person_id = {$sql_values["person_id"]}
 SQL;
 
@@ -571,13 +573,18 @@ SQL;
             $grouped_persons[$room["room_id"]] = $room;
         }
 
+        $grouped_persons[''] = [
+            'room_id' => 0,
+            'room_type_name' => 'Lista rezerwowa'
+        ];
+
         foreach ($persons["data"] as $person) {
             $grouped_persons[$person["room_id"]]["persons"][] = $person;
         }
         return $grouped_persons;
     }
 
-    function getPersonsToEdit($post_data, $persons) {
+    function getPersonsToEdit($post_data, $persons, $rooms_list) {
         $persons_to_edit = array();
         foreach ($post_data as $person_id => $room_id) {
 
@@ -586,10 +593,22 @@ SQL;
 
             if ($search_person["room_id"] != (int) $room_id) {
 
-                $search_person["room_id"] = (int) $room_id;
+                // TODO: move to trigger
+                if ($room_id == 0) {
+                    $search_person["is_reservation"] = 1;
+                    $search_person["room_type_id"]   = null;
+                    $search_person["room_id"]        = null;
+                } else {
+                    $search_person["is_reservation"] = '0';
+                    $search_person["room_id"]        = (int) $room_id;
+                    $room_index = array_search($room_id, array_map(function ($r) { return $r["room_id"]; }, $rooms_list));
+                    $search_person["room_type_id"]   = (int) $rooms_list[$room_index]['room_type_id'];
+                }
+
                 $persons_to_edit[] = $search_person;
             }
         }
+
         return $persons_to_edit;
     }
 
